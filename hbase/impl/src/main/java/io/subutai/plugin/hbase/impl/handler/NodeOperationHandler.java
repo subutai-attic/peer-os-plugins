@@ -136,6 +136,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
             {
                 trackerOperation.addLog( result.getStdOut() );
             }
+
+            node.execute( new RequestBuilder( "sleep 10" ) );
+
             trackerOperation.addLogDone( "Stop Regionserver command executed" );
         }
         catch ( CommandException e )
@@ -203,12 +206,12 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
                                                                               .withStdOutRedirection(
                                                                                       OutputRedirection.NO ) );
 
-            CommandResult result = executeCommand( node, Commands.getCheckInstalledCommand() );
+            CommandResult result = node.execute( Commands.getCheckInstalledCommand() );
             if ( !result.getStdOut().contains( Commands.PACKAGE_NAME ) )
             {
                 // install hbase to this node
                 executeCommand( node, Commands.getInstallCommand() );
-                CommandResult commandResult = executeCommand( node, Commands.getCheckInstalledCommand() );
+                CommandResult commandResult = node.execute( Commands.getCheckInstalledCommand() );
                 if ( !commandResult.getStdOut().contains( HBaseConfig.PRODUCT_NAME.toLowerCase() ) )
                 {
                     LOG.error( "HBase package cannot be installed on container." );
@@ -218,7 +221,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
                 }
             }
 
-            ClusterConfiguration clusterConfiguration = new ClusterConfiguration( trackerOperation, manager, manager.getHadoopManager() );
+            ClusterConfiguration clusterConfiguration =
+                    new ClusterConfiguration( trackerOperation, manager, manager.getHadoopManager() );
             clusterConfiguration.addnode( config, node, environment );
             config.getRegionServers().add( node.getId() );
 
@@ -228,6 +232,10 @@ public class NodeOperationHandler extends AbstractOperationHandler<HBaseImpl, HB
             trackerOperation.addLogDone( "New node is added successfully" );
         }
         catch ( ClusterException e )
+        {
+            e.printStackTrace();
+        }
+        catch ( CommandException e )
         {
             e.printStackTrace();
         }

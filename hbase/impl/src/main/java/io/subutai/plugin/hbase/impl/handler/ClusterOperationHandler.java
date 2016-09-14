@@ -207,7 +207,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
             }
 
             // stop hbase cluster before removing hbase debian package
-            manager.stopCluster( clusterName );
+            EnvironmentContainerHost master = environment.getContainerHostById( config.getHbaseMaster() );
+
+            master.execute( Commands.getStopCommand() );
 
             Set<Host> hostSet = HBaseSetupStrategy.getHosts( config, environment );
             CommandUtil.HostCommandResults results = commandUtil.execute( Commands.getUninstallCommand(),
@@ -239,6 +241,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
         {
             LOG.error( "Container host not found", e );
             trackerOperation.addLogFailed( "Container host not found" );
+        }
+        catch ( CommandException e )
+        {
+            e.printStackTrace();
         }
     }
 

@@ -180,7 +180,6 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             LOG.error( ex.toString() );
             po.addLogFailed( ex.toString() );
         }
-        LOG.info( "END OF RUN IN RH" );
     }
 
 

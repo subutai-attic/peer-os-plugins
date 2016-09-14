@@ -399,50 +399,40 @@ public class RestServiceImpl implements RestService
         HBaseConfig hBaseConfig = hbaseManager.getCluster( clusterName );
         HadoopClusterConfig hadoopConfig = hadoopManager.getCluster( hBaseConfig.getHadoopClusterName() );
 
-        Environment environment = null;
         try
         {
-            environment = environmentManager.loadEnvironment( hadoopConfig.getEnvironmentId() );
+            Environment environment = environmentManager.loadEnvironment( hadoopConfig.getEnvironmentId() );
+
+            Set<String> nodes = new HashSet<>( hadoopConfig.getAllNodes() );
+            nodes.removeAll( hBaseConfig.getAllNodes() );
+
+            if ( !nodes.isEmpty() )
+            {
+                Set<EnvironmentContainerHost> hosts;
+                try
+                {
+                    hosts = environmentManager.loadEnvironment( hadoopConfig.getEnvironmentId() )
+                                              .getContainerHostsByIds( nodes );
+
+                    for ( final EnvironmentContainerHost host : hosts )
+                    {
+                        hostsName.add( host.getHostname() );
+                    }
+                }
+                catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+            else
+            {
+                LOG.info( "All nodes in corresponding Hadoop cluster have Nutch installed" );
+            }
+
         }
         catch ( EnvironmentNotFoundException e )
         {
             LOG.error( "Error getting environment: ", e );
-        }
-
-        Set<EnvironmentContainerHost> set = null;
-
-        String hn = hBaseConfig.getHadoopClusterName();
-        if ( !Strings.isNullOrEmpty( hn ) )
-        {
-            try
-            {
-                set = environment.getContainerHostsByIds( Sets.newHashSet( hadoopConfig.getAllNodes() ) );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Container hosts not found by ids: " + hadoopConfig.getAllNodes().toString(), e );
-            }
-        }
-
-        try
-        {
-            set.remove( environment.getContainerHostById( hBaseConfig.getHbaseMaster() ) );
-        }
-        catch ( ContainerHostNotFoundException e )
-        {
-            LOG.error( "Container hosts not found by ids: " + hBaseConfig.getAllNodes().toString(), e );
-        }
-
-        Set<ContainerHost> chs = Sets.newHashSet();
-
-        for ( EnvironmentContainerHost environmentContainerHost : set )
-        {
-            chs.add( environmentContainerHost );
-        }
-
-        for ( final ContainerHost ch : chs )
-        {
-            hostsName.add( ch.getHostname() );
         }
 
         String hosts = JsonUtil.GSON.toJson( hostsName );

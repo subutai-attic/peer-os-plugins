@@ -120,7 +120,7 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
             }
             else {
                 for (var i = 0; i < vm.currentCluster.regionServers.length; ++i) {
-                    vm.nodes2Action.push(vm.currentCluster.regionServers[i].id);
+                    vm.nodes2Action.push(vm.currentCluster.regionServers[i].hostname);
                     vm.currentCluster.regionServers[i].checkbox = true;
                 }
                 vm.hbaseAll = true;
@@ -132,6 +132,7 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
     function startNodes() {
         if (vm.nodes2Action.length == 0) return;
         if (vm.currentCluster.clusterName === undefined) return;
+        LOADING_SCREEN();
         SweetAlert.swal({
             title: 'Success!',
             text: 'Your request is in progress. You will be notified shortly.',
@@ -140,9 +141,10 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
         });
         hbaseSrv.startNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
             SweetAlert.swal("Success!", "Your cluster slaves started successfully.", "success");
-            getClustersInfo(vm.currentCluster.clusterName);
             vm.nodes2Action = [];
             vm.hbaseAll = false;
+            getClustersInfo(vm.currentCluster.clusterName);
+            LOADING_SCREEN('none');
         }).error(function (error) {
             SweetAlert.swal("ERROR!", 'Cluster slaves start error: ' + error.replace(/\\n/g, ' '), "error");
         });
@@ -151,6 +153,7 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
     function stopNodes() {
         if (vm.nodes2Action.length == 0) return;
         if (vm.currentCluster.clusterName === undefined) return;
+        LOADING_SCREEN();
         SweetAlert.swal({
             title: 'Success!',
             text: 'Your request is in progress. You will be notified shortly.',
@@ -159,9 +162,10 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
         });
         hbaseSrv.stopNodes(vm.currentCluster.clusterName, JSON.stringify(vm.nodes2Action)).success(function (data) {
             SweetAlert.swal("Success!", "Your cluster slaves have stopped successfully.", "success");
-            getClustersInfo(vm.currentCluster.clusterName);
             vm.nodes2Action = [];
             vm.hbaseAll = false;
+            getClustersInfo(vm.currentCluster.clusterName);
+            LOADING_SCREEN('none');
         }).error(function (error) {
             SweetAlert.swal("ERROR!", 'Failed to stop cluster slaves error: ' + error.replace(/\\n/g, ' '), "error");
         });
@@ -181,6 +185,7 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
     function addNode(chosenNode) {
         if (chosenNode === undefined) return;
         if (vm.currentCluster.clusterName === undefined) return;
+        LOADING_SCREEN();
         SweetAlert.swal("Success!", "Adding node action started.", "success");
         ngDialog.closeAll();
         hbaseSrv.addNode(vm.currentCluster.clusterName, chosenNode).success(function (data) {
@@ -190,6 +195,7 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
                 "success"
             );
             getClustersInfo(vm.currentCluster.clusterName);
+            LOADING_SCREEN('none');
         }).error(function (error) {
             SweetAlert.swal("ERROR!", 'Adding node error: ' + error.replace(/\\n/g, ' '), "error");
         });
@@ -268,7 +274,7 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
         if (vm.currentCluster.clusterName === undefined) return;
         SweetAlert.swal({
                 title: "Are you sure?",
-                text: "Your will not be able to recover this node!",
+                text: "This operation removes the Hbase node from the cluster, and does not delete the container itself.",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#ff3f3c",
@@ -281,7 +287,7 @@ function HbaseCtrl($scope, hbaseSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
             function (isConfirm) {
                 if (isConfirm) {
                     hbaseSrv.deleteNode(vm.currentCluster.clusterName, nodeId).success(function (data) {
-                        SweetAlert.swal("Deleted!", "Node has been deleted. LOG: " + data.replace(/\\n/g, ' '), "success");
+                        SweetAlert.swal("Deleted!", "Node has been removed.", "success");
                         getClustersInfo(vm.currentCluster.clusterName);
                     }).error(function (error) {
                         SweetAlert.swal("ERROR!", 'Delete node error: ' + data.replace(/\\n/g, ' '), "error");

@@ -21,6 +21,7 @@ import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
+import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.plugincommon.api.NodeType;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
@@ -50,6 +51,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     private Monitor monitor;
     private QuotaManager quotaManager;
     private HBaseWebModule webModule;
+    private PeerManager peerManager;
 
 
     public HBaseImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
@@ -381,6 +383,18 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
                         master ? NodeType.MASTER_NODE : NodeType.HREGIONSERVER );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
+    }
+
+
+    public PeerManager getPeerManager()
+    {
+        return peerManager;
+    }
+
+
+    public void setPeerManager( final PeerManager peerManager )
+    {
+        this.peerManager = peerManager;
     }
 }
 

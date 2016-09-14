@@ -3,6 +3,7 @@ package io.subutai.plugin.hbase.impl;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,12 +13,18 @@ import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.host.HostId;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Host;
+import io.subutai.common.peer.HostNotFoundException;
+import io.subutai.common.peer.LocalPeer;
+import io.subutai.common.peer.PeerException;
+import io.subutai.common.peer.ResourceHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.metric.api.MonitorException;
+import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
 import io.subutai.core.plugincommon.api.ConfigBase;
@@ -47,7 +54,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         HBaseConfig config = ( HBaseConfig ) configBase;
 
         po.addLog( "Configuring Hbase cluster... !" );
-        ContainerHost hmasterContainerHost;
+        EnvironmentContainerHost hmasterContainerHost;
         try
         {
             hmasterContainerHost = environment.getContainerHostById( config.getHbaseMaster() );
@@ -56,7 +63,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             // configure all nodes
             for ( final EnvironmentContainerHost node : allNodes )
             {
-                configureNode( hmasterContainerHost, node, config );
+                configureNode( hmasterContainerHost, node );
             }
 
             // collecting slaves ip
@@ -76,6 +83,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             return;
         }
 
+        po.addLog( "Configuring reverse proxy for web console" );
+        configureReverseProxy( hmasterContainerHost, hmasterContainerHost.getHostname().toLowerCase() + ".hbase" );
 
         po.addLog( "Configuration is finished !" );
 
@@ -95,8 +104,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    private void configureNode( final ContainerHost hmasterContainerHost, final EnvironmentContainerHost node,
-                                final HBaseConfig config )
+    private void configureNode( final ContainerHost hmasterContainerHost, final EnvironmentContainerHost node )
     {
         String hmasterIp = hmasterContainerHost.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp();
 
@@ -126,8 +134,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         try
         {
             EnvironmentContainerHost master = environment.getContainerHostById( config.getHbaseMaster() );
-            master.execute( Commands.getRemoveRegionServerCommand(
-                    node.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ) );
+            master.execute( Commands.getRemoveRegionServerCommand( node.getHostname() ) );
             node.execute( Commands.getStopRegionServerCommand() );
         }
         catch ( CommandException e )
@@ -179,8 +186,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         try
         {
             EnvironmentContainerHost master = environment.getContainerHostById( config.getHbaseMaster() );
-            master.execute( Commands.getAddRegionServerCommand(
-                    node.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ) );
+            master.execute( Commands.getAddRegionServerCommand( node.getHostname() ) );
+            configureNode( master, node );
             node.execute( Commands.getStartRegionServerCommand() );
         }
         catch ( CommandException e )
@@ -192,6 +199,62 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             LOG.error( "Error getting container host by uuid: " + config.getHbaseMaster(), e );
             e.printStackTrace();
+        }
+    }
+
+
+    private void configureReverseProxy( final EnvironmentContainerHost hbaseMaster, final String domainName )
+    {
+        PeerManager peerManager = hBase.getPeerManager();
+        LocalPeer localPeer = peerManager.getLocalPeer();
+        String ipAddress = hbaseMaster.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp();
+
+        try
+        {
+            ResourceHost resourceHost = null;
+            try
+            {
+                resourceHost = localPeer.getResourceHostByContainerId( hbaseMaster.getContainerId().toString() );
+            }
+            catch ( HostNotFoundException e )
+            {
+                LOG.error( e.toString() );
+                HostId hid = null;
+                try
+                {
+                    hid = peerManager.getPeer( peerManager.getRemotePeerIdByIp( ipAddress ) )
+                                     .getResourceHostIdByContainerId( hbaseMaster.getContainerId() );
+                    resourceHost = ( ResourceHost ) hid;
+                }
+                catch ( PeerException ex )
+                {
+                    LOG.error( ex.toString() );
+                    po.addLogFailed( "NO HOST FOUND!!!" );
+                }
+            }
+            finally
+            {
+                if ( resourceHost == null )
+                {
+                    LOG.error( "No ResourceHost connected" );
+                    po.addLogFailed( "No ResourceHost connected" );
+                }
+            }
+
+            LOG.info( "resouceHostID: " + resourceHost );
+
+            String vlanString = UUID.randomUUID().toString();
+            resourceHost.execute( new RequestBuilder( String.format( "subutai proxy del %s -d", vlanString ) ) );
+            resourceHost.execute( new RequestBuilder(
+                    String.format( "subutai proxy add %s -d %s -f /mnt/lib/lxc/%s/rootfs/etc/nginx/ssl.pem", vlanString,
+                            domainName, hbaseMaster.getHostname() ) ) );
+            resourceHost.execute(
+                    new RequestBuilder( String.format( "subutai proxy add %s -h %s:16010", vlanString, ipAddress ) ) );
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error( ex.toString() );
+            po.addLogFailed( ex.toString() );
         }
     }
 }
