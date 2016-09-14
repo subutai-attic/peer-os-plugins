@@ -13,6 +13,8 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.plugincommon.api.ClusterSetupException;
@@ -51,7 +53,7 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
 
     private void configure() throws ClusterSetupException
     {
-        //install flume,
+        //install flume
         String s = Commands.make( CommandType.INSTALL );
         try
         {
@@ -59,8 +61,18 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
             {
                 try
                 {
-                    CommandResult result = node.execute( new RequestBuilder( s ).withTimeout( 600 ) );
-//                    checkInstalled( node, result );
+                    CommandResult result = node.execute( new RequestBuilder( s ).withTimeout( 2000 ) );
+                    checkInstalled( node, result );
+
+                    // configure node
+                    HadoopClusterConfig hadoopClusterConfig =
+                            manager.getHadoopManager().getCluster( config.getClusterName() );
+                    EnvironmentContainerHost namenode =
+                            environment.getContainerHostById( hadoopClusterConfig.getNameNode() );
+
+                    node.execute( Commands.getCreatePropertiesCommand() );
+                    node.execute( Commands.getConfigurePropertiesCommand(
+                            namenode.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ) );
                 }
                 catch ( CommandException e )
                 {
@@ -133,41 +145,41 @@ class FlumeSetupStrategy implements ClusterSetupStrategy
 
         po.addLog( "Checking prerequisites..." );
 
-//        RequestBuilder checkInstalledCommand = new RequestBuilder( Commands.make( CommandType.STATUS ) );
-//        for ( String nodeId : config.getNodes() )
-//        {
-//            ContainerHost node ;
-//            try
-//            {
-//                node = environment.getContainerHostById( nodeId );
-//            }
-//            catch ( ContainerHostNotFoundException e )
-//            {
-//                LOG.error( "Container host not found", e );
-//                po.addLogFailed( "Container host not found" );
-//                return;
-//            }
-//            try
-//            {
-//                node.execute( Commands.getAptUpdate() );
-//                CommandResult result = node.execute( checkInstalledCommand );
-//                if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
-//                {
-//                    po.addLog(
-//                            String.format( "Node %s already has Flume installed. Omitting this node from installation",
-//                                    node.getHostname() ) );
-//                    config.getNodes().remove( node.getId() );
-//                }
-//            }
-//            catch ( CommandException e )
-//            {
-//                throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
-//            }
-//        }
-//        if ( config.getNodes().isEmpty() )
-//        {
-//            throw new ClusterSetupException( "No nodes eligible for installation. Operation aborted" );
-//        }
+        RequestBuilder checkInstalledCommand = new RequestBuilder( Commands.make( CommandType.STATUS ) );
+        for ( String nodeId : config.getNodes() )
+        {
+            ContainerHost node;
+            try
+            {
+                node = environment.getContainerHostById( nodeId );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( "Container host not found", e );
+                po.addLogFailed( "Container host not found" );
+                return;
+            }
+            try
+            {
+                node.execute( Commands.getAptUpdate() );
+                CommandResult result = node.execute( checkInstalledCommand );
+                if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
+                {
+                    po.addLog(
+                            String.format( "Node %s already has Flume installed. Omitting this node from installation",
+                                    node.getHostname() ) );
+                    config.getNodes().remove( node.getId() );
+                }
+            }
+            catch ( CommandException e )
+            {
+                throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
+            }
+        }
+        if ( config.getNodes().isEmpty() )
+        {
+            throw new ClusterSetupException( "No nodes eligible for installation. Operation aborted" );
+        }
     }
 
 

@@ -10,7 +10,7 @@ import io.subutai.plugin.flume.api.FlumeConfig;
 public class Commands
 {
 
-    public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + FlumeConfig.PRODUCT_KEY.toLowerCase();
+    public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + "flume2";
 
 
     public static String make( CommandType type )
@@ -23,13 +23,10 @@ public class Commands
             case PURGE:
                 return "apt-get --force-yes --assume-yes " + type.toString().toLowerCase() + " " + PACKAGE_NAME;
             case START:
+                return "start-stop-daemon --start --background  --exec /opt/flume/bin/flume-ng -- agent -n "
+                        + "myagentname -c /opt/flume/conf/ -f /opt/flume/conf/flume.properties";
             case STOP:
-                String s = "service flume-ng " + type.toString().toLowerCase() + " agent";
-                if ( type == CommandType.START )
-                {
-                    s += " &"; // TODO:
-                }
-                return s;
+                return "kill `jps | grep \"Application\" | cut -d \" \" -f 1` ; sleep 5";
             case SERVICE_STATUS:
                 return "ps axu | grep [f]lume";
             default:
@@ -43,5 +40,19 @@ public class Commands
         return new RequestBuilder( "apt-get --force-yes --assume-yes update" ).withTimeout( 2000 )
                                                                               .withStdOutRedirection(
                                                                                       OutputRedirection.NO );
+    }
+
+
+    public static RequestBuilder getConfigurePropertiesCommand( final String ip )
+    {
+        return new RequestBuilder(
+                String.format( "sed -i -e \"s/hdfs:\\/\\/localhost/hdfs:\\/\\/%s/g\" /opt/flume/conf/flume.properties",
+                        ip ) );
+    }
+
+
+    public static RequestBuilder getCreatePropertiesCommand()
+    {
+        return new RequestBuilder( "cp /opt/flume/conf/hdfs.properties /opt/flume/conf/flume.properties" );
     }
 }

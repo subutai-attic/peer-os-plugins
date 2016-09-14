@@ -57,38 +57,8 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	function getHadoopClusterNodes(selectedCluster) {
 		LOADING_SCREEN();
 		flumeSrv.getHadoopClusters(selectedCluster).success(function (data) {
-			vm.currentClusterNodes = data.dataNodes;
-			var tempArray = [];
-
-			var nameNodeFound = false;
-			var jobTrackerFound = false;
-			var secondaryNameNodeFound = false;
-			for(var i = 0; i < vm.currentClusterNodes.length; i++) {
-				var node = vm.currentClusterNodes[i];
-				if(node.hostname === data.nameNode.hostname) nameNodeFound = true;
-				if(node.hostname === data.jobTracker.hostname) jobTrackerFound = true;
-				if(node.hostname === data.secondaryNameNode.hostname) secondaryNameNodeFound = true;
-			}
-			if(!nameNodeFound) {
-				tempArray.push(data.nameNode);
-			}
-			if(!jobTrackerFound) {
-				if(tempArray[0].hostname != data.jobTracker.hostname) {
-					tempArray.push(data.jobTracker);
-				}
-			}
-			if(!secondaryNameNodeFound) {
-				var checker = 0;
-				for(var i = 0; i < tempArray.length; i++) {
-					if(tempArray[i].hostname != data.secondaryNameNode.hostname) {
-						checker++;
-					}
-				}
-				if(checker == tempArray.length) {
-					tempArray.push(data.secondaryNameNode);
-				}
-			}
-			vm.currentClusterNodes = vm.currentClusterNodes.concat(tempArray);
+			vm.currentClusterNodes = data.slaves;
+			vm.currentClusterNodes.push(data.nameNode);
 
 			LOADING_SCREEN('none');
 			console.log(vm.currentClusterNodes);
