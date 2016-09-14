@@ -74,26 +74,30 @@ public class RestServiceImpl implements RestService
     public Response getCluster( final String clusterName )
     {
         FlumeConfig config = flumeManager.getCluster( clusterName );
+        Environment environment = null;
+        try
+        {
+            environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
 
         boolean thrownException = false;
-        if ( config == null )
-        {
-            thrownException = true;
-        }
 
 
         ClusterDto clusterDto = new ClusterDto( clusterName );
+        clusterDto.setEnvironmentId( environment.getId() );
 
         for ( String node : config.getNodes() )
         {
             try
             {
                 ContainerDto containerDto = new ContainerDto();
-
-                Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
                 EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
-				HostInterface hostInterface = containerHost.getInterfaceByName ("eth0");
-                String ip = hostInterface.getIp ();
+                HostInterface hostInterface = containerHost.getInterfaceByName( "eth0" );
+                String ip = hostInterface.getIp();
                 containerDto.setIp( ip );
                 containerDto.setId( node );
                 containerDto.setHostname( containerHost.getHostname() );
@@ -117,7 +121,6 @@ public class RestServiceImpl implements RestService
                 thrownException = true;
             }
         }
-
 
         if ( thrownException )
         {
@@ -461,9 +464,10 @@ public class RestServiceImpl implements RestService
         return Response.status( Response.Status.OK ).entity( projectInfo ).build();
     }
 
+
     @Override
     public Response getAngularConfig()
     {
-        return Response.ok (flumeManager.getWebModule().getAngularDependecyList()).build();
+        return Response.ok( flumeManager.getWebModule().getAngularDependecyList() ).build();
     }
 }
