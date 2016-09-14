@@ -96,6 +96,7 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	function startNodes() {
 		if(vm.nodes2Action.length == 0) return;
 		if(vm.currentCluster.clusterName === undefined) return;
+		LOADING_SCREEN();
 		SweetAlert.swal({
 			title : 'Success!',
 			text : 'Your request is in progress. You will be notified shortly.',
@@ -107,14 +108,17 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 			getClustersInfo(vm.currentCluster.clusterName);
 			vm.nodes2Action = [];
 			vm.flumeAll = false;
+			LOADING_SCREEN('none');
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Cluster start error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN('none');
 		});
 	}
 
 	function stopNodes() {
 		if(vm.nodes2Action.length == 0) return;
 		if(vm.currentCluster.clusterName === undefined) return;
+		LOADING_SCREEN();
 		SweetAlert.swal({
 			title : 'Success!',
 			text : 'Your request is in progress. You will be notified shortly.',
@@ -126,8 +130,10 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 			getClustersInfo(vm.currentCluster.clusterName);
 			vm.nodes2Action = [];
 			vm.flumeAll = false;
+			LOADING_SCREEN('none');
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Cluster stop error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN('none');
 		});
 	}
 
@@ -177,6 +183,7 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	function addNode(chosenNode) {
 		if(chosenNode === undefined) return;
 		if(vm.currentCluster.clusterName === undefined) return;
+		LOADING_SCREEN();
 		SweetAlert.swal("Success!", "Adding node action started.", "success");
 		ngDialog.closeAll();
 		flumeSrv.addNode(vm.currentCluster.clusterName, chosenNode).success(function (data) {
@@ -185,9 +192,11 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 				"Node has been added on cluster " + vm.currentCluster.clusterName + ".",
 				"success"
 			);
+			LOADING_SCREEN('none');
 			getClustersInfo(vm.currentCluster.clusterName);
 		}).error(function(error){
 			SweetAlert.swal("ERROR!", 'Adding node error: ' + error.replace(/\\n/g, ' '), "error");
+			LOADING_SCREEN('none');
 		});
 	}
 
@@ -242,7 +251,7 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		if(vm.currentCluster.clusterName === undefined) return;
 		SweetAlert.swal({
 			title: "Are you sure?",
-			text: "Your will not be able to recover this node!",
+			text: "This operation removes the Flume node from the cluster, and does not delete the container itself.",
 			type: "warning",
 			showCancelButton: true,
 			confirmButtonColor: "#ff3f3c",
@@ -255,7 +264,7 @@ function FlumeCtrl($scope, flumeSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		function (isConfirm) {
 			if (isConfirm) {
 				flumeSrv.deleteNode(vm.currentCluster.clusterName, nodeId).success(function (data) {
-					SweetAlert.swal("Deleted!", "Node has been deleted.", "success");
+					SweetAlert.swal("Deleted!", "Node has been removed.", "success");
 					getClustersInfo(vm.currentCluster.clusterName);
 				});
 			}
