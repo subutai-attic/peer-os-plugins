@@ -123,9 +123,10 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                     ResourceHost resourceHost =
                             manager.getPeerManager().getLocalPeer().getResourceHosts().iterator().next();
 
-                    Node nodeGroup = new Node( containerName, containerName, HadoopClusterConfig.TEMPLATE_NAME,
-                            ContainerSize.SMALL, resourceHost.getPeerId(), resourceHost.getId(),
-                            templateManager.getTemplateByName( HadoopClusterConfig.TEMPLATE_NAME ).getId() );
+                    Node nodeGroup =
+                            new Node( containerName, containerName, ContainerSize.SMALL, resourceHost.getPeerId(),
+                                    resourceHost.getId(),
+                                    templateManager.getTemplateByName( HadoopClusterConfig.TEMPLATE_NAME ).getId() );
 
                     nodeGroups.add( nodeGroup );
                 }
