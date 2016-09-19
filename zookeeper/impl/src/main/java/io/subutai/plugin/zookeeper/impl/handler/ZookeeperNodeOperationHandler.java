@@ -187,7 +187,7 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                 if ( envContainerHosts.isEmpty() )
                 {
                     Node nodeGroup = new Node( UUID.randomUUID().toString(), ZookeeperClusterConfig.PRODUCT_NAME,
-                            ZookeeperClusterConfig.TEMPLATE_NAME, ContainerSize.TINY, null, null,
+                            ContainerSize.TINY, null, null,
                             templateManager.getTemplateByName( ZookeeperClusterConfig.TEMPLATE_NAME ).getId() );
                     Topology topology = new Topology( environment.getName() );
                     /*Blueprint blueprint =

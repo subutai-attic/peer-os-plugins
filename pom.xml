@@ -39,7 +39,6 @@
     <awaitility.version>1.6.1</awaitility.version>
     <junit.version>4.11</junit.version>
     <servicemix.bundles.junit.version>4.10_1</servicemix.bundles.junit.version>
-    <jaxrs.version>2.7.12</jaxrs.version>
     <hadoop.version>2.0.4</hadoop.version>
     <org.apache.karaf.shell.version>3.0.2</org.apache.karaf.shell.version>
     <osgi.framework.version>5.0.0</osgi.framework.version>
