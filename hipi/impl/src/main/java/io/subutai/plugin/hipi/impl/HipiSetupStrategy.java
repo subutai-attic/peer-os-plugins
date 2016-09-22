@@ -144,8 +144,8 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
             {
                 RequestBuilder statusCommand =
                         new RequestBuilder( CommandFactory.build( NodeOperationType.CHECK_INSTALLATION ) );
-                CommandResult result = commandUtil.execute( statusCommand, node );
-                if ( result.getStdOut().contains( HipiConfig.PRODUCT_PACKAGE ) )
+                CommandResult result = node.execute( statusCommand );
+                if ( result.getStdOut().contains( CommandFactory.PRODUCT_PACKAGE ) )
                 {
                     trackerOperation.addLog(
                             String.format( "Node %s already has Hipi installed. Omitting this node from installation",
@@ -179,11 +179,11 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
         {
             try
             {
-                commandUtil.execute( CommandFactory.getAptUpdate(), node );
+                node.execute( CommandFactory.getAptUpdate() );
                 RequestBuilder installCommand =
-                        new RequestBuilder( CommandFactory.build( NodeOperationType.INSTALL ) ).withTimeout( 300 );
-                CommandResult result = commandUtil.execute( installCommand, node );
-//                checkInstalled( node, result );
+                        new RequestBuilder( CommandFactory.build( NodeOperationType.INSTALL ) ).withTimeout( 2000 );
+                CommandResult result = node.execute( installCommand );
+                checkInstalled( node, result );
             }
             catch ( CommandException e )
             {
@@ -210,16 +210,15 @@ public class HipiSetupStrategy implements ClusterSetupStrategy
         CommandResult statusResult;
         try
         {
-            statusResult = commandUtil
-                    .execute( new RequestBuilder( CommandFactory.build( NodeOperationType.CHECK_INSTALLATION ) ),
-                            host );
+            statusResult =
+                    host.execute( new RequestBuilder( CommandFactory.build( NodeOperationType.CHECK_INSTALLATION ) ) );
         }
         catch ( CommandException e )
         {
             throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
         }
 
-        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( HipiConfig.PRODUCT_PACKAGE ) ) )
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( CommandFactory.PRODUCT_PACKAGE ) ) )
         {
             trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),

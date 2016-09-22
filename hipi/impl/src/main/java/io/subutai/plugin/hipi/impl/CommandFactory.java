@@ -10,8 +10,9 @@ import io.subutai.plugin.hipi.api.HipiConfig;
 
 public class CommandFactory
 {
-    public static final String INSTALL = "apt-get --force-yes --assume-yes install " + HipiConfig.PRODUCT_PACKAGE;
-    public static final String UNINSTALL = "apt-get --force-yes --assume-yes purge " + HipiConfig.PRODUCT_PACKAGE;
+    public static final String PRODUCT_PACKAGE = Common.PACKAGE_PREFIX + "hipi2";
+    public static final String INSTALL = "apt-get -y --allow-unauthenticated install " + PRODUCT_PACKAGE;
+    public static final String UNINSTALL = "apt-get -y --allow-unauthenticated purge " + PRODUCT_PACKAGE;
     public static final String CHECK = "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH;
 
 

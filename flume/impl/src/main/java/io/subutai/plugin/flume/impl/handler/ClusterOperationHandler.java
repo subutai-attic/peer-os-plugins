@@ -103,6 +103,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<FlumeImpl,
             CommandResult result;
             try
             {
+                containerHost.execute( new RequestBuilder( Commands.make( CommandType.STOP ) ) );
                 result = containerHost.execute( new RequestBuilder( Commands.make( CommandType.PURGE ) ) );
                 if ( !result.hasSucceeded() )
                 {
