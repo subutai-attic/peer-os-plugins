@@ -27,7 +27,6 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
 {
     private Environment environment;
 
-
     public OverHadoopSetupStrategy( LuceneImpl manager, LuceneConfig config, TrackerOperation po,
                                     Environment environment )
     {
@@ -47,7 +46,6 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
 
     private void check() throws ClusterSetupException
     {
-
         if ( Strings.isNullOrEmpty( config.getHadoopClusterName() ) || CollectionUtil
                 .isCollectionEmpty( config.getNodes() ) )
         {
@@ -93,7 +91,7 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
         }
 
         trackerOperation.addLog( "Checking prerequisites..." );
-//        RequestBuilder checkInstalledCommand = new RequestBuilder( Commands.checkCommand );
+        RequestBuilder checkInstalledCommand = new RequestBuilder( Commands.checkCommand );
 
 
         for ( EnvironmentContainerHost node : nodes )
@@ -102,22 +100,14 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
             {
                 node.execute( new RequestBuilder( Commands.updateCommand ).withTimeout( 2000 ).withStdOutRedirection(
                         OutputRedirection.NO ) );
-//                CommandResult result = node.execute( checkInstalledCommand );
-//                if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
-//                {
-//                    trackerOperation.addLog(
-//                            String.format( "Node %s already has Lucene installed. Omitting this node from installation",
-//                                    node.getHostname() ) );
-//                    config.getNodes().remove( node.getId() );
-//                }
-//                else if ( !result.getStdOut()
-//                                 .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
-//                {
-//                    trackerOperation.addLog(
-//                            String.format( "Node %s has no Hadoop installation. Omitting this node from installation",
-//                                    node.getHostname() ) );
-//                    config.getNodes().remove( node.getId() );
-//                }
+                CommandResult result = node.execute( checkInstalledCommand );
+                if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
+                {
+                    trackerOperation.addLog(
+                            String.format( "Node %s already has Lucene installed. Omitting this node from installation",
+                                    node.getHostname() ) );
+                    config.getNodes().remove( node.getId() );
+                }
             }
             catch ( CommandException e )
             {
@@ -151,7 +141,7 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
             {
                 CommandResult result =
                         node.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 1000 ) );
-//                checkInstalled( node, result );
+                checkInstalled( node, result );
             }
             catch ( CommandException e )
             {
@@ -174,7 +164,6 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
 
     public void processResult( EnvironmentContainerHost host, CommandResult result ) throws ClusterSetupException
     {
-
         if ( !result.hasSucceeded() )
         {
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
@@ -195,7 +184,7 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
             throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
         }
 
-        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( LuceneConfig.PRODUCT_PACKAGE ) ) )
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( Commands.PACKAGE_NAME ) ) )
         {
             trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),

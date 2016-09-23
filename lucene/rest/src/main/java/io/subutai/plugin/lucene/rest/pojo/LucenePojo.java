@@ -4,15 +4,13 @@ package io.subutai.plugin.lucene.rest.pojo;
 import java.util.Set;
 
 
-/**
- * Created by ermek on 11/26/15.
- */
 public class LucenePojo
 {
     private String clusterName;
     private String hadoopClusterName;
     private String environmentId;
     private Set<ContainerPojo> nodes;
+
 
     public String getClusterName()
     {
