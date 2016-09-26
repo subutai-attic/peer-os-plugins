@@ -117,22 +117,22 @@ class NutchSetupStrategy implements ClusterSetupStrategy
             try
             {
                 commandUtil.execute( Commands.getAptUpdate(), node );
-//                CommandResult result = commandUtil.execute( commands.getCheckInstallationCommand(), node );
-//                if ( result.getStdOut().contains( NutchConfig.PRODUCT_PACKAGE ) )
-//                {
-//                    trackerOperation.addLog(
-//                            String.format( "Node %s already has Nutch installed. Omitting this node from installation",
-//                                    node.getHostname() ) );
-//                    config.getNodes().remove( node.getId() );
-//                }
-//                else if ( !result.getStdOut()
-//                                 .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
-//                {
-//                    trackerOperation.addLog(
-//                            String.format( "Node %s has no Hadoop installation. Omitting this node from installation",
-//                                    node.getHostname() ) );
-//                    config.getNodes().remove( node.getId() );
-//                }
+                CommandResult result = commandUtil.execute( commands.getCheckInstallationCommand(), node );
+                if ( result.getStdOut().contains( NutchConfig.PRODUCT_PACKAGE ) )
+                {
+                    trackerOperation.addLog(
+                            String.format( "Node %s already has Nutch installed. Omitting this node from installation",
+                                    node.getHostname() ) );
+                    config.getNodes().remove( node.getId() );
+                }
+                else if ( !result.getStdOut()
+                                 .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
+                {
+                    trackerOperation.addLog(
+                            String.format( "Node %s has no Hadoop installation. Omitting this node from installation",
+                                    node.getHostname() ) );
+                    config.getNodes().remove( node.getId() );
+                }
             }
             catch ( CommandException e )
             {
@@ -168,7 +168,7 @@ class NutchSetupStrategy implements ClusterSetupStrategy
             try
             {
                 CommandResult result = commandUtil.execute( commands.getInstallCommand(), node );
-//                checkInstalled( node, result );
+                checkInstalled( node, result );
             }
             catch ( CommandException e )
             {
