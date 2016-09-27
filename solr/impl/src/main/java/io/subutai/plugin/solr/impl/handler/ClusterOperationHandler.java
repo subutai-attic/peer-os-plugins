@@ -15,11 +15,13 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
 import io.subutai.core.plugincommon.api.ClusterSetupException;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
+import io.subutai.plugin.solr.impl.ClusterConfiguration;
 import io.subutai.plugin.solr.impl.Commands;
 import io.subutai.plugin.solr.impl.SolrImpl;
 
@@ -62,7 +64,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, 
     @Override
     public void setupCluster()
     {
-        trackerOperation.addLog( "Building environment..." );
+        trackerOperation.addLog( "Configuring cluster..." );
 
         try
         {
@@ -95,6 +97,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, 
         try
         {
             environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
+            ClusterConfiguration configuration = new ClusterConfiguration( manager, trackerOperation );
+            configuration.deleteConfiguration( config, environment );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -102,34 +106,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, 
             trackerOperation.addLogFailed( "Error getting environment" );
             return;
         }
-
-        Set<ContainerHost> clusterHosts = new HashSet<>();
-        Set<String> solrNodes = new HashSet<>( config.getNodes() );
-        for ( ContainerHost host : environment.getContainerHosts() )
+        catch ( ClusterConfigurationException e )
         {
-            if ( host.getTemplateName().equals( SolrClusterConfig.TEMPLATE_NAME ) && solrNodes
-                    .contains( host.getId() ) )
-            {
-                clusterHosts.add( host );
-            }
+            e.printStackTrace();
         }
 
 
-        for ( final ContainerHost containerHost : clusterHosts )
-        {
-            try
-            {
-                containerHost.execute( new RequestBuilder( Commands.stopCommand ).withTimeout( 30 ) );
-            }
-            catch ( CommandException e )
-            {
-                LOG.error( String.format( "Error executing %s command on host %s", Commands.stopCommand,
-                        containerHost.getHostname() ), e );
-                trackerOperation.addLogFailed(
-                        String.format( "Error executing %s command on host %s", Commands.stopCommand,
-                                containerHost.getHostname() ) );
-            }
-        }
         manager.getPluginDAO().deleteInfo( SolrClusterConfig.PRODUCT_KEY, config.getClusterName() );
         trackerOperation.addLogDone( "Cluster removed from database" );
     }

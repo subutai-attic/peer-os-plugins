@@ -31,8 +31,6 @@ class NutchSetupStrategy implements ClusterSetupStrategy
     private NutchImpl manager;
     private NutchConfig config;
     private TrackerOperation trackerOperation;
-    Commands commands = new Commands();
-    CommandUtil commandUtil = new CommandUtil();
 
 
     public NutchSetupStrategy( NutchImpl manager, NutchConfig config, TrackerOperation trackerOperation )
@@ -116,20 +114,12 @@ class NutchSetupStrategy implements ClusterSetupStrategy
         {
             try
             {
-                commandUtil.execute( Commands.getAptUpdate(), node );
-                CommandResult result = commandUtil.execute( commands.getCheckInstallationCommand(), node );
-                if ( result.getStdOut().contains( NutchConfig.PRODUCT_PACKAGE ) )
+                node.execute( Commands.getAptUpdate() );
+                CommandResult result = node.execute( Commands.getCheckInstallationCommand() );
+                if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
                 {
                     trackerOperation.addLog(
                             String.format( "Node %s already has Nutch installed. Omitting this node from installation",
-                                    node.getHostname() ) );
-                    config.getNodes().remove( node.getId() );
-                }
-                else if ( !result.getStdOut()
-                                 .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
-                {
-                    trackerOperation.addLog(
-                            String.format( "Node %s has no Hadoop installation. Omitting this node from installation",
                                     node.getHostname() ) );
                     config.getNodes().remove( node.getId() );
                 }
@@ -167,7 +157,7 @@ class NutchSetupStrategy implements ClusterSetupStrategy
         {
             try
             {
-                CommandResult result = commandUtil.execute( commands.getInstallCommand(), node );
+                CommandResult result = node.execute( Commands.getInstallCommand() );
                 checkInstalled( node, result );
             }
             catch ( CommandException e )
@@ -199,14 +189,14 @@ class NutchSetupStrategy implements ClusterSetupStrategy
         CommandResult statusResult;
         try
         {
-            statusResult = host.execute( commands.getCheckInstallationCommand() );
+            statusResult = host.execute( Commands.getCheckInstallationCommand() );
         }
         catch ( CommandException e )
         {
             throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
         }
 
-        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( NutchConfig.PRODUCT_PACKAGE ) ) )
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( Commands.PACKAGE_NAME ) ) )
         {
             trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),

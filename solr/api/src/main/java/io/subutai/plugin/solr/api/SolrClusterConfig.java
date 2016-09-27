@@ -20,7 +20,7 @@ public class SolrClusterConfig implements ConfigBase
 
     public static final String PRODUCT_KEY = "Solr";
     public static final String PRODUCT_NAME = "solr";
-    public static String TEMPLATE_NAME = PRODUCT_NAME;
+    public static String TEMPLATE_NAME = "Solr62";
     private String clusterName = "";
     private int numberOfNodes = 1;
     private Set<String> nodes = new HashSet<>();

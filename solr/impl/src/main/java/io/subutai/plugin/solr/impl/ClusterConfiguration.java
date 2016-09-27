@@ -1,4 +1,4 @@
-package io.subutai.plugin.zookeeper.impl;
+package io.subutai.plugin.solr.impl;
 
 
 import java.io.InputStream;
@@ -23,12 +23,9 @@ import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
-import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
+import io.subutai.plugin.solr.api.SolrClusterConfig;
 
 
-/**
- * Configures ZK cluster
- */
 public class ClusterConfiguration
 {
     private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class.getName() );
@@ -38,23 +35,20 @@ public class ClusterConfiguration
                     + "#server.1=zookeeper1:2888:3888\n" + "#server.2=zookeeper2:2888:3888\n"
                     + "#server.3=zookeeper3:2888:3888";
 
-    private ZookeeperImpl manager;
+    private SolrImpl manager;
     private TrackerOperation po;
 
 
-    public ClusterConfiguration( final ZookeeperImpl manager, final TrackerOperation po )
+    public ClusterConfiguration( final SolrImpl manager, final TrackerOperation po )
     {
         this.manager = manager;
         this.po = po;
     }
 
 
-    public void configureCluster( final ZookeeperClusterConfig config, Environment environment )
+    public void configureCluster( final SolrClusterConfig config, final Environment environment )
             throws ClusterConfigurationException
     {
-
-        po.addLog( "Configuring cluster..." );
-
         String configureClusterCommand;
         Set<String> nodeUUIDs = config.getNodes();
         Set<EnvironmentContainerHost> containerHosts;
@@ -69,7 +63,6 @@ public class ClusterConfiguration
         }
 
         int nodeNumber = 0;
-        List<CommandResult> commandsResultList = new ArrayList<>();
 
         for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
@@ -77,10 +70,8 @@ public class ClusterConfiguration
                     ConfigParams.CONFIG_FILE_PATH.getParamValue(), ++nodeNumber );
             try
             {
-                CommandResult commandResult;
-                commandResult =
-                        containerHost.execute( new RequestBuilder( configureClusterCommand ).withTimeout( 60 ) );
-                commandsResultList.add( commandResult );
+                containerHost.execute( new RequestBuilder( Commands.CREATE_CONFIG_FILE ) );
+                containerHost.execute( new RequestBuilder( configureClusterCommand ).withTimeout( 60 ) );
             }
             catch ( CommandException e )
             {
@@ -89,25 +80,7 @@ public class ClusterConfiguration
             }
         }
 
-        boolean isSuccesful = true;
-        for ( CommandResult aCommandsResultList : commandsResultList )
-        {
-            if ( !aCommandsResultList.hasSucceeded() )
-            {
-                isSuccesful = false;
-            }
-        }
-        if ( isSuccesful )
-        {
-            executeOnAllNodes( containerHosts, new RequestBuilder( Commands.getRestartCommand() ).withTimeout( 60 ) );
-            executeOnAllNodes( containerHosts,
-                    new RequestBuilder( Commands.getRestartZkServerCommand() ).withTimeout( 60 ) );
-        }
-        else
-        {
-
-            throw new ClusterConfigurationException( "Cluster configuration failed" );
-        }
+        executeOnAllNodes( containerHosts, Commands.getStartZkServerCommand() );
     }
 
 
@@ -117,7 +90,6 @@ public class ClusterConfiguration
         po.addLog( "Cluster configured\nRestarting cluster..." );
 
         //restart all other nodes with new configuration
-
         removeSnaps( containerHosts );
 
         for ( final EnvironmentContainerHost containerHost : containerHosts )
@@ -128,7 +100,7 @@ public class ClusterConfiguration
             }
             catch ( CommandException e )
             {
-                po.addLogFailed( "Could not restart node:" + containerHost.getHostname() + ": " + e );
+                po.addLogFailed( "Could not start node:" + containerHost.getHostname() + ": " + e );
                 LOG.error( "Could not restart node:" + containerHost.getHostname() + ": " + e );
             }
         }
@@ -143,7 +115,7 @@ public class ClusterConfiguration
         {
             try
             {
-                containerHost.execute( new RequestBuilder( Commands.getRemoveSnapsCommand() ).withTimeout( 60 ) );
+                containerHost.execute( new RequestBuilder( Commands.REMOVE_SNAPS_COMMAND ).withTimeout( 60 ) );
             }
             catch ( CommandException e )
             {
@@ -154,14 +126,13 @@ public class ClusterConfiguration
     }
 
 
-    //temporary workaround until we get full configuration injection working
     private String prepareConfiguration( Set<EnvironmentContainerHost> nodes ) throws ClusterConfigurationException
     {
         String zooCfgFile = "";
 
         try
         {
-            URL url = ZookeeperStandaloneSetupStrategy.class.getProtectionDomain().getCodeSource().getLocation();
+            URL url = SolrSetupStrategy.class.getProtectionDomain().getCodeSource().getLocation();
 
             URLClassLoader loader =
                     new URLClassLoader( new URL[] { url }, Thread.currentThread().getContextClassLoader() );
@@ -193,18 +164,49 @@ public class ClusterConfiguration
 
         zooCfgFile = zooCfgFile.replace( "$" + ConfigParams.SERVERS.getPlaceHolder(), serversBuilder.toString() );
 
-
         return zooCfgFile;
     }
 
 
-    public void deleteConfiguration( final ZookeeperClusterConfig zookeeperClusterConfig,
-                                     final Environment environment ) throws ClusterConfigurationException
+    private List<CommandResult> getFailedCommandResults( final List<CommandResult> commandResultList )
+    {
+        List<CommandResult> failedCommands = new ArrayList<>();
+        for ( CommandResult commandResult : commandResultList )
+        {
+            if ( !commandResult.hasSucceeded() )
+            {
+                failedCommands.add( commandResult );
+            }
+        }
+        return failedCommands;
+    }
+
+
+    public String collectHostnames( final Set<EnvironmentContainerHost> nodes )
+    {
+        StringBuilder sb = new StringBuilder();
+
+        for ( final EnvironmentContainerHost node : nodes )
+        {
+            sb.append( node.getHostname() ).append( ":2181" ).append( "," );
+        }
+
+        if ( !sb.toString().isEmpty() )
+        {
+            sb.replace( sb.toString().length() - 1, sb.toString().length(), "" );
+        }
+
+        return sb.toString();
+    }
+
+
+    public void deleteConfiguration( final SolrClusterConfig solrClusterConfig, final Environment environment )
+            throws ClusterConfigurationException
     {
         Set<EnvironmentContainerHost> containerHosts;
         try
         {
-            containerHosts = environment.getContainerHostsByIds( zookeeperClusterConfig.getNodes() );
+            containerHosts = environment.getContainerHostsByIds( solrClusterConfig.getNodes() );
 
             for ( final EnvironmentContainerHost containerHost : containerHosts )
             {
@@ -212,6 +214,10 @@ public class ClusterConfiguration
                         ConfigParams.CONFIG_FILE_PATH.getParamValue() );
                 try
                 {
+                    containerHost.execute( Commands.getStopSolrCommand( collectHostnames( containerHosts ),
+                            containerHost.getHostname() ) );
+                    containerHost.execute( Commands.getStopZkServerCommand() );
+
                     containerHost.execute( new RequestBuilder( configureClusterCommand ).withTimeout( 60 ) );
                 }
                 catch ( CommandException e )
@@ -223,34 +229,12 @@ public class ClusterConfiguration
 
             removeSnaps( containerHosts );
 
-            executeOnAllNodes( containerHosts, new RequestBuilder( Commands.getRestartCommand() ).withTimeout( 60 ) );
-            executeOnAllNodes( containerHosts,
-                    new RequestBuilder( Commands.getRestartZkServerCommand() ).withTimeout( 60 ) );
+            executeOnAllNodes( containerHosts, Commands.getRestartZkServerCommand() );
         }
         catch ( ContainerHostNotFoundException e )
         {
             po.addLogFailed( "Error getting container hosts by ids" );
             LOG.error( "Error getting container hosts by ids", e );
-        }
-    }
-
-
-    public void removeNode( final ContainerHost host )
-    {
-        String configureClusterCommand = Commands.getResetClusterConfigurationCommand( DEFAULT_CONFIGURATION,
-                ConfigParams.CONFIG_FILE_PATH.getParamValue() );
-
-        try
-        {
-            host.execute( new RequestBuilder( configureClusterCommand ).withTimeout( 60 ) );
-            host.execute( new RequestBuilder( Commands.getRemoveSnapsCommand() ).withTimeout( 60 ) );
-            host.execute( new RequestBuilder( Commands.getRestartCommand() ).withTimeout( 60 ) );
-            host.execute( new RequestBuilder( Commands.getRestartZkServerCommand() ).withTimeout( 60 ) );
-        }
-        catch ( CommandException e )
-        {
-            po.addLogFailed( "Could not run command: " + e );
-            LOG.error( "Could not run command: " + e );
         }
     }
 }

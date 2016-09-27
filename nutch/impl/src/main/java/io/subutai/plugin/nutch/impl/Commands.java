@@ -11,7 +11,7 @@ public class Commands
 {
     public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + "nutch2";
 
-    public RequestBuilder getInstallCommand()
+    public static RequestBuilder getInstallCommand()
     {
         return new RequestBuilder(
                 String.format( "apt-get --force-yes --assume-yes install %s", PACKAGE_NAME ) )
@@ -19,7 +19,7 @@ public class Commands
     }
 
 
-    public RequestBuilder getUninstallCommand()
+    public static RequestBuilder getUninstallCommand()
     {
         return new RequestBuilder(
                 String.format( "apt-get --force-yes --assume-yes purge %s", PACKAGE_NAME ) )
@@ -27,7 +27,7 @@ public class Commands
     }
 
 
-    public RequestBuilder getCheckInstallationCommand()
+    public static RequestBuilder getCheckInstallationCommand()
     {
         return new RequestBuilder( String.format( "dpkg -l | grep '^ii' | grep %s", Common.PACKAGE_PREFIX ) );
     }

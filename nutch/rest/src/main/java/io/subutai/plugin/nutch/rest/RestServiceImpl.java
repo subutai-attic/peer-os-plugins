@@ -226,7 +226,7 @@ public class RestServiceImpl implements RestService
             {
                 break;
             }
-            if ( System.currentTimeMillis() - start > ( 200 * 1000 ) )
+            if ( System.currentTimeMillis() - start > ( 200 * 100000 ) )
             {
                 break;
             }

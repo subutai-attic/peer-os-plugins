@@ -26,8 +26,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<NutchImpl,
 {
     private ClusterOperationType operationType;
     private NutchConfig config;
-    Commands commands = new Commands();
-    CommandUtil commandUtil = new CommandUtil();
 
 
     public ClusterOperationHandler( final NutchImpl manager, final NutchConfig config,
@@ -97,7 +95,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<NutchImpl,
         {
             try
             {
-                commandUtil.execute( commands.getUninstallCommand(), node );
+                node.execute( Commands.getUninstallCommand() );
             }
             catch ( CommandException e )
             {
