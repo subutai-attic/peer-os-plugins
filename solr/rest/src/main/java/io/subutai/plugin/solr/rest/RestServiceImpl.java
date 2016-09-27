@@ -84,6 +84,7 @@ public class RestServiceImpl implements RestService
 
 
         ClusterDto clusterDto = new ClusterDto( clusterName );
+        clusterDto.setEnvironmentId( config.getEnvironmentId() );
 
         for ( String node : config.getNodes() )
         {

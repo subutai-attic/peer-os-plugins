@@ -9,6 +9,7 @@ public class ClusterDto
 {
     private String name;
     private List<ContainerDto> containers;
+    private String environmentId;
 
 
     public ClusterDto( final String name )
@@ -44,5 +45,17 @@ public class ClusterDto
     public void setContainers( final List<ContainerDto> containers )
     {
         this.containers = containers;
+    }
+
+
+    public String getEnvironmentId()
+    {
+        return environmentId;
+    }
+
+
+    public void setEnvironmentId( final String environmentId )
+    {
+        this.environmentId = environmentId;
     }
 }

@@ -5,9 +5,6 @@ import java.io.Serializable;
 import java.util.Set;
 
 
-/**
- * Created by ermek on 11/26/15.
- */
 public class NutchPojo implements Serializable
 {
     private String clusterName;
