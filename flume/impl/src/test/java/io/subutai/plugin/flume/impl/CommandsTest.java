@@ -31,7 +31,7 @@ public class CommandsTest
         Commands.make( CommandType.PURGE );
 
         // assertions
-        assertEquals( "apt-get --force-yes --assume-yes purge subutai-flume", Commands.make( CommandType.PURGE ) );
+        assertEquals( "apt-get --force-yes --assume-yes purge subutai-flume2", Commands.make( CommandType.PURGE ) );
     }
 
 
@@ -41,7 +41,7 @@ public class CommandsTest
         Commands.make( CommandType.STOP );
 
         // assertions
-        assertEquals( "service flume-ng stop agent", Commands.make( CommandType.STOP ) );
+        assertEquals( "kill `jps | grep \"Application\" | cut -d \" \" -f 1` ; sleep 5", Commands.make( CommandType.STOP ) );
     }
 
 
@@ -51,7 +51,7 @@ public class CommandsTest
         Commands.make( CommandType.START );
 
         // assertions
-        assertEquals( "service flume-ng start agent &", Commands.make( CommandType.START ) );
+        assertEquals( "start-stop-daemon --start --background  --exec /opt/flume/bin/flume-ng -- agent -n myagentname -c /opt/flume/conf/ -f /opt/flume/conf/flume.properties", Commands.make( CommandType.START ) );
     }
 
 
