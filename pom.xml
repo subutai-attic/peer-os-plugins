@@ -225,5 +225,6 @@
     <module>storm</module>
     <module>appscale</module>
     <module>usergrid</module>
+    <module>accumulo</module>
   </modules>
 </project>
