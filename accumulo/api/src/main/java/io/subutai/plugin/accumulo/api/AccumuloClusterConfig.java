@@ -15,6 +15,7 @@ public class AccumuloClusterConfig implements ConfigBase
     private String master;
     private Set<String> slaves = new HashSet<>();
     private String environmentId;
+    private String password;
 
 
     @Override
@@ -104,5 +105,17 @@ public class AccumuloClusterConfig implements ConfigBase
             allNodes.add( master );
         }
         return allNodes;
+    }
+
+
+    public String getPassword()
+    {
+        return password;
+    }
+
+
+    public void setPassword( final String password )
+    {
+        this.password = password;
     }
 }

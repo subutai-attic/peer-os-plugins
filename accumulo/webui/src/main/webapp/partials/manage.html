@@ -26,7 +26,7 @@
 					</span>
         </a>
 
-        <a href="http://{{accumuloCtrl.currentCluster.server.hostname}}.spark"
+        <a href="http://{{accumuloCtrl.currentCluster.master.hostname}}.spark"
            target="_blank" class="b-btn b-btn_blue b-btn_margin-r">
           Console
         </a>
@@ -48,38 +48,38 @@
           <th></th>
           <th>SSH</th>
         </tr>
-        <td colspan="4" class="b-main-table__empty-item" ng-if="accumuloCtrl.currentCluster.server === undefined">
+        <td colspan="4" class="b-main-table__empty-item" ng-if="accumuloCtrl.currentCluster.master === undefined">
           No data available in table
         </td>
-        <tr ng-if="accumuloCtrl.currentCluster.server">
-          <td>{{ accumuloCtrl.currentCluster.server.hostname }}</td>
-          <td>{{ accumuloCtrl.currentCluster.server.ip }}</td>
+        <tr ng-if="accumuloCtrl.currentCluster.master">
+          <td>{{ accumuloCtrl.currentCluster.master.hostname }}</td>
+          <td>{{ accumuloCtrl.currentCluster.master.ip }}</td>
           <td class="b-main-table__container-status">
             <div
                 tooltips
-                tooltip-title="{{ accumuloCtrl.currentCluster.server.status }}"
-                class="b-status-icon b-status-icon_{{ accumuloCtrl.currentCluster.server.status }}"
+                tooltip-title="{{ accumuloCtrl.currentCluster.master.status }}"
+                class="b-status-icon b-status-icon_{{ accumuloCtrl.currentCluster.master.status }}"
             >
             </div>
           </td>
           <td class="b-main-table__empty-item">
-            <button ng-show="accumuloCtrl.currentCluster.server.status == 'RUNNING'"
+            <button ng-show="accumuloCtrl.currentCluster.master.status == 'RUNNING'"
                     class="b-btn b-btn_red subt_button__container-stop"
                     ng-click="accumuloCtrl.stopMaster()">
               Stop
             </button>
-            <button ng-show="accumuloCtrl.currentCluster.server.status == 'STOPPED'"
+            <button ng-show="accumuloCtrl.currentCluster.master.status == 'STOPPED'"
                     class="b-btn b-btn_green subt_button__container-start"
                     ng-click="accumuloCtrl.startMaster()">
               Start
             </button>
 						<span class="b-load-icon" title="{{ accumuloCtrl.currentCluster.nameNode.state }}"
-                  ng-show="accumuloCtrl.currentCluster.server.status != 'STOPPED' && accumuloCtrl.currentCluster.server.status != 'RUNNING'">
+                  ng-show="accumuloCtrl.currentCluster.master.status != 'STOPPED' && accumuloCtrl.currentCluster.master.status != 'RUNNING'">
 						</span>
           </td>
           <td>
             <div env-id="{{ accumuloCtrl.currentCluster.environmentId }}"
-                 container-id="{{ accumuloCtrl.currentCluster.server.uuid }}">
+                 container-id="{{ accumuloCtrl.currentCluster.master.uuid }}">
               <!--<div ng-if="container.dataSource === 'hub'">-->
               <button class="b-btn b-btn_blue ez-ssh-btn" disabled>
                 <div class="ssh-key-button_block">
@@ -142,7 +142,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="clusterNode in accumuloCtrl.currentCluster.clients">
+        <tr ng-repeat="clusterNode in accumuloCtrl.currentCluster.slaves">
           <td class="b-main-table__edit-icon">
             <input type="checkbox" ng-model="clusterNode.checkbox" ng-click="accumuloCtrl.pushNode(clusterNode.uuid)"
                    name="accumuloChk">

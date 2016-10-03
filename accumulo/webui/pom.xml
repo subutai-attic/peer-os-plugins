@@ -12,7 +12,7 @@
   <artifactId>accumulo-plugin-webui</artifactId>
   <packaging>war</packaging>
   <name>Subutai Accumulo Plugin Web UI</name>
-  <description>Subutai Accumulo Web UI</description>
+  <description>Subutai Accumulo Plugin Web UI</description>
 
   <build>
     <plugins>

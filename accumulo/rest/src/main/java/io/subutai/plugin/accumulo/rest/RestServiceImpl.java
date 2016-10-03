@@ -3,15 +3,33 @@ package io.subutai.plugin.accumulo.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 
 import javax.ws.rs.FormParam;
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+import com.google.gson.reflect.TypeToken;
+
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.settings.Common;
+import io.subutai.common.tracker.OperationState;
+import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.accumulo.api.Accumulo;
+import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
+import io.subutai.plugin.accumulo.rest.pojo.ClusterDto;
+import io.subutai.plugin.accumulo.rest.pojo.ContainerDto;
 import io.subutai.plugin.accumulo.rest.pojo.VersionDto;
 import io.subutai.plugin.hadoop.api.Hadoop;
 
@@ -37,29 +55,66 @@ public class RestServiceImpl implements RestService
     @Override
     public Response listClusters()
     {
-        return null;
+        List<AccumuloClusterConfig> configs = accumuloManager.getClusters();
+        Set<String> clusterNames = Sets.newHashSet();
+
+        for ( AccumuloClusterConfig config : configs )
+        {
+            clusterNames.add( config.getClusterName() );
+        }
+
+        String clusters = JsonUtil.GSON.toJson( clusterNames );
+        return Response.status( Response.Status.OK ).entity( clusters ).build();
     }
 
 
     @Override
     public Response getCluster( final String clusterName )
     {
-        return null;
+        AccumuloClusterConfig config = accumuloManager.getCluster( clusterName );
+
+        String cluster = JsonUtil.GSON.toJson( parsePojo( config ) );
+        return Response.status( Response.Status.OK ).entity( cluster ).build();
     }
 
 
     @Override
     public Response installCluster( final String clusterName, final String hadoopClusterName, final String master,
-                                    final String slaves )
+                                    final String slaves, final String pwd )
     {
-        return null;
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( hadoopClusterName );
+        Preconditions.checkNotNull( master );
+        Preconditions.checkNotNull( slaves );
+
+        AccumuloClusterConfig config = new AccumuloClusterConfig();
+        config.setClusterName( clusterName );
+        config.setHadoopClusterName( hadoopClusterName );
+        config.setMaster( master );
+        config.setPassword( pwd );
+
+        config.setSlaves( ( Set<String> ) JsonUtil.fromJson( slaves, new TypeToken<Set<String>>()
+        {
+        }.getType() ) );
+
+        UUID uuid = accumuloManager.installCluster( config );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
     public Response uninstallCluster( final String clusterName )
     {
-        return null;
+        Preconditions.checkNotNull( clusterName );
+        if ( accumuloManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = accumuloManager.uninstallCluster( clusterName );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
@@ -162,5 +217,96 @@ public class RestServiceImpl implements RestService
         String projectInfo = JsonUtil.GSON.toJson( pojo );
 
         return Response.status( Response.Status.OK ).entity( projectInfo ).build();
+    }
+
+
+    private OperationState waitUntilOperationFinish( UUID uuid )
+    {
+        OperationState state = null;
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( AccumuloClusterConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    state = po.getState();
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 200 * 100000 ) )
+            {
+                break;
+            }
+        }
+        return state;
+    }
+
+
+    private Response createResponse( UUID uuid, OperationState state )
+    {
+        TrackerOperationView po = tracker.getTrackerOperation( AccumuloClusterConfig.PRODUCT_KEY, uuid );
+        if ( state == OperationState.FAILED )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR )
+                           .entity( JsonUtil.GSON.toJson( po.getLog() ) ).build();
+        }
+        else if ( state == OperationState.SUCCEEDED )
+        {
+            return Response.status( Response.Status.OK ).entity( JsonUtil.GSON.toJson( po.getLog() ) ).build();
+        }
+        else
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( JsonUtil.GSON.toJson( "Timeout" ) )
+                           .build();
+        }
+    }
+
+
+    private ClusterDto parsePojo( AccumuloClusterConfig config )
+    {
+        ClusterDto pojo = new ClusterDto();
+        Set<ContainerDto> containerPojoSet = Sets.newHashSet();
+        try
+        {
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+
+
+            for ( final String uuid : config.getSlaves() )
+            {
+                ContainerHost ch = environment.getContainerHostById( uuid );
+                UUID dataUUID = hadoopManager.statusDataNode( config.getClusterName(), ch.getHostname() );
+                containerPojoSet.add( new ContainerDto( uuid, ch.getHostname(),
+                        ch.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ) );
+            }
+
+            pojo.setSlaves( containerPojoSet );
+
+            ContainerHost master = environment.getContainerHostById( config.getMaster() );
+            ContainerDto masterPojo = new ContainerDto( config.getMaster(), master.getHostname(),
+                    master.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() );
+            pojo.setMaster( masterPojo );
+
+
+            String envDataSource = environment.toString().contains( "ProxyEnvironment" ) ? "hub" : "subutai";
+            pojo.setEnvironmentDataSource( envDataSource );
+            pojo.setClusterName( config.getClusterName() );
+            pojo.setEnvironmentId( config.getEnvironmentId() );
+        }
+        catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+
+        return pojo;
     }
 }

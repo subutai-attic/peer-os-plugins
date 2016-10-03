@@ -61,8 +61,9 @@ function accumuloSrv($http, hadoopSrv) {
 	function createAccumulo(accumuloObj) {
 		var postData = 'clusterName=' + accumuloObj.clusterName 
 			+ '&hadoopClusterName=' + accumuloObj.hadoopClusterName 
-			+ '&master=' + accumuloObj.server 
-			+ "&slaves=" + JSON.stringify (accumuloObj.nodes);
+			+ '&master=' + accumuloObj.master 
+			+ "&slaves=" + JSON.stringify (accumuloObj.nodes)
+			+ '&pwd=' + accumuloObj.password;
 		return $http.post(
 			BASE_URL,
 			postData, 

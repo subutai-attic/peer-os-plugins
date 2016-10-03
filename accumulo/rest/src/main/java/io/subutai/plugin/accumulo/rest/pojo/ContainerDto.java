@@ -9,6 +9,14 @@ public class ContainerDto
     private String hostname;
 
 
+    public ContainerDto( final String uuid, final String hostname, final String ip )
+    {
+        this.id = uuid;
+        this.hostname = hostname;
+        this.ip = ip;
+    }
+
+
     public String getId()
     {
         return id;

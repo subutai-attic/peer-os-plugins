@@ -10,8 +10,9 @@ function AccumuloCtrl($scope, accumuloSrv, SweetAlert, DTOptionsBuilder, DTColum
     var vm = this;
     vm.activeTab = 'install';
     vm.accumuloAll = false;
-    vm.clients = [];
+    vm.slaves = [];
     vm.accumuloInstall = {};
+    vm.confirmPassword = "";
     vm.clusters = [];
     vm.hadoopClusters = [];
     vm.currentClusterNodes = [];
@@ -65,25 +66,25 @@ function AccumuloCtrl($scope, accumuloSrv, SweetAlert, DTOptionsBuilder, DTColum
             vm.accumuloAll = false;
         } else {
             vm.nodes2Action.push(id);
-            if (vm.nodes2Action.length === vm.currentCluster.clients.length) {
+            if (vm.nodes2Action.length === vm.currentCluster.slaves.length) {
                 vm.accumuloAll = true;
             }
         }
     }
 
     function pushAll() {
-        if (vm.currentCluster.clients !== undefined) {
-            if (vm.nodes2Action.length === vm.currentCluster.clients.length) {
+        if (vm.currentCluster.slaves !== undefined) {
+            if (vm.nodes2Action.length === vm.currentCluster.slaves.length) {
                 vm.nodes2Action = [];
                 vm.accumuloAll = false;
-                for (var i = 0; i < vm.currentCluster.clients.length; ++i) {
-                    vm.currentCluster.clients[i].checkbox = false;
+                for (var i = 0; i < vm.currentCluster.slaves.length; ++i) {
+                    vm.currentCluster.slaves[i].checkbox = false;
                 }
             }
             else {
-                for (var i = 0; i < vm.currentCluster.clients.length; ++i) {
-                    vm.nodes2Action.push(vm.currentCluster.clients[i].uuid);
-                    vm.currentCluster.clients[i].checkbox = true;
+                for (var i = 0; i < vm.currentCluster.slaves.length; ++i) {
+                    vm.nodes2Action.push(vm.currentCluster.slaves[i].uuid);
+                    vm.currentCluster.slaves[i].checkbox = true;
                 }
                 vm.accumuloAll = true;
             }
@@ -147,8 +148,8 @@ function AccumuloCtrl($scope, accumuloSrv, SweetAlert, DTOptionsBuilder, DTColum
         LOADING_SCREEN();
         accumuloSrv.getClusters(selectedCluster).success(function (data) {
             vm.currentCluster = data;
-            for (var i = 0; i < vm.currentCluster.clients.length; ++i) {
-                vm.currentCluster.clients[i].checkbox = false;
+            for (var i = 0; i < vm.currentCluster.slaves.length; ++i) {
+                vm.currentCluster.slaves[i].checkbox = false;
             }
             LOADING_SCREEN('none');
         });

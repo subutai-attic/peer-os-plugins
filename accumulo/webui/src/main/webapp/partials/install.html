@@ -1,4 +1,4 @@
-<form ng-submit="accumuloCtrl.createAccumulo()">
+<form name="installationForm" ng-submit="accumuloCtrl.createAccumulo()">
   <div class="b-workspace-content b-workspace-content_border">
     <div class="b-workspace-content__row">
       <div class="b-workspace-content-row_col-2 b-workspace-content-row_col-2_padding-right">
@@ -34,8 +34,8 @@
 
             <div class="b-form-wrapper b-form-wrapper_margin-size-1">
               <select class="b-form-input b-form-input_full"
-                      ng-model="accumuloCtrl.accumuloInstall.server"
-                      ng-change="accumuloCtrl.changeDirective(accumuloCtrl.accumuloInstall.server)">
+                      ng-model="accumuloCtrl.accumuloInstall.master"
+                      ng-change="accumuloCtrl.changeDirective(accumuloCtrl.accumuloInstall.master)">
                 <option value="{{ accumuloCtrl.master.uuid }}">
                   {{ accumuloCtrl.master.hostname }}
                 </option>
@@ -43,6 +43,37 @@
             </div>
             <div class="clear"></div>
           </div>
+
+          <div class="b-form__wrapper b-form__wrapper_margin-bottom">
+            <label class="b-form-label b-form-label_fix-size-1 g-left">Password</label>
+            <div class="b-form-wrapper b-form-wrapper_margin-size-1">
+              <input type="password"
+                     class="b-form-input b-form-input_full"
+                     ng-model="accumuloCtrl.accumuloInstall.password"
+                     name="pwd"
+                     ng-minlength="6"
+                     id="user-password"
+                     required>
+              <div role="alert">
+            <span class="error" ng-show="installationForm.pwd.$error.minlength">
+            Password must be at least 6 characters long!</span>
+              </div>
+            </div>
+            <div class="clear"></div>
+          </div>
+
+          <div class="b-form__wrapper b-form__wrapper_margin-bottom">
+            <label class="b-form-label b-form-label_fix-size-1 g-left">Confirm Password</label>
+            <div class="b-form-wrapper b-form-wrapper_margin-size-1">
+              <input type="password"
+                     class="b-form-input b-form-input_full"
+                     ng-model="accumuloCtrl.confirmPassword"
+                     id="user-password-confirm"
+                     required>
+            </div>
+            <div class="clear"></div>
+          </div>
+
         </div>
       </div>
     </div>

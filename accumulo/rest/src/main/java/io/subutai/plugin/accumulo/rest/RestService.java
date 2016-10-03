@@ -32,7 +32,7 @@ public interface RestService
     @Produces( { MediaType.TEXT_PLAIN } )
     Response installCluster( @FormParam( "clusterName" ) String clusterName,
                              @FormParam( "hadoopClusterName" ) String hadoopClusterName,
-                             @FormParam( "master" ) String master, @FormParam( "slaves" ) String slaves );
+                             @FormParam( "master" ) String master, @FormParam( "slaves" ) String slaves, @FormParam( "pwd" ) String pwd );
 
     //destroy cluster
     @DELETE

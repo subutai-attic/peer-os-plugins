@@ -10,8 +10,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>accumulo-plugin-cli</artifactId>
-  <name>Subutai Accumulo Plugin CLI</name>
-  <description>Subutai Accumulo Plugin CLI</description>
+  <name>Subutai Accumulo CLI</name>
+  <description>Subutai Accumulo CLI</description>
   <packaging>bundle</packaging>
 
   <build>

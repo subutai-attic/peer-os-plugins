@@ -1,4 +1,4 @@
-Package: accumulo-plugin-kar
+Source: accumulo-subutai-plugin
 Section: devel
 Priority: optional
 Maintainer: Subutai
@@ -7,6 +7,6 @@ Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
 Homepage: http://www.safehaus.org
 Version: [[project.version]]
-Package: accumulo-plugin-kar
+Package: accumulo-subutai-plugin
 Architecture: all
 Description: This package contains kar file of Subutai Accumulo plugin that runs  on subutai server application.

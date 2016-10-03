@@ -3,8 +3,11 @@ package io.subutai.plugin.accumulo.api;
 
 import java.util.UUID;
 
+import io.subutai.common.environment.Environment;
+import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ApiBase;
 import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 
 
 public interface Accumulo extends ApiBase<AccumuloClusterConfig>
@@ -57,7 +60,6 @@ public interface Accumulo extends ApiBase<AccumuloClusterConfig>
      * Save cluster configuration
      *
      * @param config - cluster configuration
-     *
      */
     void saveConfig( AccumuloClusterConfig config ) throws ClusterException;
 
@@ -65,7 +67,10 @@ public interface Accumulo extends ApiBase<AccumuloClusterConfig>
      * Delete cluster configuration
      *
      * @param config - cluster configuration
-     *
      */
     void deleteConfig( final AccumuloClusterConfig config ) throws ClusterException;
+
+
+    ClusterSetupStrategy getClusterSetupStrategy( TrackerOperation po, AccumuloClusterConfig clusterConfig,
+                                                  Environment environment );
 }
