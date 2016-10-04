@@ -149,8 +149,9 @@ public class Commands
 
     public static RequestBuilder getSetJavaHeapSize()
     {
-        return new RequestBuilder( "test -z \"$ACCUMULO_TSERVER_OPTS\" && export ACCUMULO_TSERVER_OPTS=\"${POLICY} "
-                + "-Xmx256m -Xms256m \"" );
+        return new RequestBuilder( "sed -i -e 's/ACCUMULO_TSERVER_OPTS=\"${POLICY} -Xmx128m "
+                + "-Xms128m/ACCUMULO_TSERVER_OPTS=\"${POLICY} -Xmx1024m -Xms1024m/g' /opt/accumulo/conf/accumulo-env"
+                + ".sh" );
     }
 
 
@@ -178,5 +179,29 @@ public class Commands
     public static RequestBuilder getStartSlaveCommand()
     {
         return new RequestBuilder( "source /etc/profile ; /opt/accumulo/bin/start-here.sh" );
+    }
+
+
+    public static RequestBuilder getStopMasterCommand()
+    {
+        return new RequestBuilder( "source /etc/profile ; /opt/accumulo/bin/stop-all.sh" );
+    }
+
+
+    public static RequestBuilder getStopSlaveCommand()
+    {
+        return new RequestBuilder( "source /etc/profile ; /opt/accumulo/bin/stop-here.sh" );
+    }
+
+
+    public static RequestBuilder getStopAllCommand()
+    {
+        return new RequestBuilder( "kill `jps | grep \"Main\" | cut -d \" \" -f 1`" );
+    }
+
+
+    public static RequestBuilder getDeleteHdfsFolderCommand()
+    {
+        return new RequestBuilder( "source /etc/profile ; hdfs dfs -rmr /accumulo" );
     }
 }

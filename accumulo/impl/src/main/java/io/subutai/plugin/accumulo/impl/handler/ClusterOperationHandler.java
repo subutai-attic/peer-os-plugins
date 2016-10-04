@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
-import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
@@ -112,12 +111,17 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
             checkPrerequisites();
 
             Set<EnvironmentContainerHost> allNodes = environment.getContainerHostsByIds( config.getAllNodes() );
+            EnvironmentContainerHost namenode = environment.getContainerHostById( config.getMaster() );
 
             trackerOperation.addLog( "Uninstalling Accumulo..." );
 
+            namenode.execute( Commands.getDeleteHdfsFolderCommand() );
+
             for ( EnvironmentContainerHost node : allNodes )
             {
+
                 node.execute( Commands.getStopZkServerCommand() );
+                node.execute( Commands.getStopAllCommand() );
                 node.execute( Commands.getUninstallZkCommand() );
                 CommandResult result = node.execute( Commands.getUninstallAccumuloCommand() );
                 if ( !result.hasSucceeded() )
