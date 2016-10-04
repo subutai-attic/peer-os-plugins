@@ -3,11 +3,9 @@ package io.subutai.plugin.cassandra.impl.handler;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,33 +22,29 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.environment.Node;
 import io.subutai.common.environment.NodeSchema;
 import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.peer.PeerException;
-import io.subutai.common.quota.ContainerQuota;
-import io.subutai.common.resource.PeerGroupResources;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.strategy.api.ContainerPlacementStrategy;
-import io.subutai.core.strategy.api.RoundRobinStrategy;
-import io.subutai.core.strategy.api.StrategyException;
-import io.subutai.core.strategy.api.StrategyManager;
-import io.subutai.core.strategy.api.StrategyNotFoundException;
-import io.subutai.core.template.api.TemplateManager;
-import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
-import io.subutai.plugin.cassandra.impl.CassandraImpl;
-import io.subutai.plugin.cassandra.impl.ClusterConfiguration;
-import io.subutai.plugin.cassandra.impl.Commands;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
+import io.subutai.core.strategy.api.ContainerPlacementStrategy;
+import io.subutai.core.strategy.api.RoundRobinStrategy;
+import io.subutai.core.strategy.api.StrategyException;
+import io.subutai.core.template.api.TemplateManager;
+import io.subutai.hub.share.quota.ContainerQuota;
+import io.subutai.hub.share.resource.PeerGroupResources;
+import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
+import io.subutai.plugin.cassandra.impl.CassandraImpl;
+import io.subutai.plugin.cassandra.impl.ClusterConfiguration;
+import io.subutai.plugin.cassandra.impl.Commands;
 
 
 /**
