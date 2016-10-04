@@ -21,15 +21,15 @@ import io.subutai.common.metric.QuotaAlertValue;
 import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.ExceededQuotaAlertHandler;
-import io.subutai.common.quota.ContainerCpuResource;
-import io.subutai.common.quota.ContainerQuota;
-import io.subutai.common.quota.ContainerRamResource;
-import io.subutai.common.quota.Quota;
-import io.subutai.common.resource.ByteUnit;
-import io.subutai.common.resource.ByteValueResource;
-import io.subutai.common.resource.ContainerResourceType;
-import io.subutai.common.resource.ResourceValue;
 import io.subutai.core.metric.api.MonitoringSettings;
+import io.subutai.hub.share.quota.ContainerCpuResource;
+import io.subutai.hub.share.quota.ContainerQuota;
+import io.subutai.hub.share.quota.ContainerRamResource;
+import io.subutai.hub.share.quota.Quota;
+import io.subutai.hub.share.resource.ByteUnit;
+import io.subutai.hub.share.resource.ByteValueResource;
+import io.subutai.hub.share.resource.ContainerResourceType;
+import io.subutai.hub.share.resource.NumericValueResource;
 import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import io.subutai.plugin.elasticsearch.impl.Commands;
 import io.subutai.plugin.elasticsearch.impl.ElasticsearchImpl;
@@ -131,8 +131,7 @@ public class EsAlertListener extends ExceededQuotaAlertHandler
 
         if ( sourceHost == null )
         {
-            throwAlertException                                            ( String.format( "Alert source host %s not"
-                    + " found in environment",
+            throwAlertException( String.format( "Alert source host %s not" + " found in environment",
                     quotaAlertValue.getValue().getHostId().getId() ), null );
             return;
         }
@@ -171,9 +170,8 @@ public class EsAlertListener extends ExceededQuotaAlertHandler
             //confirm that ES is causing the stress, otherwise no-op
             MonitoringSettings thresholds = elasticsearch.getAlertSettings();
             ExceededQuota exceededQuota = quotaAlertValue.getValue();
-            ResourceValue<BigDecimal> currentValue = exceededQuota.getCurrentValue();
-            double ramLimit =
-                    currentValue.getValue().doubleValue() * ( ( double ) thresholds.getRamAlertThreshold() / 100 );
+            double currentValue = exceededQuota.getCurrentValue( NumericValueResource.class ).doubleValue();
+            double ramLimit = currentValue * ( ( double ) thresholds.getRamAlertThreshold() / 100 );
             double redLine = 0.7;
             boolean isCpuStressedByES = false;
             boolean isRamStressedByES = false;
@@ -204,7 +202,8 @@ public class EsAlertListener extends ExceededQuotaAlertHandler
                 {
                     //read current RAM quota
                     ContainerQuota containerQuota = sourceHost.getQuota();
-                    double ramQuota = containerQuota.get( ContainerResourceType.RAM ).getAsRamResource().getResource().getValue( ByteUnit.MB ).doubleValue();
+                    double ramQuota = containerQuota.get( ContainerResourceType.RAM ).getAsRamResource().getResource()
+                                                    .getValue( ByteUnit.MB ).doubleValue();
                     //                double ramQuota = sourceHost.getQuota( ResourceType.RAM ).getValue( MeasureUnit
                     // .MB ).doubleValue();
 
@@ -218,11 +217,9 @@ public class EsAlertListener extends ExceededQuotaAlertHandler
                         {
 
                             LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
-                                    ramQuota,
-                                    newRamQuota );
+                                    ramQuota, newRamQuota );
                             //we can increase RAM quota
-                            Quota quota = new Quota( new ContainerRamResource( new ByteValueResource(
-                                    ByteValueResource.toBytes( new BigDecimal( newRamQuota ), ByteUnit.MB ) ) ),
+                            Quota quota = new Quota( new ContainerRamResource( newRamQuota, ByteUnit.MB ),
                                     thresholds.getRamAlertThreshold() );
 
                             containerQuota.add( quota );

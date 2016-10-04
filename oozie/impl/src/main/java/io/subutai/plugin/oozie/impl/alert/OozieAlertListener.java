@@ -19,16 +19,14 @@ import io.subutai.common.metric.QuotaAlertValue;
 import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.ExceededQuotaAlertHandler;
-import io.subutai.common.quota.ContainerCpuResource;
-import io.subutai.common.quota.ContainerQuota;
-import io.subutai.common.quota.ContainerRamResource;
-import io.subutai.common.quota.Quota;
-import io.subutai.common.resource.ByteUnit;
-import io.subutai.common.resource.ByteValueResource;
-import io.subutai.common.resource.ContainerResourceType;
-import io.subutai.common.resource.NumericValueResource;
-import io.subutai.common.resource.ResourceValue;
 import io.subutai.core.metric.api.MonitoringSettings;
+import io.subutai.hub.share.quota.ContainerCpuResource;
+import io.subutai.hub.share.quota.ContainerQuota;
+import io.subutai.hub.share.quota.ContainerRamResource;
+import io.subutai.hub.share.quota.Quota;
+import io.subutai.hub.share.resource.ByteUnit;
+import io.subutai.hub.share.resource.ContainerResourceType;
+import io.subutai.hub.share.resource.NumericValueResource;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
 import io.subutai.plugin.oozie.impl.Commands;
@@ -62,11 +60,11 @@ public class OozieAlertListener extends ExceededQuotaAlertHandler
     }
 
 
-//    @Override
-//    public String getTemplateName()
-//    {
-//        return "hadoop";
-//    }
+    //    @Override
+    //    public String getTemplateName()
+    //    {
+    //        return "hadoop";
+    //    }
 
 
     protected int parsePid( String output ) throws Exception
@@ -138,18 +136,16 @@ public class OozieAlertListener extends ExceededQuotaAlertHandler
 
         if ( sourceHost == null )
         {
-            throwAlertException                                    ( String.format( "Alert source host %s not found "
-                    + "in environment",
-                    quotaAlertValue.getValue().getHostId()                        ), null );
+            throwAlertException( String.format( "Alert source host %s not found " + "in environment",
+                    quotaAlertValue.getValue().getHostId() ), null );
             return;
         }
 
         //check if source host belongs to found oozie cluster
         if ( !targetCluster.getAllNodes().contains( sourceHost.getId() ) )
         {
-            LOG.info                                         ( String.format( "Alert source host %s does not belong "
-                    + "to Oozie cluster",
-                    quotaAlertValue.getValue().getHostId()                  ) );
+            LOG.info( String.format( "Alert source host %s does not belong " + "to Oozie cluster",
+                    quotaAlertValue.getValue().getHostId() ) );
             return;
         }
 
@@ -175,10 +171,9 @@ public class OozieAlertListener extends ExceededQuotaAlertHandler
             //confirm that oozie is causing the stress, otherwise no-op
             MonitoringSettings thresholds = oozie.getAlertSettings();
             ExceededQuota exceededQuota = quotaAlertValue.getValue();
-            ResourceValue<BigDecimal> currentValue = exceededQuota.getCurrentValue();
+            BigDecimal currentValue = exceededQuota.getCurrentValue( NumericValueResource.class ).getValue();
 
-            double ramLimit =
-                    currentValue.getValue().doubleValue() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
+            double ramLimit = currentValue.doubleValue() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
             double redLine = 0.9;
             boolean isCpuStressedByOozie = false;
             boolean isRamStressedByOozie = false;
@@ -209,19 +204,19 @@ public class OozieAlertListener extends ExceededQuotaAlertHandler
                 {
                     //read current RAM quota
                     ContainerQuota containerQuota = sourceHost.getQuota();
-                    double ramQuota = containerQuota.get( ContainerResourceType.RAM ).getAsRamResource().getResource().getValue( ByteUnit.MB ).doubleValue();
-//                    int ramQuota = oozie.getQuotaManager().getRamQuota( sourceHost.getId() );
+                    double ramQuota = containerQuota.get( ContainerResourceType.RAM ).getAsRamResource().getResource()
+                                                    .getValue( ByteUnit.MB ).doubleValue();
+                    //                    int ramQuota = oozie.getQuotaManager().getRamQuota( sourceHost.getId() );
                     if ( ramQuota < MAX_RAM_QUOTA_MB )
                     {
                         double newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_MB ) / 100;
 
-                        if(MAX_RAM_QUOTA_MB > newRamQuota)
+                        if ( MAX_RAM_QUOTA_MB > newRamQuota )
                         {
                             LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
                                     ramQuota, newRamQuota );
 
-                            Quota quota = new Quota( new ContainerRamResource( new ByteValueResource(
-                                    ByteValueResource.toBytes( new BigDecimal( newRamQuota ), ByteUnit.MB ) ) ),
+                            Quota quota = new Quota( new ContainerRamResource( newRamQuota, ByteUnit.MB ),
                                     thresholds.getRamAlertThreshold() );
 
                             containerQuota.add( quota );
@@ -238,13 +233,13 @@ public class OozieAlertListener extends ExceededQuotaAlertHandler
 
                     if ( cpuQuota.getResource().getValue().intValue() < MAX_CPU_QUOTA_PERCENT )
                     {
-                        int newCpuQuota = Math.min(MAX_CPU_QUOTA_PERCENT, cpuQuota.getResource().getValue().intValue() + CPU_QUOTA_INCREMENT_PERCENT);
+                        int newCpuQuota = Math.min( MAX_CPU_QUOTA_PERCENT,
+                                cpuQuota.getResource().getValue().intValue() + CPU_QUOTA_INCREMENT_PERCENT );
                         LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
                                 cpuQuota.getResource().getValue().intValue(), newCpuQuota );
 
-                        Quota quota = new Quota( new ContainerCpuResource( new ByteValueResource(
-                                ByteValueResource.toBytes( new BigDecimal( newCpuQuota ), ByteUnit.MB ) ) ),
-                                thresholds.getRamAlertThreshold() );
+                        Quota quota =
+                                new Quota( new ContainerCpuResource( newCpuQuota ), thresholds.getRamAlertThreshold() );
 
                         containerQuota.add( quota );
                         sourceHost.setQuota( containerQuota );

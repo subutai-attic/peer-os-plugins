@@ -19,16 +19,15 @@ import io.subutai.common.metric.QuotaAlertValue;
 import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.ExceededQuotaAlertHandler;
-import io.subutai.common.quota.ContainerCpuResource;
-import io.subutai.common.quota.ContainerQuota;
-import io.subutai.common.quota.ContainerRamResource;
-import io.subutai.common.quota.Quota;
-import io.subutai.common.resource.ByteUnit;
-import io.subutai.common.resource.ByteValueResource;
-import io.subutai.common.resource.ContainerResourceType;
-import io.subutai.common.resource.NumericValueResource;
-import io.subutai.common.resource.ResourceValue;
 import io.subutai.core.metric.api.MonitoringSettings;
+import io.subutai.hub.share.quota.ContainerCpuResource;
+import io.subutai.hub.share.quota.ContainerQuota;
+import io.subutai.hub.share.quota.ContainerRamResource;
+import io.subutai.hub.share.quota.Quota;
+import io.subutai.hub.share.resource.ByteUnit;
+import io.subutai.hub.share.resource.ByteValueResource;
+import io.subutai.hub.share.resource.ContainerResourceType;
+import io.subutai.hub.share.resource.NumericValueResource;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
 import io.subutai.plugin.presto.impl.PrestoImpl;
@@ -176,10 +175,9 @@ public class PrestoAlertListener extends ExceededQuotaAlertHandler
             //confirm that oozie is causing the stress, otherwise no-op
             MonitoringSettings thresholds = presto.getAlertSettings();
             ExceededQuota exceededQuota = quotaAlertValue.getValue();
-            ResourceValue<BigDecimal> currentValue = exceededQuota.getCurrentValue();
+            BigDecimal currentValue = exceededQuota.getCurrentValue( NumericValueResource.class ).getValue();
 
-            double ramLimit =
-                    currentValue.getValue().doubleValue() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
+            double ramLimit = currentValue.doubleValue() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
             double redLine = 0.9;
             boolean isCpuStressedByOozie = false;
             boolean isRamStressedByOozie = false;
@@ -210,7 +208,8 @@ public class PrestoAlertListener extends ExceededQuotaAlertHandler
                 {
                     //read current RAM quota
                     ContainerQuota containerQuota = sourceHost.getQuota();
-                    double ramQuota = containerQuota.get( ContainerResourceType.RAM ).getAsRamResource().getResource().getValue( ByteUnit.MB ).doubleValue();
+                    double ramQuota = containerQuota.get( ContainerResourceType.RAM ).getAsRamResource().getResource()
+                                                    .getValue( ByteUnit.MB ).doubleValue();
                     //                    int ramQuota = oozie.getQuotaManager().getRamQuota( sourceHost.getId() );
                     if ( ramQuota < MAX_RAM_QUOTA_MB )
                     {
@@ -221,8 +220,7 @@ public class PrestoAlertListener extends ExceededQuotaAlertHandler
                             LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
                                     ramQuota, newRamQuota );
 
-                            Quota quota = new Quota( new ContainerRamResource( new ByteValueResource(
-                                    ByteValueResource.toBytes( new BigDecimal( newRamQuota ), ByteUnit.MB ) ) ),
+                            Quota quota = new Quota( new ContainerRamResource( newRamQuota, ByteUnit.MB ),
                                     thresholds.getRamAlertThreshold() );
 
                             containerQuota.add( quota );
@@ -244,9 +242,8 @@ public class PrestoAlertListener extends ExceededQuotaAlertHandler
                         LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
                                 cpuQuota.getResource().getValue().intValue(), newCpuQuota );
 
-                        Quota quota = new Quota( new ContainerCpuResource( new ByteValueResource(
-                                ByteValueResource.toBytes( new BigDecimal( newCpuQuota ), ByteUnit.MB ) ) ),
-                                thresholds.getRamAlertThreshold() );
+                        Quota quota =
+                                new Quota( new ContainerCpuResource( newCpuQuota ), thresholds.getRamAlertThreshold() );
 
                         containerQuota.add( quota );
                         sourceHost.setQuota( containerQuota );

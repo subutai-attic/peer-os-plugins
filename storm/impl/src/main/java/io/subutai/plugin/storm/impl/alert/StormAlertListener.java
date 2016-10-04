@@ -20,9 +20,10 @@ import io.subutai.common.metric.QuotaAlertValue;
 import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.ExceededQuotaAlertHandler;
-import io.subutai.common.resource.ResourceValue;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
+import io.subutai.hub.share.resource.NumericValueResource;
+import io.subutai.hub.share.resource.ResourceValue;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.storm.impl.CommandType;
 import io.subutai.plugin.storm.impl.Commands;
@@ -136,10 +137,9 @@ public class StormAlertListener extends ExceededQuotaAlertHandler
             //confirm that Storm is causing the stress, otherwise no-op
             MonitoringSettings thresholds = storm.getAlertSettings();
             ExceededQuota exceededQuota = quotaAlertValue.getValue();
-            ResourceValue<BigDecimal> currentValue = exceededQuota.getCurrentValue();
+            BigDecimal currentValue = exceededQuota.getCurrentValue( NumericValueResource.class ).getValue();
 
-            double ramLimit =
-                    currentValue.getValue().doubleValue() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
+            double ramLimit = currentValue.doubleValue() * ( thresholds.getRamAlertThreshold() / 100 ); // 0.8
             double redLine = 0.9;
             boolean isCpuStressedByStorm = false;
             boolean isRamStressedByStorm = false;

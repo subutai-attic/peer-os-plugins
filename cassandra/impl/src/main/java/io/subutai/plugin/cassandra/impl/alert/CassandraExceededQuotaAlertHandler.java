@@ -15,27 +15,20 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.metric.ExceededQuota;
 import io.subutai.common.metric.ProcessResourceUsage;
 import io.subutai.common.metric.QuotaAlertValue;
 import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.ExceededQuotaAlertHandler;
 import io.subutai.common.peer.PeerException;
-import io.subutai.common.quota.ContainerCpuResource;
-import io.subutai.common.quota.ContainerDiskResource;
-import io.subutai.common.quota.ContainerOptResource;
-import io.subutai.common.quota.ContainerQuota;
-import io.subutai.common.quota.ContainerRamResource;
-import io.subutai.common.quota.Quota;
-import io.subutai.common.resource.ByteUnit;
-import io.subutai.common.resource.ByteValueResource;
-import io.subutai.common.resource.ContainerResourceType;
-import io.subutai.common.resource.MeasureUnit;
-import io.subutai.common.resource.NumericValueResource;
-import io.subutai.common.resource.ResourceType;
-import io.subutai.common.resource.ResourceValue;
 import io.subutai.core.metric.api.MonitoringSettings;
+import io.subutai.hub.share.quota.ContainerCpuResource;
+import io.subutai.hub.share.quota.ContainerQuota;
+import io.subutai.hub.share.quota.ContainerRamResource;
+import io.subutai.hub.share.quota.Quota;
+import io.subutai.hub.share.resource.ByteUnit;
+import io.subutai.hub.share.resource.ByteValueResource;
+import io.subutai.hub.share.resource.ContainerResourceType;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
 import io.subutai.plugin.cassandra.impl.Commands;
@@ -225,8 +218,7 @@ public class CassandraExceededQuotaAlertHandler extends ExceededQuotaAlertHandle
                         LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
                                 cpuQuota.getResource().getValue().intValue(), newCpuQuota );
                         //we can increase CPU quota
-                        Quota newQuota = new Quota(
-                                new ContainerCpuResource( new NumericValueResource( new BigDecimal( newCpuQuota ) ) ),
+                        Quota newQuota = new Quota( new ContainerCpuResource( String.format( "%d%%", newCpuQuota ) ),
                                 thresholds.getCpuAlertThreshold() );
                         containerQuota.add( newQuota );
                         sourceHost.setQuota( containerQuota );
@@ -255,6 +247,7 @@ public class CassandraExceededQuotaAlertHandler extends ExceededQuotaAlertHandle
             throwAlertException( "Error obtaining quota of " + sourceHost.getId(), null );
         }
     }
+
 
     protected int parsePid( String output ) throws AlertHandlerException
     {
