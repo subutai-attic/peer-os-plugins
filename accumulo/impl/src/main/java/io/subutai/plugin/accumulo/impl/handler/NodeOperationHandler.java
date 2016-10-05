@@ -1,9 +1,14 @@
 package io.subutai.plugin.accumulo.impl.handler;
 
 
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
@@ -14,6 +19,7 @@ import io.subutai.core.plugincommon.api.NodeType;
 import io.subutai.core.plugincommon.api.OperationType;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import io.subutai.plugin.accumulo.impl.AccumuloImpl;
+import io.subutai.plugin.accumulo.impl.Commands;
 
 
 public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl, AccumuloClusterConfig>
@@ -116,17 +122,105 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
     }
 
 
-    private void checkNode()
+    private void checkNode() throws ClusterException
     {
+        CommandResult result = executeCommand( node, Commands.getStatusCommand() );
+        if ( !result.getStdOut().contains( "QuorumPeerMain" ) )
+        {
+            try
+            {
+                node.execute( Commands.getStartZkServerCommand() );
+            }
+            catch ( CommandException e )
+            {
+                trackerOperation.addLogFailed(
+                        String.format( "Error on container %s: %s", node.getHostname(), e.getMessage() ) );
+                e.printStackTrace();
+            }
+        }
     }
 
 
-    private void stopNode()
+    private void stopNode() throws ClusterException
     {
+        try
+        {
+            switch ( nodeType )
+            {
+                case MASTER_NODE:
+                    Set<EnvironmentContainerHost> slaves = environment.getContainerHostsByIds( config.getSlaves() );
+
+                    node.execute( Commands.getStopMasterCommand() );
+
+                    for ( final EnvironmentContainerHost slave : slaves )
+                    {
+                        slave.execute( Commands.getStopSlaveCommand() );
+                    }
+                    break;
+                case SLAVE_NODE:
+                    node.execute( Commands.getStopSlaveCommand() );
+            }
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            trackerOperation.addLogFailed( "Can not find container in environment" );
+            e.printStackTrace();
+        }
+        catch ( CommandException e )
+        {
+            trackerOperation.addLogFailed( "Error on container" );
+            e.printStackTrace();
+        }
     }
 
 
-    private void startNode()
+    private void startNode() throws ClusterException
     {
+        try
+        {
+            switch ( nodeType )
+            {
+                case MASTER_NODE:
+                    Set<EnvironmentContainerHost> slaves = environment.getContainerHostsByIds( config.getSlaves() );
+
+                    node.execute( Commands.getStartMasterCommand() );
+
+                    for ( final EnvironmentContainerHost slave : slaves )
+                    {
+                        slave.execute( Commands.getStartSlaveCommand() );
+                    }
+                    break;
+                case SLAVE_NODE:
+                    node.execute( Commands.getStartSlaveCommand() );
+            }
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            trackerOperation.addLogFailed( "Can not find container in environment" );
+            e.printStackTrace();
+        }
+        catch ( CommandException e )
+        {
+            trackerOperation.addLogFailed( "Error on container" );
+            e.printStackTrace();
+        }
+    }
+
+
+    public CommandResult executeCommand( EnvironmentContainerHost host, RequestBuilder command ) throws ClusterException
+    {
+        CommandResult result = null;
+        try
+        {
+            result = host.execute( command );
+            trackerOperation.addLog( result.getStdOut() );
+        }
+        catch ( CommandException e )
+        {
+            trackerOperation
+                    .addLogFailed( String.format( "Error on container %s: %s", host.getHostname(), e.getMessage() ) );
+            e.printStackTrace();
+        }
+        return result;
     }
 }

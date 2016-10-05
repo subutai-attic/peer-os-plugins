@@ -32,7 +32,8 @@ public interface RestService
     @Produces( { MediaType.TEXT_PLAIN } )
     Response installCluster( @FormParam( "clusterName" ) String clusterName,
                              @FormParam( "hadoopClusterName" ) String hadoopClusterName,
-                             @FormParam( "master" ) String master, @FormParam( "slaves" ) String slaves, @FormParam( "pwd" ) String pwd );
+                             @FormParam( "master" ) String master, @FormParam( "slaves" ) String slaves,
+                             @FormParam( "pwd" ) String pwd );
 
     //destroy cluster
     @DELETE
@@ -56,18 +57,16 @@ public interface RestService
 
     //start master node
     @PUT
-    @Path( "clusters/{clusterName}/start/node/{lxcHostName}/master/{master}" )
+    @Path( "clusters/{clusterName}/start/node/{lxcHostId}" )
     @Produces( { MediaType.TEXT_PLAIN } )
-    Response startNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostName" ) String lxcHostName,
-                        @PathParam( "master" ) boolean master );
+    Response startNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostId" ) String lxcHostName );
 
 
     //stop master node
     @PUT
-    @Path( "clusters/{clusterName}/stop/node/{lxcHostName}/master/{master}" )
+    @Path( "clusters/{clusterName}/stop/node/{lxcHostId}" )
     @Produces( { MediaType.TEXT_PLAIN } )
-    Response stopNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostName" ) String lxcHostName,
-                       @PathParam( "master" ) boolean master );
+    Response stopNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "lxcHostId" ) String lxcHostName );
 
 
     //check node
@@ -80,12 +79,12 @@ public interface RestService
     @POST
     @Path( "clusters/nodes/start" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    Response startNodes( @FormParam( "clusterName" ) String clusterName, @FormParam( "lxcHosts" ) String lxcHosts );
+    Response startNodes( @FormParam( "clusterName" ) String clusterName, @FormParam( "lxcHostIds" ) String lxcHostIds );
 
     @POST
     @Path( "clusters/nodes/stop" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    Response stopNodes( @FormParam( "clusterName" ) String clusterName, @FormParam( "lxcHosts" ) String lxcHosts );
+    Response stopNodes( @FormParam( "clusterName" ) String clusterName, @FormParam( "lxcHostIds" ) String lxcHostIds );
 
 
     @GET

@@ -79,7 +79,7 @@
           </td>
           <td>
             <div env-id="{{ accumuloCtrl.currentCluster.environmentId }}"
-                 container-id="{{ accumuloCtrl.currentCluster.master.uuid }}">
+                 container-id="{{ accumuloCtrl.currentCluster.master.id }}">
               <!--<div ng-if="container.dataSource === 'hub'">-->
               <button class="b-btn b-btn_blue ez-ssh-btn" disabled>
                 <div class="ssh-key-button_block">
@@ -144,7 +144,7 @@
         <tbody>
         <tr ng-repeat="clusterNode in accumuloCtrl.currentCluster.slaves">
           <td class="b-main-table__edit-icon">
-            <input type="checkbox" ng-model="clusterNode.checkbox" ng-click="accumuloCtrl.pushNode(clusterNode.uuid)"
+            <input type="checkbox" ng-model="clusterNode.checkbox" ng-click="accumuloCtrl.pushNode(clusterNode.id)"
                    name="accumuloChk">
           </td>
           <td>{{ clusterNode.hostname }}</td>
@@ -159,7 +159,7 @@
           </td>
           <td>
             <div env-id="{{ accumuloCtrl.currentCluster.environmentId }}"
-                 container-id="{{ clusterNode.uuid }}">
+                 container-id="{{ clusterNode.id }}">
               <!--<div ng-if="container.dataSource === 'hub'">-->
               <button class="b-btn b-btn_blue ez-ssh-btn" disabled>
                 <div class="ssh-key-button_block">
@@ -189,7 +189,7 @@
             </div>
           </td>
           <td>
-            <a href ng-click="accumuloCtrl.deleteNode (clusterNode.uuid)" class="b-icon b-icon_remove"></a>
+            <a href ng-click="accumuloCtrl.deleteNode (clusterNode.id)" class="b-icon b-icon_remove"></a>
           </td>
         </tr>
         </tbody>

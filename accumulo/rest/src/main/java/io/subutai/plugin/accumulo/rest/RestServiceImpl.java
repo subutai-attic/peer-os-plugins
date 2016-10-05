@@ -3,6 +3,7 @@ package io.subutai.plugin.accumulo.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -133,16 +134,34 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response startNode( final String clusterName, final String lxcHostName, final boolean master )
+    public Response startNode( final String clusterName, final String lxcHostName )
     {
-        return null;
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHostName );
+        if ( accumuloManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = accumuloManager.startNode( clusterName, lxcHostName, true );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
-    public Response stopNode( final String clusterName, final String lxcHostName, final boolean master )
+    public Response stopNode( final String clusterName, final String lxcHostName )
     {
-        return null;
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHostName );
+        if ( accumuloManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = accumuloManager.stopNode( clusterName, lxcHostName, true );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
@@ -156,14 +175,73 @@ public class RestServiceImpl implements RestService
     @Override
     public Response startNodes( final String clusterName, final String lxcHosts )
     {
-        return null;
+        return nodeOperation( clusterName, lxcHosts, true );
     }
 
 
     @Override
     public Response stopNodes( final String clusterName, final String lxcHosts )
     {
-        return null;
+        return nodeOperation( clusterName, lxcHosts, false );
+    }
+
+
+    private Response nodeOperation( String clusterName, String lxcHosts, boolean startNode )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHosts );
+        List<String> hosts;
+
+
+        if ( accumuloManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+
+        try
+        {
+            hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>()
+            {
+            }.getType() );
+        }
+        catch ( Exception e )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).entity( JsonUtil.toJson( "Bad input form" + e ) )
+                           .build();
+        }
+
+        int errors = 0;
+
+        for ( String host : hosts )
+        {
+            UUID uuid;
+            if ( startNode )
+            {
+                uuid = accumuloManager.startNode( clusterName, host, false );
+            }
+            else
+            {
+                uuid = accumuloManager.stopNode( clusterName, host, false );
+            }
+
+            OperationState state = waitUntilOperationFinish( uuid );
+
+            Response response = createResponse( uuid, state );
+
+            if ( response.getStatus() != 200 )
+            {
+                errors++;
+            }
+        }
+
+        if ( errors > 0 )
+        {
+            return Response.status( Response.Status.EXPECTATION_FAILED )
+                           .entity( errors + " nodes are failed to execute" ).build();
+        }
+
+        return Response.ok().build();
     }
 
 
@@ -284,16 +362,21 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getSlaves() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
-                UUID dataUUID = hadoopManager.statusDataNode( config.getClusterName(), ch.getHostname() );
-                containerPojoSet.add( new ContainerDto( uuid, ch.getHostname(),
-                        ch.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ) );
+                ContainerDto containerDto = new ContainerDto( uuid, ch.getHostname(),
+                        ch.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() );
+                UUID slaveUUID = accumuloManager.checkNode( config.getClusterName(), uuid, false );
+                containerDto.setStatus( checkStatus( tracker, slaveUUID ) );
+                containerPojoSet.add( containerDto );
             }
 
             pojo.setSlaves( containerPojoSet );
 
             ContainerHost master = environment.getContainerHostById( config.getMaster() );
+            UUID masterUUID = accumuloManager.checkNode( config.getClusterName(), config.getMaster(), true );
             ContainerDto masterPojo = new ContainerDto( config.getMaster(), master.getHostname(),
                     master.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() );
+            masterPojo.setStatus( checkStatus( tracker, masterUUID ) );
+
             pojo.setMaster( masterPojo );
 
 
@@ -308,5 +391,47 @@ public class RestServiceImpl implements RestService
         }
 
         return pojo;
+    }
+
+
+    private String checkStatus( Tracker tracker, UUID uuid )
+    {
+        String state = "UNKNOWN";
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( AccumuloClusterConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    String output = po.getLog();
+                    Set<String> services = new HashSet<String>( Arrays.asList( output.split( "\\W+" ) ) );
+                    if ( services.contains( "Main" ) )
+                    {
+                        state = "RUNNING";
+                    }
+                    else
+                    {
+                        state = "STOPPED";
+                    }
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            {
+                break;
+            }
+        }
+
+        return state;
     }
 }

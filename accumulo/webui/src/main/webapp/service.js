@@ -71,16 +71,16 @@ function accumuloSrv($http, hadoopSrv) {
 		);
 	}
 
-	function startMasterNode(clusterName, lxcHostName) {
-		return $http.put (CLUSTER_URL + clusterName + "/start/node/" + lxcHostName + '/master/true');
+	function startMasterNode(clusterName, lxcHostId) {
+		return $http.put (CLUSTER_URL + clusterName + "/start/node/" + lxcHostId );
 	}
 
-	function stopMasterNode(clusterName, lxcHostName) {
-		return $http.put (CLUSTER_URL + clusterName + "/stop/node/" + lxcHostName + '/master/true');
+	function stopMasterNode(clusterName, lxcHostId) {
+		return $http.put (CLUSTER_URL + clusterName + "/stop/node/" + lxcHostId );
 	}
 
 	function startNodes(clusterName, nodesArray) {
-		var postData = 'clusterName=' + clusterName + '&lxcHosts=' + nodesArray;
+		var postData = 'clusterName=' + clusterName + '&lxcHostIds=' + nodesArray;
 		return $http.post(
 			CLUSTER_URL + 'nodes/start',
 			postData, 
@@ -89,7 +89,7 @@ function accumuloSrv($http, hadoopSrv) {
 	}
 
 	function stopNodes(clusterName, nodesArray) {
-		var postData = 'clusterName=' + clusterName + '&lxcHosts=' + nodesArray;
+		var postData = 'clusterName=' + clusterName + '&lxcHostIds=' + nodesArray;
 		return $http.post(
 			CLUSTER_URL + 'nodes/stop',
 			postData, 

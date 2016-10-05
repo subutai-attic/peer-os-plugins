@@ -194,6 +194,12 @@ public class Commands
     }
 
 
+    public static RequestBuilder getStatusCommand()
+    {
+        return new RequestBuilder( "jps" );
+    }
+
+
     public static RequestBuilder getStopAllCommand()
     {
         return new RequestBuilder( "kill `jps | grep \"Main\" | cut -d \" \" -f 1`" );

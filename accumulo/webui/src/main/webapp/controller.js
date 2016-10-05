@@ -83,7 +83,7 @@ function AccumuloCtrl($scope, accumuloSrv, SweetAlert, DTOptionsBuilder, DTColum
             }
             else {
                 for (var i = 0; i < vm.currentCluster.slaves.length; ++i) {
-                    vm.nodes2Action.push(vm.currentCluster.slaves[i].uuid);
+                    vm.nodes2Action.push(vm.currentCluster.slaves[i].id);
                     vm.currentCluster.slaves[i].checkbox = true;
                 }
                 vm.accumuloAll = true;
@@ -303,26 +303,26 @@ function AccumuloCtrl($scope, accumuloSrv, SweetAlert, DTOptionsBuilder, DTColum
 
     function startMaster() {
         if (vm.currentCluster.clusterName === undefined) return;
-        vm.currentCluster.server.status = 'STARTING';
-        accumuloSrv.startMasterNode(vm.currentCluster.clusterName, vm.currentCluster.server.uuid).success(function (data) {
-            SweetAlert.swal("Success!", "Your server has been started.", "success");
-            vm.currentCluster.server.status = 'RUNNING';
+        vm.currentCluster.master.status = 'STARTING';
+        accumuloSrv.startMasterNode(vm.currentCluster.clusterName, vm.currentCluster.master.id).success(function (data) {
+            SweetAlert.swal("Success!", "Your master has been started.", "success");
+            vm.currentCluster.master.status = 'RUNNING';
         }).error(function (error) {
-            SweetAlert.swal("ERROR!", 'Failed to start Accumulo server error: ' + error.replace(/\\n/g, ' '), "error");
-            vm.currentCluster.server.status = 'ERROR';
+            SweetAlert.swal("ERROR!", 'Failed to start Accumulo master error: ' + error.replace(/\\n/g, ' '), "error");
+            vm.currentCluster.master.status = 'ERROR';
         });
     }
 
 
     function stopMaster() {
         if (vm.currentCluster.clusterName === undefined) return;
-        vm.currentCluster.server.status = 'STOPPING';
-        accumuloSrv.stopMasterNode(vm.currentCluster.clusterName, vm.currentCluster.server.uuid).success(function (data) {
-            SweetAlert.swal("Success!", "Your server has been stopped.", "success");
-            vm.currentCluster.server.status = 'STOPPED';
+        vm.currentCluster.master.status = 'STOPPING';
+        accumuloSrv.stopMasterNode(vm.currentCluster.clusterName, vm.currentCluster.master.id).success(function (data) {
+            SweetAlert.swal("Success!", "Your master has been stopped.", "success");
+            vm.currentCluster.master.status = 'STOPPED';
         }).error(function (error) {
-            SweetAlert.swal("ERROR!", 'Failed to stop Accumulo server error: ' + error.replace(/\\n/g, ' '), "error");
-            vm.currentCluster.server.status = 'ERROR';
+            SweetAlert.swal("ERROR!", 'Failed to stop Accumulo master error: ' + error.replace(/\\n/g, ' '), "error");
+            vm.currentCluster.master.status = 'ERROR';
         });
     }
 
