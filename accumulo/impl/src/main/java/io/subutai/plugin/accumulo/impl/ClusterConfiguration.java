@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
@@ -22,6 +23,7 @@ import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
+import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 
 
@@ -206,5 +208,56 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Accum
         }
 
         return sb.toString();
+    }
+
+
+    public void deleteNode( final EnvironmentContainerHost node ) throws CommandException, ClusterException
+    {
+        node.execute( Commands.getStopSlaveCommand() );
+        CommandResult result = node.execute( Commands.getUninstallAccumuloCommand() );
+        if ( !result.hasSucceeded() )
+        {
+            throw new ClusterException(
+                    String.format( "Could not uninstall Accumulo from node %s : %s", node.getHostname(),
+                            result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
+        }
+    }
+
+
+    public void reconfigureNodes( final AccumuloClusterConfig config, final Environment environment,
+                                  final String hostname ) throws ContainerHostNotFoundException, CommandException
+    {
+        Set<EnvironmentContainerHost> allNodes = environment.getContainerHostsByIds( config.getAllNodes() );
+
+        for ( final EnvironmentContainerHost node : allNodes )
+        {
+            node.execute( Commands.getClearSlaveCommand( hostname ) );
+        }
+    }
+
+
+    public void addNode( final AccumuloClusterConfig config, final Environment environment,
+                         final EnvironmentContainerHost node ) throws CommandException, ContainerHostNotFoundException
+    {
+        Set<EnvironmentContainerHost> allNodes = environment.getContainerHostsByIds( config.getAllNodes() );
+        Set<EnvironmentContainerHost> slaves = environment.getContainerHostsByIds( config.getSlaves() );
+        EnvironmentContainerHost namenode = environment.getContainerHostById( config.getMaster() );
+
+        node.execute( Commands.getCopyConfigsCommand() );
+        node.execute( Commands.getRemoveConfigsCommand() );
+        node.execute( Commands.getAccumucoSiteConfig() );
+        node.execute( Commands.getSetMasterCommand( namenode.getHostname() ) );
+
+        for ( final EnvironmentContainerHost host : allNodes )
+        {
+            host.execute( Commands.getSetSlavesCommand( collectHostnames( slaves ) ) );
+        }
+
+        node.execute( Commands.getSetInstanceVolume( namenode.getHostname() ) );
+        node.execute( Commands.getSetInstanceZkHost( collectHostnamesWithPorts( allNodes ) ) );
+        node.execute( Commands.getSetPassword( config.getPassword() ) );
+        node.execute( Commands.getSetJavaHeapSize() );
+        node.execute( Commands.getStartZkServerCommand() );
+        node.execute( Commands.getStartSlaveCommand() );
     }
 }

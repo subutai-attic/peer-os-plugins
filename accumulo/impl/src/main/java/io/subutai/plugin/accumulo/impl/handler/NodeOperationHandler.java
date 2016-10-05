@@ -19,6 +19,7 @@ import io.subutai.core.plugincommon.api.NodeType;
 import io.subutai.core.plugincommon.api.OperationType;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import io.subutai.plugin.accumulo.impl.AccumuloImpl;
+import io.subutai.plugin.accumulo.impl.ClusterConfiguration;
 import io.subutai.plugin.accumulo.impl.Commands;
 
 
@@ -112,13 +113,57 @@ public class NodeOperationHandler extends AbstractOperationHandler<AccumuloImpl,
     }
 
 
-    private void removeNode()
+    private void removeNode() throws ClusterException
     {
+        ClusterConfiguration configuration = new ClusterConfiguration( manager, trackerOperation );
+        try
+        {
+            configuration.deleteNode( node );
+            config.getSlaves().remove( node.getId() );
+
+            configuration.reconfigureNodes( config, environment, node.getHostname() );
+
+            manager.saveConfig( config );
+            trackerOperation.addLogDone( "Node removed successfully" );
+        }
+        catch ( CommandException e )
+        {
+            trackerOperation
+                    .addLogFailed( String.format( "Error on container %s: %s", node.getHostname(), e.getMessage() ) );
+            e.printStackTrace();
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            trackerOperation.addLogFailed( "Can not find container in environment" );
+            e.printStackTrace();
+        }
     }
 
 
-    private void addNode()
+    private void addNode() throws ClusterException
     {
+        try
+        {
+            node.execute( Commands.getAptUpdate() );
+            node.execute( Commands.getInstallCommand() );
+
+            ClusterConfiguration configuration = new ClusterConfiguration( manager, trackerOperation );
+            config.getSlaves().add( node.getId() );
+            configuration.addNode( config, environment, node );
+
+            manager.saveConfig( config );
+            trackerOperation.addLogDone( "Node added successfully" );
+        }
+        catch ( CommandException e )
+        {
+            trackerOperation.addLogFailed( String.format( "Error on container: %s", e.getMessage() ) );
+            e.printStackTrace();
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            trackerOperation.addLogFailed( "Can not find container in environment" );
+            e.printStackTrace();
+        }
     }
 
 

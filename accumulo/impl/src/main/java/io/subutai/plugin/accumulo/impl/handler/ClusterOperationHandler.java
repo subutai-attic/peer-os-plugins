@@ -20,6 +20,7 @@ import io.subutai.core.plugincommon.api.ClusterSetupException;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.plugin.accumulo.api.AccumuloClusterConfig;
 import io.subutai.plugin.accumulo.impl.AccumuloImpl;
+import io.subutai.plugin.accumulo.impl.ClusterConfiguration;
 import io.subutai.plugin.accumulo.impl.Commands;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
@@ -119,7 +120,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<AccumuloIm
 
             for ( EnvironmentContainerHost node : allNodes )
             {
-
                 node.execute( Commands.getStopZkServerCommand() );
                 node.execute( Commands.getStopAllCommand() );
                 node.execute( Commands.getUninstallZkCommand() );

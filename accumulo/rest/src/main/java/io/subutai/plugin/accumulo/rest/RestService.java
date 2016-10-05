@@ -43,17 +43,17 @@ public interface RestService
 
     //add slave node
     @POST
-    @Path( "clusters/{clusterName}/add/node/{lxcHostName}" )
+    @Path( "clusters/{clusterName}/add/node/{lxcHostId}" )
     @Produces( { MediaType.TEXT_PLAIN } )
     Response addSlaveNode( @PathParam( "clusterName" ) String clusterName,
-                           @PathParam( "lxcHostName" ) String lxcHostName );
+                           @PathParam( "lxcHostId" ) String lxcHostId );
 
     //destroy slave node
     @DELETE
-    @Path( "clusters/{clusterName}/destroy/node/{lxcHostName}" )
+    @Path( "clusters/{clusterName}/destroy/node/{lxcHostId}" )
     @Produces( { MediaType.TEXT_PLAIN } )
     Response destroySlaveNode( @PathParam( "clusterName" ) String clusterName,
-                               @PathParam( "lxcHostName" ) String lxcHostName );
+                               @PathParam( "lxcHostId" ) String lxcHostId );
 
     //start master node
     @PUT
@@ -85,6 +85,13 @@ public interface RestService
     @Path( "clusters/nodes/stop" )
     @Produces( { MediaType.APPLICATION_JSON } )
     Response stopNodes( @FormParam( "clusterName" ) String clusterName, @FormParam( "lxcHostIds" ) String lxcHostIds );
+
+
+    //get available nodes for adding
+    @GET
+    @Path( "clusters/{clusterName}/available/nodes" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response getAvailableNodes( @PathParam( "clusterName" ) String clusterName );
 
 
     @GET

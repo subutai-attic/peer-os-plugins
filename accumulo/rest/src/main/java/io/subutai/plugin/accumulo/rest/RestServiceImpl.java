@@ -13,6 +13,9 @@ import java.util.UUID;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.google.gson.reflect.TypeToken;
@@ -21,6 +24,7 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
@@ -33,10 +37,12 @@ import io.subutai.plugin.accumulo.rest.pojo.ClusterDto;
 import io.subutai.plugin.accumulo.rest.pojo.ContainerDto;
 import io.subutai.plugin.accumulo.rest.pojo.VersionDto;
 import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
 
 public class RestServiceImpl implements RestService
 {
+    private static final Logger LOG = LoggerFactory.getLogger( RestServiceImpl.class.getName() );
     private Accumulo accumuloManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
@@ -120,16 +126,34 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response addSlaveNode( final String clusterName, final String lxcHostName )
+    public Response addSlaveNode( final String clusterName, final String lxcHostId )
     {
-        return null;
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHostId );
+        if ( accumuloManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = accumuloManager.addNode( clusterName, lxcHostId );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
     @Override
-    public Response destroySlaveNode( final String clusterName, final String lxcHostName )
+    public Response destroySlaveNode( final String clusterName, final String lxcHostId )
     {
-        return null;
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHostId );
+        if ( accumuloManager.getCluster( clusterName ) == null )
+        {
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
+                    entity( clusterName + " cluster not found." ).build();
+        }
+        UUID uuid = accumuloManager.destroyNode( clusterName, lxcHostId );
+        OperationState state = waitUntilOperationFinish( uuid );
+        return createResponse( uuid, state );
     }
 
 
@@ -183,6 +207,44 @@ public class RestServiceImpl implements RestService
     public Response stopNodes( final String clusterName, final String lxcHosts )
     {
         return nodeOperation( clusterName, lxcHosts, false );
+    }
+
+
+    @Override
+    public Response getAvailableNodes( final String clusterName )
+    {
+        Set<String> hostsName = Sets.newHashSet();
+
+        AccumuloClusterConfig accumuloClusterConfig = accumuloManager.getCluster( clusterName );
+        HadoopClusterConfig hadoopConfig = hadoopManager.getCluster( accumuloClusterConfig.getHadoopClusterName() );
+
+        Set<String> nodes = new HashSet<>( hadoopConfig.getAllNodes() );
+        nodes.removeAll( accumuloClusterConfig.getAllNodes() );
+        if ( !nodes.isEmpty() )
+        {
+            Set<EnvironmentContainerHost> hosts;
+            try
+            {
+                hosts = environmentManager.loadEnvironment( hadoopConfig.getEnvironmentId() )
+                                          .getContainerHostsByIds( nodes );
+
+                for ( final EnvironmentContainerHost host : hosts )
+                {
+                    hostsName.add( host.getId() );
+                }
+            }
+            catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
+            {
+                e.printStackTrace();
+            }
+        }
+        else
+        {
+            LOG.info( "All nodes in corresponding Hadoop cluster have Nutch installed" );
+        }
+
+        String hosts = JsonUtil.GSON.toJson( hostsName );
+        return Response.status( Response.Status.OK ).entity( hosts ).build();
     }
 
 

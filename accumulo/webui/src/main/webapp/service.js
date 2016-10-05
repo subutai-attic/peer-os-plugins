@@ -27,8 +27,8 @@ function accumuloSrv($http, hadoopSrv) {
 
 	return accumuloSrv;
 
-	function addNode(clusterName, lxcHostname) {
-		return $http.post(CLUSTER_URL + clusterName + '/add/node/' + lxcHostname);
+	function addNode(clusterName, lxcHostId) {
+		return $http.post(CLUSTER_URL + clusterName + '/add/node/' + lxcHostId);
 	}
 
 	function getHadoopClusters(clusterName) {
@@ -54,8 +54,8 @@ function accumuloSrv($http, hadoopSrv) {
 		return $http.delete(CLUSTER_URL + 'destroy/' + clusterName);
 	}
 
-	function deleteNode(clusterName, nodeId) {
-		return $http.delete(CLUSTER_URL + clusterName + '/destroy/node/' + nodeId);
+	function deleteNode(clusterName, lxcHostId) {
+		return $http.delete(CLUSTER_URL + clusterName + '/destroy/node/' + lxcHostId);
 	}
 
 	function createAccumulo(accumuloObj) {

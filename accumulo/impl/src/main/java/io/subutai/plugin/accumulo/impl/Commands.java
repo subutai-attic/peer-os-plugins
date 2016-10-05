@@ -87,27 +87,27 @@ public class Commands
     }
 
 
-    public static RequestBuilder getSetSlavesCommand( final String slaveIPs )
+    public static RequestBuilder getSetSlavesCommand( final String hostnames )
     {
-        return new RequestBuilder( String.format( "echo -e \"%s\" > /opt/accumulo/conf/slaves", slaveIPs ) );
+        return new RequestBuilder( String.format( "echo -e \"%s\" > /opt/accumulo/conf/slaves", hostnames ) );
     }
 
 
-    public static RequestBuilder getClearSlaveCommand( String slaveIP )
+    public static RequestBuilder getClearSlaveCommand( String hostname )
     {
-        return new RequestBuilder( String.format( "sed -i -e \"/%s/d\" /opt/accumulo/conf/slaves", slaveIP ) );
+        return new RequestBuilder( String.format( "sed -i -e \"/%s/d\" /opt/accumulo/conf/slaves", hostname ) );
     }
 
 
-    public static RequestBuilder getSetMasterCommand( final String masterIP )
+    public static RequestBuilder getSetMasterCommand( final String hostname )
     {
-        return new RequestBuilder( String.format( "echo -e \"%s\" > /opt/accumulo/conf/masters", masterIP ) );
+        return new RequestBuilder( String.format( "echo -e \"%s\" > /opt/accumulo/conf/masters", hostname ) );
     }
 
 
-    public static RequestBuilder getClearMasterCommand( String masterIP )
+    public static RequestBuilder getClearMasterCommand( String hostname )
     {
-        return new RequestBuilder( String.format( "sed -i -e \"/%s/d\" /opt/accumulo/conf/masters", masterIP ) );
+        return new RequestBuilder( String.format( "sed -i -e \"/%s/d\" /opt/accumulo/conf/masters", hostname ) );
     }
 
 
