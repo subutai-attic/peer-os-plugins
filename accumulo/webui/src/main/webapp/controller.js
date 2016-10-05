@@ -203,8 +203,14 @@ function AccumuloCtrl($scope, accumuloSrv, SweetAlert, DTOptionsBuilder, DTColum
         if (vm.accumuloInstall.hadoopClusterName === undefined) {
             SweetAlert.swal("ERROR!", "Please select Hadoop cluster", "error");
         }
+        else if (vm.accumuloInstall.master === undefined) {
+            SweetAlert.swal("ERROR!", "Please set master node", "error");
+        }
         else if (vm.accumuloInstall.nodes.length == 0) {
-            SweetAlert.swal("ERROR!", "Please set nodes", "error");
+            SweetAlert.swal("ERROR!", "Please set slave nodes", "error");
+        }
+        else if (vm.accumuloInstall.password !== vm.confirmPassword) {
+            SweetAlert.swal("ERROR!", "Passwords don\'t match", "error");
         }
         else {
             SweetAlert.swal("Success!", "Accumulo cluster is being created.", "success");
@@ -288,6 +294,7 @@ function AccumuloCtrl($scope, accumuloSrv, SweetAlert, DTOptionsBuilder, DTColum
         vm.accumuloInstall = {};
         vm.accumuloInstall.nodes = [];
         vm.accumuloInstall.server = {};
+        vm.confirmPassword = "";
         vm.otherNodes = [];
     }
 
