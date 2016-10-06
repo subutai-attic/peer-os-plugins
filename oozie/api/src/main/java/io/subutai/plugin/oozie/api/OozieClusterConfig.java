@@ -25,7 +25,6 @@ public class OozieClusterConfig implements ConfigBase
     private String hadoopClusterName;
     private String id;
     private String server;
-    private Set<String> clients;
     private String clusterName = "";
     private SetupType setupType;
     private String environmentId;
@@ -86,18 +85,6 @@ public class OozieClusterConfig implements ConfigBase
     }
 
 
-    public Set<String> getClients()
-    {
-        return clients;
-    }
-
-
-    public void setClients( Set<String> clients )
-    {
-        this.clients = clients;
-    }
-
-
     public String getClusterName()
     {
         return clusterName;
@@ -131,8 +118,6 @@ public class OozieClusterConfig implements ConfigBase
                 "domainName='" + domainName + '\'' +
                 ", id=" + id +
                 ", server='" + server + '\'' +
-                ", clients=" + clients +
-                //                ", hadoopNodes=" + hadoopNodes +
                 ", clusterName='" + clusterName + '\'' +
                 '}';
     }
@@ -153,10 +138,6 @@ public class OozieClusterConfig implements ConfigBase
     public Set<String> getAllNodes()
     {
         Set<String> allNodes = new HashSet<>();
-        if ( clients != null )
-        {
-            allNodes.addAll( clients );
-        }
         if ( server != null )
         {
             allNodes.add( server );

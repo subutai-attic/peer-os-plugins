@@ -17,6 +17,7 @@ function OozieCtrl($scope, oozieSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	vm.availableNodes = [];
 	vm.otherNodes = [];
 	vm.temp = [];
+	vm.master = {};
 
 
 	//functions
@@ -101,7 +102,7 @@ function OozieCtrl($scope, oozieSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		LOADING_SCREEN();
 		oozieSrv.getHadoopClusters(selectedCluster).success(function (data) {
 			vm.currentClusterNodes = data.slaves;
-			vm.currentClusterNodes.push(data.nameNode);
+			vm.master = data.nameNode;
 			LOADING_SCREEN('none');
 		});
 	}

@@ -37,9 +37,6 @@ public class InstallClusterCommand extends OsgiCommandSupport
             multiValued = false )
     String server = null;
 
-    @Argument( index = 3, name = "clients", description = "The hostname list of client nodes", required = true,
-            multiValued = false )
-    String clients[] = null;
 
     private Oozie oozieManager;
     private Hadoop hadoopManager;
@@ -53,10 +50,6 @@ public class InstallClusterCommand extends OsgiCommandSupport
         config.setHadoopClusterName( hadoopClusterName );
         config.setEnvironmentId( hadoopManager.getCluster( hadoopClusterName ).getEnvironmentId() );
         config.setServer( server );
-
-        Set<String> nodeSet = new HashSet<>();
-        Collections.addAll( nodeSet, clients );
-        config.setClients( nodeSet );
 
         System.out.println( "Installing oozie cluster..." );
         UUID uuid = oozieManager.installCluster( config );

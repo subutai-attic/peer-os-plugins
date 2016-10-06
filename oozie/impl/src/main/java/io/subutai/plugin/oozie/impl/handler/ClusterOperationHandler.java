@@ -9,6 +9,7 @@ import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
@@ -94,41 +95,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
             return;
         }
 
-        for ( String id : config.getClients() )
-        {
-            ContainerHost containerHost;
-            try
-            {
-                containerHost = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
-                                       .getContainerHostById( id );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Container host not found", e );
-                trackerOperation.addLogFailed( "Container host not found" );
-                return;
-            }
-            catch ( EnvironmentNotFoundException e )
-            {
-                LOG.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
-                return;
-            }
-            try
-            {
-                CommandResult result = containerHost.execute( Commands.getUninstallClientsCommand() );
-                if ( !result.hasSucceeded() )
-                {
-                    po.addLog( result.getStdErr() );
-                    po.addLogFailed( "Uninstallation of oozie client failed" );
-                    return;
-                }
-            }
-            catch ( CommandException e )
-            {
-                LOG.error( e.getMessage(), e );
-            }
-        }
-
         po.addLog( "Uninstalling Oozie server..." );
 
         ContainerHost containerHost;
@@ -150,6 +116,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
         }
         try
         {
+            containerHost.execute( Commands.getStopServerCommand() );
+            containerHost.execute( Commands.getCleanHdfsCommand() );
             CommandResult result = containerHost.execute( Commands.getUninstallServerCommand() );
             if ( !result.hasSucceeded() )
             {
@@ -157,6 +125,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<OozieImpl,
                 po.addLogFailed( "Uninstallation of oozie server failed" );
                 return;
             }
+            containerHost.execute( new RequestBuilder( Commands.getStopDfsCommand() ) );
+            containerHost.execute( new RequestBuilder( Commands.getStopYarnCommand() ) );
+            containerHost.execute( Commands.getRemoveRootGroupsCommand() );
+            containerHost.execute( Commands.getRemoveRootHostsCommand() );
+            containerHost.execute( new RequestBuilder( Commands.getStartDfsCommand() ) );
+            containerHost.execute( new RequestBuilder( Commands.getStartYarnCommand() ) );
         }
         catch ( CommandException e )
         {

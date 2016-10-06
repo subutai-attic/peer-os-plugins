@@ -18,7 +18,6 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
-import io.subutai.plugin.oozie.impl.CommandType;
 import io.subutai.plugin.oozie.impl.Commands;
 import io.subutai.plugin.oozie.impl.OozieImpl;
 
@@ -124,58 +123,64 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
 
     private CommandResult installProductOnNode( ContainerHost host )
     {
-        CommandResult result = null;
-        try
-        {
-            host.execute( Commands.getAptUpdate() );
-            result = host.execute( new RequestBuilder( Commands.make( CommandType.INSTALL_CLIENT ) ) );
-            if ( result.hasSucceeded() )
-            {
-                config.getClients().add( host.getId() );
-                manager.getPluginDao().saveInfo( OozieClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
-                trackerOperation.addLogDone(
-                        OozieClusterConfig.PRODUCT_KEY + " is installed on node " + host.getHostname() + " " +
-                                "successfully." );
-            }
-            else
-            {
-                trackerOperation.addLogFailed(
-                        "Could not install " + OozieClusterConfig.PRODUCT_KEY + " to node " + host.getHostname() );
-            }
-        }
-        catch ( CommandException e )
-        {
-            e.printStackTrace();
-        }
-        return result;
+        //        CommandResult result = null;
+        //        try
+        //        {
+        //            host.execute( Commands.getAptUpdate() );
+        //            result = host.execute( new RequestBuilder( Commands.make( CommandType.INSTALL_CLIENT ) ) );
+        //            if ( result.hasSucceeded() )
+        //            {
+        //                config.getClients().add( host.getId() );
+        //                manager.getPluginDao().saveInfo( OozieClusterConfig.PRODUCT_KEY, config.getClusterName(),
+        // config );
+        //                trackerOperation.addLogDone(
+        //                        OozieClusterConfig.PRODUCT_KEY + " is installed on node " + host.getHostname() + " " +
+        //                                "successfully." );
+        //            }
+        //            else
+        //            {
+        //                trackerOperation.addLogFailed(
+        //                        "Could not install " + OozieClusterConfig.PRODUCT_KEY + " to node " + host
+        // .getHostname() );
+        //            }
+        //        }
+        //        catch ( CommandException e )
+        //        {
+        //            e.printStackTrace();
+        //        }
+        //        return result;
+        return null;
     }
 
 
     private CommandResult uninstallProductOnNode( ContainerHost host )
     {
-        CommandResult result = null;
-        try
-        {
-            result = host.execute( Commands.getUninstallClientsCommand() );
-            if ( result.hasSucceeded() )
-            {
-                config.getClients().remove( host.getId() );
-                manager.getPluginDao().saveInfo( OozieClusterConfig.PRODUCT_KEY, config.getClusterName(), config );
-                trackerOperation.addLogDone(
-                        OozieClusterConfig.PRODUCT_KEY + " is uninstalled from node " + host.getHostname()
-                                + " successfully." );
-            }
-            else
-            {
-                trackerOperation.addLogFailed(
-                        "Could not uninstall " + OozieClusterConfig.PRODUCT_KEY + " from node " + host.getHostname() );
-            }
-        }
-        catch ( CommandException e )
-        {
-            e.printStackTrace();
-        }
-        return result;
+        //        CommandResult result = null;
+        //        try
+        //        {
+        //            result = host.execute( Commands.getUninstallClientsCommand() );
+        //            if ( result.hasSucceeded() )
+        //            {
+        //                config.getClients().remove( host.getId() );
+        //                manager.getPluginDao().saveInfo( OozieClusterConfig.PRODUCT_KEY, config.getClusterName(),
+        // config );
+        //                trackerOperation.addLogDone(
+        //                        OozieClusterConfig.PRODUCT_KEY + " is uninstalled from node " + host.getHostname()
+        //                                + " successfully." );
+        //            }
+        //            else
+        //            {
+        //                trackerOperation.addLogFailed(
+        //                        "Could not uninstall " + OozieClusterConfig.PRODUCT_KEY + " from node " + host
+        // .getHostname() );
+        //            }
+        //        }
+        //        catch ( CommandException e )
+        //        {
+        //            e.printStackTrace();
+        //        }
+        //        return result;
+        return null;
     }
 
 
@@ -185,17 +190,13 @@ public class NodeOperationHandler extends AbstractOperationHandler<OozieImpl, Oo
         StringBuilder log = new StringBuilder();
         String status;
         String cmdResult = result.getStdErr() + result.getStdOut();
-        if ( cmdResult.contains( "Oozie Server is running" ) )
+        if ( cmdResult.contains( "Bootstrap" ) )
         {
             status = "Oozie Server is running";
         }
-        else if ( cmdResult.contains( "Oozie Server is not running" ) )
-        {
-            status = "Oozie Server is not running";
-        }
         else
         {
-            status = result.getStdOut();
+            status = "Oozie Server is not running";
         }
         log.append( String.format( "%s", status ) );
         po.addLogDone( log.toString() );

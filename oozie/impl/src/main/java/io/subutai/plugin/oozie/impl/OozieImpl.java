@@ -315,36 +315,6 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
     @Override
     public void onContainerDestroyed( final Environment environment, final String containerId )
     {
-        LOG.info( String.format( "Oozie environment event: Container destroyed: %s", containerId ) );
-        List<OozieClusterConfig> clusterConfigs = getClusters();
-        for ( final OozieClusterConfig clusterConfig : clusterConfigs )
-        {
-            if ( clusterConfig.getEnvironmentId().equals( environment.getId() ) )
-            {
-                LOG.info( String.format( "Oozie environment event: Target cluster: %s",
-                        clusterConfig.getClusterName() ) );
-
-                if ( clusterConfig.getAllNodes().contains( containerId ) )
-                {
-                    LOG.info( String.format( "Oozie environment event: Before: %s", clusterConfig ) );
-                    if ( !CollectionUtil.isCollectionEmpty( clusterConfig.getClients() ) )
-                    {
-                        clusterConfig.getClients().remove( containerId );
-                    }
-
-                    try
-                    {
-                        saveConfig( clusterConfig );
-                        LOG.info( String.format( "Oozie environment event: After: %s", clusterConfig ) );
-                    }
-                    catch ( ClusterException e )
-                    {
-                        LOG.error( "Error updating cluster config", e );
-                    }
-                    break;
-                }
-            }
-        }
     }
 
 
