@@ -131,11 +131,19 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
                 }
             }
             //filter nodes missing Presto
-            //                CommandResult result = node.execute( checkInstalledCommand );
-            //                if ( !result.getStdOut().contains( Commands.PACKAGE_NAME ) )
-            //                {
-            nodesToInstallPresto.add( node );
-            //                }
+            CommandResult result = null;
+            try
+            {
+                result = node.execute( Commands.getCheckInstalledCommand() );
+                if ( !result.getStdOut().contains( Commands.PACKAGE_NAME ) )
+                {
+                    nodesToInstallPresto.add( node );
+                }
+            }
+            catch ( CommandException e )
+            {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -148,10 +156,9 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
             po.addLog( "Installing Presto..." );
             for ( EnvironmentContainerHost node : nodesToInstallPresto )
             {
-                commandUtil.execute( manager.getCommands().getAptUpdate(), node );
-                commandUtil.execute( manager.getCommands().getInstallPython(), node );
-                CommandResult result = commandUtil.execute( manager.getCommands().getInstallCommand(), node );
-//                checkInstalled( node, result );
+                node.execute( manager.getCommands().getAptUpdate() );
+                CommandResult result = node.execute( manager.getCommands().getInstallCommand() );
+                checkInstalled( node, result );
             }
             po.addLog( "Configuring cluster..." );
             try
@@ -165,7 +172,7 @@ public class SetupStrategyOverHadoop extends SetupHelper implements ClusterSetup
             }
             try
             {
-                configureAsWorker( environment.getContainerHostsByIds( config.getWorkers() ) );
+                configureAsWorker( environment.getContainerHostsByIds( config.getWorkers() ), environment.getContainerHostById( config.getCoordinatorNode() ) );
             }
             catch ( ContainerHostNotFoundException e )
             {

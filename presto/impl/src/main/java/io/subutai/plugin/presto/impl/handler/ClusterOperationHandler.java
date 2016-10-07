@@ -56,7 +56,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
     {
         try
         {
-
             ClusterSetupStrategy s = manager.getClusterSetupStrategy( trackerOperation, config );
             try
             {
@@ -109,6 +108,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<PrestoImpl
             }
             try
             {
+                containerHost.execute( manager.getCommands().getStopCommand() );
                 CommandResult result = containerHost.execute( manager.getCommands().getUninstallCommand() );
                 if ( !result.hasSucceeded() )
                 {

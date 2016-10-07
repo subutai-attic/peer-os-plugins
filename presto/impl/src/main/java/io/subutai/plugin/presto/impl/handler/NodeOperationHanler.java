@@ -20,13 +20,13 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterSetupException;
 import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
+import io.subutai.plugin.presto.impl.Commands;
 import io.subutai.plugin.presto.impl.PrestoImpl;
 import io.subutai.plugin.presto.impl.SetupHelper;
 
@@ -153,76 +153,29 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
             {
                 throw new ClusterSetupException( "Node already belongs to cluster" + clusterName );
             }
-            result = commandUtil.execute( manager.getCommands().getCheckInstalledCommand(), host );
-            String hadoopPackage = Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME;
-            boolean skipInstall = false;
-            if ( result.getStdOut().contains( PrestoClusterConfig.PRODUCT_PACKAGE ) )
-            {
-                skipInstall = true;
-                trackerOperation.addLog( "Node already has Presto installed" );
-            }
-            else if ( !result.getStdOut().contains( hadoopPackage ) )
-            {
-                throw new ClusterSetupException( "Node has no Hadoop installation" );
-            }
+            result = host.execute( Commands.getCheckInstalledCommand() );
 
-            if ( !skipInstall )
+            trackerOperation.addLog( "Installing Presto..." );
+            result = host.execute( manager.getCommands().getInstallCommand() );
+            CommandResult checkResult = host.execute( Commands.getCheckInstalledCommand() );
+            if ( result.hasSucceeded() && checkResult.getStdOut().contains( Commands.PACKAGE_NAME ) )
             {
-                trackerOperation.addLog( "Installing Presto..." );
-                result = commandUtil.execute( manager.getCommands().getInstallCommand(), host );
-                CommandResult checkResult =
-                        commandUtil.execute( manager.getCommands().getCheckInstalledCommand(), host );
-                if ( result.hasSucceeded() && checkResult.getStdOut().contains( PrestoClusterConfig.PRODUCT_PACKAGE ) )
-                {
-                    config.getWorkers().add( host.getId() );
-                    manager.saveConfig( config );
-                    trackerOperation.addLog(
-                            PrestoClusterConfig.PRODUCT_KEY + " is installed on node " + host.getHostname()
-                                    + " successfully." );
-                }
-                else
-                {
-                    trackerOperation.addLogFailed(
-                            "Could not install " + PrestoClusterConfig.PRODUCT_KEY + " to node " + host.getHostname() );
-                }
+                config.getWorkers().add( host.getId() );
+                manager.saveConfig( config );
+                trackerOperation.addLog( PrestoClusterConfig.PRODUCT_KEY + " is installed on node " + host.getHostname()
+                        + " successfully." );
+            }
+            else
+            {
+                trackerOperation.addLogFailed(
+                        "Could not install " + PrestoClusterConfig.PRODUCT_KEY + " to node " + host.getHostname() );
             }
 
             Set<EnvironmentContainerHost> set = Sets.newHashSet( host );
             SetupHelper sh = new SetupHelper( trackerOperation, manager, config );
-            sh.configureAsWorker( set );
-
-            // check if coordinator is already running,
-            // then newly added node should be started automatically.
-            Environment environment;
-            try
-            {
-                environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
-                try
-                {
-                    EnvironmentContainerHost coordinator =
-                            environment.getContainerHostById( config.getCoordinatorNode() );
-                    RequestBuilder checkMasterIsRunning = manager.getCommands().getStatusCommand();
-                    result = commandUtil.execute( checkMasterIsRunning, coordinator );
-                    if ( result.hasSucceeded() )
-                    {
-                        // if Presto service is running on container,
-                        // command output will be smt like this: "Running as {pid}"
-                        // else it returns "Not running"
-                        if ( !result.getStdOut().toLowerCase().contains( "not running" ) )
-                        {
-                            sh.startNodes( set );
-                        }
-                    }
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    e.printStackTrace();
-                }
-            }
-            catch ( EnvironmentNotFoundException e )
-            {
-                LOG.error( "Error getting environment by id: " + config.getEnvironmentId(), e );
-            }
+            sh.configureAsWorker( set, manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() )
+                                              .getContainerHostById( config.getCoordinatorNode() ) );
+            host.execute( manager.getCommands().getStartCommand() );
 
 
             //subscribe to alerts
@@ -241,6 +194,14 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
         {
             trackerOperation.addLogFailed( String.format( "Command failed, %s", e.getMessage() ) );
         }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
         return result;
     }
 
@@ -250,6 +211,7 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
         CommandResult result = null;
         try
         {
+            host.execute( manager.getCommands().getStopCommand() );
             result = host.execute( manager.getCommands().getUninstallCommand() );
             if ( result.hasSucceeded() )
             {
@@ -277,13 +239,13 @@ public class NodeOperationHanler extends AbstractOperationHandler<PrestoImpl, Pr
     {
         Preconditions.checkNotNull( result );
         StringBuilder log = new StringBuilder();
-        if ( result.getStdOut().contains( "Not running" ) )
+        if ( result.getStdOut().contains( "PrestoServer" ) )
+        {
+            log.append( "Running as" );
+        }
+        else
         {
             log.append( "Not running" );
-        }
-        if ( result.getStdOut().contains( "Running as" ) )
-        {
-            log.append( result.getStdOut() );
         }
         po.addLogDone( log.toString() );
     }

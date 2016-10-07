@@ -36,8 +36,8 @@
 							<select class="b-form-input b-form-input_full"
 								ng-model="prestoCtrl.prestoInstall.server"
 								ng-change="prestoCtrl.changeDirective(prestoCtrl.prestoInstall.server)">
-								<option ng-repeat="node in prestoCtrl.currentClusterNodes" value="{{ node.uuid }}">
-									{{ node.hostname }}
+								<option value="{{ prestoCtrl.coordinator.uuid }}">
+									{{ prestoCtrl.coordinator.hostname }}
 								</option>
 							</select>
 						</div>
