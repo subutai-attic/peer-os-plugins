@@ -216,7 +216,7 @@ public class ClusterConfiguration
                 {
                     containerHost.execute( Commands.getStopSolrCommand( collectHostnames( containerHosts ),
                             containerHost.getHostname() ) );
-                    containerHost.execute( Commands.getStopZkServerCommand() );
+                    containerHost.execute( Commands.getKillZkServerCommand() );
 
                     containerHost.execute( new RequestBuilder( configureClusterCommand ).withTimeout( 60 ) );
                 }
@@ -228,8 +228,6 @@ public class ClusterConfiguration
             }
 
             removeSnaps( containerHosts );
-
-            executeOnAllNodes( containerHosts, Commands.getRestartZkServerCommand() );
         }
         catch ( ContainerHostNotFoundException e )
         {

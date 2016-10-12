@@ -42,6 +42,12 @@ public class Commands
     }
 
 
+    public static RequestBuilder getKillZkServerCommand()
+    {
+        return new RequestBuilder( "kill `jps | grep \"QuorumPeerMain\" | cut -d \" \" -f 1`" );
+    }
+
+
     public static RequestBuilder getSolrStatusCommand()
     {
         return new RequestBuilder( "jps" );

@@ -15,14 +15,14 @@ public class StormWebModule implements WebuiModule
 {
     private static String NAME = "Storm";
     private static String IMG = "plugins/storm/storm.png";
-    private static final String SIZE = "SMALL";
+    private static final String SIZE = "LARGE";
 
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "storm", 3 );
+        TEMPLATES_REQUIREMENT.put( "storm102", 3 );
     }
 
 
