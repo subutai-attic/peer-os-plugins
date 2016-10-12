@@ -104,10 +104,13 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SolrImpl, 
         {
             LOG.error( "Error getting environment", e );
             trackerOperation.addLogFailed( "Error getting environment" );
+            e.printStackTrace();
             return;
         }
         catch ( ClusterConfigurationException e )
         {
+            LOG.error( "Error in delete configuration step: ", e );
+            trackerOperation.addLogFailed( "Error in delete configuration step" );
             e.printStackTrace();
         }
 

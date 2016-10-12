@@ -22,6 +22,7 @@ import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.peer.PeerException;
+import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.hub.share.quota.ContainerQuota;
 import io.subutai.hub.share.resource.PeerGroupResources;
 import io.subutai.common.tracker.OperationState;
@@ -38,6 +39,7 @@ import io.subutai.core.strategy.api.RoundRobinStrategy;
 import io.subutai.core.strategy.api.StrategyException;
 import io.subutai.core.template.api.TemplateManager;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
+import io.subutai.plugin.storm.impl.ClusterConfiguration;
 import io.subutai.plugin.storm.impl.CommandType;
 import io.subutai.plugin.storm.impl.Commands;
 import io.subutai.plugin.storm.impl.StormImpl;
@@ -263,7 +265,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 {
                     String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
                     NodeSchema node =
-                            new NodeSchema( containerName, ContainerSize.SMALL, StormClusterConfiguration.TEMPLATE_NAME,
+                            new NodeSchema( containerName, ContainerSize.LARGE, StormClusterConfiguration.TEMPLATE_NAME,
                                     templateManager.getTemplateByName( StormClusterConfiguration.TEMPLATE_NAME )
                                                    .getId() );
                     List<NodeSchema> nodes = new ArrayList<>();
@@ -292,49 +294,18 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 }
 
                 newNode = newNodeSet.iterator().next();
-
-                try
-                {
-                    newNode.execute(
-                            new RequestBuilder( "apt-get --force-yes --assume-yes update" ).withTimeout( 60 ) );
-
-                    newNode.execute(
-                            new RequestBuilder( "apt-get --force-yes --assume-yes install python" ).withTimeout( 60 ) );
-                }
-                catch ( CommandException e )
-                {
-                    e.printStackTrace();
-                }
-
                 config.getSupervisors().add( newNode.getId() );
             }
 
+            environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
+            ClusterConfiguration configuration = new ClusterConfiguration( trackerOperation, manager );
+            configuration.deleteConfiguration( config, environment );
+
+            configuration.configureCluster( config, environment );
+
+
             manager.saveConfig( config );
 
-            // configure new supervisor node
-            try
-            {
-                environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
-            }
-            catch ( EnvironmentNotFoundException e )
-            {
-                logException( String.format( "Couldn't find environment with id: %s", config.getEnvironmentId() ), e );
-                return;
-            }
-            //            configureNStart( newNode, config, environment );
-
-            trackerOperation.addLogDone( "Finished." );
-
-            // subscribe to alerts
-            /*try
-            {
-                manager.subscribeToAlerts( newNode );
-            }
-            catch ( MonitorException e )
-            {
-                LOG.error( newNode.getHostname() + " could not get subscribed to alerts.", e );
-                e.printStackTrace();
-            }*/
             trackerOperation.addLogDone( "Node added" );
         }
         catch ( ClusterException e )
@@ -344,6 +315,10 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         catch ( EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( String.format( "failed to find environment:  %s", e ) );
+        }
+        catch ( ClusterConfigurationException e )
+        {
+            e.printStackTrace();
         }
     }
 
@@ -582,19 +557,25 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
     public void destroyCluster()
     {
         StormClusterConfiguration config = manager.getCluster( clusterName );
-        // before removing cluster, stop it first.
-        manager.stopAll( config.getClusterName() );
-
 
         Environment environment;
         try
         {
             environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
+            ClusterConfiguration configuration = new ClusterConfiguration( trackerOperation, manager );
+            configuration.deleteConfiguration( config, environment );
         }
         catch ( EnvironmentNotFoundException e )
         {
-            trackerOperation.addLogFailed( "Environment not found" );
-            return;
+            LOG.error( "Error getting environment", e );
+            trackerOperation.addLogFailed( "Error getting environment" );
+            e.printStackTrace();
+        }
+        catch ( ClusterConfigurationException e )
+        {
+            LOG.error( "Error in delete configuration step: ", e );
+            trackerOperation.addLogFailed( "Error in delete configuration step" );
+            e.printStackTrace();
         }
 
         if ( manager.getPluginDAO().deleteInfo( StormClusterConfiguration.PRODUCT_KEY, config.getClusterName() ) )
@@ -605,15 +586,6 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
         {
             trackerOperation.addLogFailed( "Failed to delete cluster information from database" );
         }
-
-        /*try
-        {
-            manager.unsubscribeFromAlerts( environment );
-        }
-        catch ( MonitorException e )
-        {
-            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
-        }*/
     }
 
 

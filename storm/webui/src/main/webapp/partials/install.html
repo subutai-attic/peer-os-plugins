@@ -44,8 +44,8 @@
 
 						<div class="b-form-wrapper b-form-wrapper_margin-size-1">
 							<select class="b-form-input b-form-input_full"
-								ng-model="stormCtrl.stormInstall.server"
-								ng-change="stormCtrl.changeDirective(stormCtrl.stormInstall.server)">
+								ng-model="stormCtrl.stormInstall.nimbus"
+								ng-change="stormCtrl.changeDirective(stormCtrl.stormInstall.nimbus)">
 								<option ng-repeat="node in stormCtrl.currentClusterNodes" value="{{ node.id }}">
 								{{ node.hostname }}
 								</option>

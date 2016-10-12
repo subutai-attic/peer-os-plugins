@@ -14,7 +14,7 @@ public class StormClusterConfiguration implements ConfigBase
 
     public static final String PRODUCT_NAME = "Storm";
     public static final String PRODUCT_KEY = "Storm";
-    public static final String TEMPLATE_NAME = "storm";
+    public static final String TEMPLATE_NAME = "storm102";
 
     private String clusterName;
     private int supervisorsCount;

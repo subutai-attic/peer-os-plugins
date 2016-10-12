@@ -131,4 +131,56 @@ public class Commands
     {
         return new RequestBuilder( "start-stop-daemon --start --background --exec /opt/storm/bin/storm supervisor" );
     }
+
+
+    public static RequestBuilder getStatusCommand()
+    {
+        return new RequestBuilder( "jps" );
+    }
+
+
+    public static String getResetClusterConfigurationCommand( String zooCfgFileContents, String zooCfgFilePath )
+    {
+        return String.format( "echo '%s' > %s", zooCfgFileContents, zooCfgFilePath );
+    }
+
+
+    public static RequestBuilder getStopNimbusCommand()
+    {
+        return new RequestBuilder( "kill `jps | grep \"nimbus\" | cut -d \" \" -f 1`" );
+    }
+
+
+    public static RequestBuilder getStopStormUICommand()
+    {
+        return new RequestBuilder( "kill `jps | grep \"core\" | cut -d \" \" -f 1`" );
+    }
+
+
+    public static RequestBuilder getStopSupervisorCommand()
+    {
+        return new RequestBuilder( "kill `jps | grep \"supervisor\" | cut -d \" \" -f 1`" );
+    }
+
+
+    public static RequestBuilder getCleanUpConfigsCommand()
+    {
+        return new RequestBuilder(
+                "rm /opt/storm/conf/storm.yaml ; cp /opt/storm/conf/storm.yaml.example /opt/storm/conf/storm.yaml ; "
+                        + "rm -rf /var/lib/storm " );
+    }
+
+
+    public static RequestBuilder getKillZkServerCommand()
+    {
+        return new RequestBuilder( "kill `jps | grep \"QuorumPeerMain\" | cut -d \" \" -f 1`" );
+    }
+
+
+    public static RequestBuilder getReconfigureCommand( String ip )
+    {
+        return new RequestBuilder(
+                String.format( "sed -i -e '/- \"%s\"/d' /opt/storm/conf/storm.yaml", ip ) );
+    }
+
 }

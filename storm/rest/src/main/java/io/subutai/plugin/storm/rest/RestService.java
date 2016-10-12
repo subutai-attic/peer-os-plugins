@@ -44,38 +44,38 @@ public interface RestService
 
     // check node
     @GET
-    @Path( "clusters/{clusterName}/check/node/{hostname}" )
+    @Path( "clusters/{clusterName}/check/node/{nodeId}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response statusCheck( @PathParam( "clusterName" ) String clusterName,
-                                 @PathParam( "hostname" ) String hostname );
+                                 @PathParam( "nodeId" ) String nodeId );
 
     // start node
     @PUT
-    @Path( "clusters/{clusterName}/start/node/{hostname}" )
+    @Path( "clusters/{clusterName}/start/node/{nodeId}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response startNode( @PathParam( "clusterName" ) String clusterName,
-                               @PathParam( "hostname" ) String hostname );
+                               @PathParam( "nodeId" ) String nodeId );
 
     // stop node
     @PUT
-    @Path( "clusters/{clusterName}/stop/node/{hostname}" )
+    @Path( "clusters/{clusterName}/stop/node/{nodeId}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response stopNode( @PathParam( "clusterName" ) String clusterName,
-                              @PathParam( "hostname" ) String hostname );
+                              @PathParam( "nodeId" ) String nodeId );
 
     //start nodes
     @POST
     @Path( "clusters/nodes/start" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response startNodes( @FormParam( "clusterName" ) String clusterName,
-                                @FormParam( "lxcHostNames" ) String lxcHosts );
+                                @FormParam( "lxcHostIds" ) String lxcHostIds );
 
     //stop nodes
     @POST
     @Path( "clusters/nodes/stop" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response stopNodes( @FormParam( "clusterName" ) String clusterName,
-                               @FormParam( "lxcHostNames" ) String lxcHosts );
+                               @FormParam( "lxcHostIds" ) String lxcHostIds );
 
     // add node
     @POST
@@ -85,10 +85,10 @@ public interface RestService
 
     // destroy node
     @DELETE
-    @Path( "clusters/{clusterName}/destroy/node/{hostname}" )
+    @Path( "clusters/{clusterName}/destroy/node/{nodeId}" )
     @Produces( { MediaType.APPLICATION_JSON } )
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
-                                 @PathParam( "hostname" ) String hostname );
+                                 @PathParam( "nodeId" ) String nodeId );
 
     //check cluster
     @GET

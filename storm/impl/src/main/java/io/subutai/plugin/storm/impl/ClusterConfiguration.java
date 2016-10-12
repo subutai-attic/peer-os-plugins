@@ -86,13 +86,12 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
                 containerHost.execute( Commands.getConfigureNimbusSeedsCommand( nimbusIp ) );
             }
 
+            executeOnAllNodes( allNodes, Commands.getStartZkServerCommand() );
             nimbus.execute( Commands.getStartNimbusCommand() );
             nimbus.execute( Commands.getStartStormUICommand() );
-
             executeOnAllNodes( supervisorNodes, Commands.getStartSupervisorCommand() );
-            executeOnAllNodes( allNodes, Commands.getStartZkServerCommand() );
 
-
+            nimbus.execute( new RequestBuilder( "sleep 15" ) );
         }
         catch ( ContainerHostNotFoundException | CommandException e )
         {
@@ -100,10 +99,53 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             e.printStackTrace();
         }
 
-
         config.setEnvironmentId( environment.getId() );
         stormManager.getPluginDAO().saveInfo( StormClusterConfiguration.PRODUCT_NAME, config.getClusterName(), config );
         po.addLogDone( "Cluster info successfully saved" );
+    }
+
+
+    public void deleteConfiguration( final StormClusterConfiguration solrClusterConfig, final Environment environment )
+            throws ClusterConfigurationException
+    {
+        try
+        {
+            Set<EnvironmentContainerHost> allNodes =
+                    environment.getContainerHostsByIds( solrClusterConfig.getAllNodes() );
+            Set<EnvironmentContainerHost> supervisors =
+                    environment.getContainerHostsByIds( solrClusterConfig.getSupervisors() );
+            EnvironmentContainerHost nimbus = environment.getContainerHostById( solrClusterConfig.getNimbus() );
+
+            nimbus.execute( Commands.getStopNimbusCommand() );
+            nimbus.execute( Commands.getStopStormUICommand() );
+
+            executeOnAllNodes( supervisors, Commands.getStopSupervisorCommand() );
+
+            for ( final EnvironmentContainerHost containerHost : allNodes )
+            {
+                String configureClusterCommand = Commands.getResetClusterConfigurationCommand( DEFAULT_CONFIGURATION,
+                        ConfigParams.CONFIG_FILE_PATH.getParamValue() );
+
+                containerHost.execute( Commands.getCleanUpConfigsCommand() );
+                containerHost.execute( Commands.getKillZkServerCommand() );
+
+                containerHost.execute( new RequestBuilder( configureClusterCommand ).withTimeout( 60 ) );
+            }
+
+            removeSnaps( allNodes );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            po.addLogFailed( "Error getting container hosts by ids" );
+            LOG.error( "Error getting container hosts by ids", e );
+            e.printStackTrace();
+        }
+        catch ( CommandException e )
+        {
+            po.addLogFailed( "Could not run command: " + e );
+            LOG.error( "Could not run command: " + e );
+            e.printStackTrace();
+        }
     }
 
 
@@ -209,5 +251,22 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         LOG.error( msg, e );
         po.addLogFailed( msg );
+    }
+
+
+    public void removeNode( final ContainerHost host, final StormClusterConfiguration config,
+                            final Environment environment )
+            throws CommandException, ContainerHostNotFoundException, ClusterConfigurationException
+    {
+        host.execute( Commands.getStopSupervisorCommand() );
+        host.execute( Commands.getCleanUpConfigsCommand() );
+
+        po.addLog( "Removing " + host.getHostname() + " from cluster." );
+        config.getSupervisors().remove( host.getId() );
+
+        Set<EnvironmentContainerHost> allNodes = environment.getContainerHostsByIds( config.getAllNodes() );
+        executeOnAllNodes( allNodes, Commands.getReconfigureCommand( host.getIp() ) );
+
+
     }
 }

@@ -1,9 +1,6 @@
 package io.subutai.plugin.storm.rest.pojo;
 
 
-/**
- * Created by ermek on 11/29/15.
- */
 public class ContainerPojo
 {
     private String hostname;

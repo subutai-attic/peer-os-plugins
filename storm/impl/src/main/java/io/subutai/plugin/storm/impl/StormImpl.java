@@ -173,10 +173,10 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
 
 
     @Override
-    public UUID destroyNode( String clusterName, String hostname )
+    public UUID destroyNode( String clusterName, String nodeId )
     {
         AbstractOperationHandler h =
-                new StormNodeOperationHandler( this, clusterName, hostname, NodeOperationType.DESTROY );
+                new StormNodeOperationHandler( this, clusterName, nodeId, NodeOperationType.DESTROY );
         executor.execute( h );
         return h.getTrackerId();
     }
