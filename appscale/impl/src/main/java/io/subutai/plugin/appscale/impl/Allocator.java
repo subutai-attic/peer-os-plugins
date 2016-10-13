@@ -17,8 +17,6 @@ import io.subutai.hub.share.resource.PeerResources;
  */
 public class Allocator extends PeerResources
 {
-    private Collection<HostResources> result;
-
     private List<AllocatedContainer> containers = new ArrayList<>();
 
 
