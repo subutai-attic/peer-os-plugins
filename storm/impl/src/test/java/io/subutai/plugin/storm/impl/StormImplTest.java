@@ -285,7 +285,7 @@ public class StormImplTest
         myUUID.add( id );
         when( stormClusterConfiguration.getAllNodes() ).thenReturn( myUUID );
 
-        stormImpl.onContainerDestroyed( environment, id );
+//        stormImpl.onContainerDestroyed( environment, id );
     }
 
 
@@ -304,7 +304,7 @@ public class StormImplTest
         myUUID.add( UUID.randomUUID().toString() );
         when( stormClusterConfiguration.getAllNodes() ).thenReturn( myUUID );
 
-        stormImpl.onContainerDestroyed( environment, id );
+//        stormImpl.onContainerDestroyed( environment, id );
     }
 
 
