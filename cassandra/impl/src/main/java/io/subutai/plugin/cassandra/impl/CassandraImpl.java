@@ -23,6 +23,12 @@ import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
+import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterOperationType;
+import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.core.plugincommon.api.NodeOperationType;
+import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.core.strategy.api.StrategyManager;
 import io.subutai.core.template.api.TemplateManager;
 import io.subutai.core.tracker.api.Tracker;
@@ -30,12 +36,6 @@ import io.subutai.plugin.cassandra.api.Cassandra;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.cassandra.impl.handler.NodeOperationHandler;
-import io.subutai.core.plugincommon.api.AbstractOperationHandler;
-import io.subutai.core.plugincommon.api.ClusterException;
-import io.subutai.core.plugincommon.api.ClusterOperationType;
-import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
-import io.subutai.core.plugincommon.api.NodeOperationType;
-import io.subutai.core.plugincommon.api.PluginDAO;
 
 
 public class CassandraImpl implements Cassandra, EnvironmentEventListener

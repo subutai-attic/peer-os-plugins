@@ -16,14 +16,14 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
-import io.subutai.plugin.cassandra.impl.CassandraImpl;
-import io.subutai.plugin.cassandra.impl.ClusterConfiguration;
-import io.subutai.plugin.cassandra.impl.Commands;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.NodeOperationType;
+import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
+import io.subutai.plugin.cassandra.impl.CassandraImpl;
+import io.subutai.plugin.cassandra.impl.ClusterConfiguration;
+import io.subutai.plugin.cassandra.impl.Commands;
 
 
 /**

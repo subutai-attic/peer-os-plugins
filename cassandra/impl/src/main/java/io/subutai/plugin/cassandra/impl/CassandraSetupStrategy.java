@@ -11,10 +11,10 @@ import com.google.common.base.Strings;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterSetupException;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 
 
 public class CassandraSetupStrategy implements ClusterSetupStrategy
