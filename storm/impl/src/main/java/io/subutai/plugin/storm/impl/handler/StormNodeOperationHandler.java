@@ -20,38 +20,34 @@ import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
+import io.subutai.plugin.storm.impl.ClusterConfiguration;
 import io.subutai.plugin.storm.impl.CommandType;
 import io.subutai.plugin.storm.impl.Commands;
 import io.subutai.plugin.storm.impl.StormImpl;
 import io.subutai.plugin.storm.impl.StormService;
-//import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 
 
-/**
- * This class handles operations that are related to just one node.
- *
- * TODO: add nodes and delete node operation should be implemented.
- */
 public class StormNodeOperationHandler extends AbstractOperationHandler<StormImpl, StormClusterConfiguration>
 {
     private static final Logger LOG = LoggerFactory.getLogger( StormNodeOperationHandler.class );
     private String clusterName;
-    private String hostname;
+    private String nodeId;
     private NodeOperationType operationType;
 
 
-    public StormNodeOperationHandler( final StormImpl manager, final String clusterName, final String hostname,
+    public StormNodeOperationHandler( final StormImpl manager, final String clusterName, final String nodeId,
                                       NodeOperationType operationType )
     {
         super( manager, clusterName );
-        this.hostname = hostname;
+        this.nodeId = nodeId;
         this.clusterName = clusterName;
         this.operationType = operationType;
         this.trackerOperation = manager.getTracker().createTrackerOperation( StormClusterConfiguration.PRODUCT_NAME,
-                String.format( "Running %s operation on %s...", operationType, hostname ) );
+                String.format( "Running %s operation on %s...", operationType, nodeId ) );
     }
 
 
@@ -78,44 +74,16 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
         ContainerHost containerHost = null;
         try
         {
-            containerHost = environment.getContainerHostByHostname( hostname );
+            containerHost = environment.getContainerHostById( nodeId );
         }
         catch ( ContainerHostNotFoundException e )
         {
-            logException( String.format( "Error getting container host by name: %s", hostname ), e );
-        }
-        // Check if the container is on external environment
-        if ( config.isExternalZookeeper() && containerHost == null )
-        {
-//            ZookeeperClusterConfig zookeeperCluster =
-//                    manager.getZookeeperManager().getCluster( config.getZookeeperClusterName() );
-//            Environment zookeeperEnvironment;
-//            try
-//            {
-//                zookeeperEnvironment =
-//                        manager.getEnvironmentManager().loadEnvironment( zookeeperCluster.getEnvironmentId() );
-//            }
-//            catch ( EnvironmentNotFoundException e )
-//            {
-//                logException(
-//                        String.format( "Couldn't find environment by id: %s", zookeeperCluster.getEnvironmentId() ),
-//                        e );
-//                return;
-//            }
-//            try
-//            {
-//                containerHost = zookeeperEnvironment.getContainerHostByHostname( hostname );
-//            }
-//            catch ( ContainerHostNotFoundException e )
-//            {
-//                logException( String.format( "Error getting container host by name: %s", hostname ), e );
-//                return;
-//            }
+            logException( String.format( "Error getting container host by id: %s", nodeId ), e );
         }
 
         if ( containerHost == null )
         {
-            trackerOperation.addLogFailed( String.format( "No Container with ID %s", hostname ) );
+            trackerOperation.addLogFailed( String.format( "No Container with ID %s", nodeId ) );
             return;
         }
 
@@ -127,48 +95,29 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
                 case START:
                     if ( config.getNimbus().equals( containerHost.getId() ) )
                     {
-//                        commandResultList.add( containerHost
-//                                .execute( new RequestBuilder( manager.getZookeeperManager().getCommand(
-//
-//                                        io.subutai.plugin.zookeeper.api.CommandType.START ) ) ) );
-                        commandResultList.add( containerHost.execute(
-                                new RequestBuilder( Commands.make( CommandType.START, StormService.NIMBUS ) ) ) );
-                        commandResultList.add( containerHost
-                                .execute( new RequestBuilder( Commands.make( CommandType.START, StormService.UI ) ) ) );
+                        commandResultList.add( containerHost.execute( Commands.getStartNimbusCommand() ) );
+                        commandResultList.add( containerHost.execute( Commands.getStartStormUICommand() ) );
                     }
                     else if ( config.getSupervisors().contains( containerHost.getId() ) )
                     {
-                        commandResultList.add( containerHost.execute(
-                                new RequestBuilder( Commands.make( CommandType.START, StormService.SUPERVISOR ) ) ) );
+                        commandResultList.add( containerHost.execute( Commands.getStartSupervisorCommand() ) );
                     }
+                    containerHost.execute( new RequestBuilder( "sleep 10" ) );
                     break;
                 case STOP:
                     if ( config.getNimbus().equals( containerHost.getId() ) )
                     {
-                        commandResultList.add( containerHost.execute(
-                                new RequestBuilder( Commands.make( CommandType.STOP, StormService.NIMBUS ) ) ) );
-                        commandResultList.add( containerHost
-                                .execute( new RequestBuilder( Commands.make( CommandType.STOP, StormService.UI ) ) ) );
+                        commandResultList.add( containerHost.execute( Commands.getStopNimbusCommand() ) );
+                        commandResultList.add( containerHost.execute( Commands.getStopStormUICommand() ) );
                     }
                     else if ( config.getSupervisors().contains( containerHost.getId() ) )
                     {
-                        commandResultList.add( containerHost.execute(
-                                new RequestBuilder( Commands.make( CommandType.STOP, StormService.SUPERVISOR ) ) ) );
+                        commandResultList.add( containerHost.execute( Commands.getStopSupervisorCommand() ) );
                     }
+                    containerHost.execute( new RequestBuilder( "sleep 5" ) );
                     break;
                 case STATUS:
-                    if ( config.getNimbus().equals( containerHost.getId() ) )
-                    {
-                        commandResultList.add( containerHost.execute(
-                                new RequestBuilder( Commands.make( CommandType.STATUS, StormService.NIMBUS ) ) ) );
-                        commandResultList.add( containerHost.execute(
-                                new RequestBuilder( Commands.make( CommandType.STATUS, StormService.UI ) ) ) );
-                    }
-                    else if ( config.getSupervisors().contains( containerHost.getId() ) )
-                    {
-                        commandResultList.add( containerHost.execute(
-                                new RequestBuilder( Commands.make( CommandType.STATUS, StormService.SUPERVISOR ) ) ) );
-                    }
+                    commandResultList.add( containerHost.execute( Commands.getStatusCommand() ) );
                     break;
                 case DESTROY:
                     destroyNode();
@@ -187,37 +136,41 @@ public class StormNodeOperationHandler extends AbstractOperationHandler<StormImp
     {
         EnvironmentManager environmentManager = manager.getEnvironmentManager();
         StormClusterConfiguration config = manager.getCluster( clusterName );
-        Environment environment;
+
         try
         {
-            environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+            Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
+            ContainerHost host = environment.getContainerHostById( nodeId );
+
+            ClusterConfiguration configuration = new ClusterConfiguration( trackerOperation, manager );
+            configuration.removeNode( host, config, environment );
+
+            manager.saveConfig( config );
+            trackerOperation.addLogDone( "Cluster information is updated." );
         }
         catch ( EnvironmentNotFoundException e )
         {
             logException( String.format( "Couldn't find environment by id: %s", config.getEnvironmentId() ), e );
-            return;
-        }
-        ContainerHost host;
-        try
-        {
-            host = environment.getContainerHostByHostname( hostname );
+            e.printStackTrace();
         }
         catch ( ContainerHostNotFoundException e )
         {
-            logException( String.format( "Error getting container host by name: %s", hostname ), e );
-            return;
-        }
-
-        trackerOperation.addLog( "Removing " + hostname + " from cluster." );
-        config.getSupervisors().remove( host.getId() );
-        try
-        {
-            manager.saveConfig( config );
-            trackerOperation.addLogDone( "Cluster information is updated." );
+            logException( String.format( "Error getting container host by id: %s", nodeId ), e );
+            e.printStackTrace();
         }
         catch ( ClusterException e )
         {
-            LOG.error( "Error while saving cluster configuration." );
+            logException( "Error while saving cluster configuration.", e );
+            e.printStackTrace();
+        }
+        catch ( CommandException e )
+        {
+            logException( "Error while executing command.", e );
+            e.printStackTrace();
+        }
+        catch ( ClusterConfigurationException e )
+        {
+            logException( "Error while reconfiguring cluster.", e );
             e.printStackTrace();
         }
     }

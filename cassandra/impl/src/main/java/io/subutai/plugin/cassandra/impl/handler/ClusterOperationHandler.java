@@ -31,8 +31,8 @@ import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.peer.PeerException;
-import io.subutai.common.quota.ContainerQuota;
-import io.subutai.common.resource.PeerGroupResources;
+import io.subutai.hub.share.quota.ContainerQuota;
+import io.subutai.hub.share.resource.PeerGroupResources;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -64,6 +64,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     private CassandraClusterConfig config;
     private TemplateManager templateManager;
     private CommandUtil commandUtil;
+    private TemplateManager templateManager;
 
 
     public ClusterOperationHandler( final CassandraImpl manager, final TemplateManager templateManager,

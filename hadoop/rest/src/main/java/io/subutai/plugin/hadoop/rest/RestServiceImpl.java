@@ -13,11 +13,15 @@ import java.util.UUID;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.CollectionUtil;
@@ -81,13 +85,14 @@ public class RestServiceImpl implements RestService
     public Response configureCluster( final String config )
     {
         TrimmedHadoopConfig trimmedHadoopConfig = JsonUtil.fromJson( config, TrimmedHadoopConfig.class );
+        Set<String> excludedSlaves = new HashSet<>();
         HadoopClusterConfig hadoopConfig = new HadoopClusterConfig();
         hadoopConfig.setClusterName( trimmedHadoopConfig.getClusterName() );
         hadoopConfig.setDomainName( trimmedHadoopConfig.getDomainName() );
         hadoopConfig.setEnvironmentId( trimmedHadoopConfig.getEnvironmentId() );
-        hadoopConfig.setJobTracker( trimmedHadoopConfig.getJobTracker() );
         hadoopConfig.setNameNode( trimmedHadoopConfig.getNameNode() );
-        hadoopConfig.setSecondaryNameNode( trimmedHadoopConfig.getSecNameNode() );
+        hadoopConfig.setReplicationFactor( trimmedHadoopConfig.getReplicationFactor() );
+        hadoopConfig.setExcludedSlaves( excludedSlaves );
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedHadoopConfig.getSlaves() ) )
         {
@@ -96,8 +101,7 @@ public class RestServiceImpl implements RestService
             {
                 slaveNodes.add( node );
             }
-            hadoopConfig.getDataNodes().addAll( slaveNodes );
-            hadoopConfig.getTaskTrackers().addAll( slaveNodes );
+            hadoopConfig.setSlaves( slaveNodes );
         }
 
         UUID uuid = hadoopManager.installCluster( hadoopConfig );
@@ -118,10 +122,9 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response startNameNode( String clusterName )
+    public Response startNameNode( String clusterName, String hostName )
     {
-        HadoopClusterConfig hadoopClusterConfig = hadoopManager.getCluster( clusterName );
-        UUID uuid = hadoopManager.startNameNode( hadoopClusterConfig );
+        UUID uuid = hadoopManager.startNameNode( clusterName, hostName );
         waitUntilOperationFinish( uuid );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
@@ -129,65 +132,9 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response stopNameNode( String clusterName )
+    public Response stopNameNode( String clusterName, String hostName )
     {
-        HadoopClusterConfig hadoopClusterConfig = hadoopManager.getCluster( clusterName );
-        UUID uuid = hadoopManager.stopNameNode( hadoopClusterConfig );
-        waitUntilOperationFinish( uuid );
-        OperationState state = waitUntilOperationFinish( uuid );
-        return createResponse( uuid, state );
-    }
-
-
-    @Override
-    public Response statusNameNode( String clusterName )
-    {
-        HadoopClusterConfig hadoopClusterConfig = hadoopManager.getCluster( clusterName );
-        UUID uuid = hadoopManager.statusNameNode( hadoopClusterConfig );
-        waitUntilOperationFinish( uuid );
-        OperationState state = waitUntilOperationFinish( uuid );
-        return createResponse( uuid, state );
-    }
-
-
-    @Override
-    public Response statusSecondaryNameNode( String clusterName )
-    {
-        HadoopClusterConfig hadoopClusterConfig = hadoopManager.getCluster( clusterName );
-        UUID uuid = hadoopManager.statusSecondaryNameNode( hadoopClusterConfig );
-        waitUntilOperationFinish( uuid );
-        OperationState state = waitUntilOperationFinish( uuid );
-        return createResponse( uuid, state );
-    }
-
-
-    @Override
-    public Response startJobTracker( String clusterName )
-    {
-        HadoopClusterConfig hadoopClusterConfig = hadoopManager.getCluster( clusterName );
-        UUID uuid = hadoopManager.startJobTracker( hadoopClusterConfig );
-        waitUntilOperationFinish( uuid );
-        OperationState state = waitUntilOperationFinish( uuid );
-        return createResponse( uuid, state );
-    }
-
-
-    @Override
-    public Response stopJobTracker( String clusterName )
-    {
-        HadoopClusterConfig hadoopClusterConfig = hadoopManager.getCluster( clusterName );
-        UUID uuid = hadoopManager.stopJobTracker( hadoopClusterConfig );
-        waitUntilOperationFinish( uuid );
-        OperationState state = waitUntilOperationFinish( uuid );
-        return createResponse( uuid, state );
-    }
-
-
-    @Override
-    public Response statusJobTracker( String clusterName )
-    {
-        HadoopClusterConfig hadoopClusterConfig = hadoopManager.getCluster( clusterName );
-        UUID uuid = hadoopManager.statusJobTracker( hadoopClusterConfig );
+        UUID uuid = hadoopManager.stopNameNode( clusterName, hostName );
         waitUntilOperationFinish( uuid );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
@@ -219,27 +166,6 @@ public class RestServiceImpl implements RestService
         HadoopClusterConfig config = hadoopManager.getCluster( clusterName );
 
         UUID uuid = hadoopManager.destroyNode( config, node );
-        OperationState state = waitUntilOperationFinish( uuid );
-        return createResponse( uuid, state );
-    }
-
-
-    @Override
-    public Response statusDataNode( String clusterName, String hostname )
-    {
-        UUID uuid = hadoopManager.statusDataNode( hadoopManager.getCluster( clusterName ), hostname );
-        waitUntilOperationFinish( uuid );
-        OperationState state = waitUntilOperationFinish( uuid );
-        return createResponse( uuid, state );
-    }
-
-
-    @Override
-    public Response statusTaskTracker( String clusterName, String hostname )
-    {
-        HadoopClusterConfig hadoopClusterConfig = hadoopManager.getCluster( clusterName );
-        UUID uuid = hadoopManager.statusTaskTracker( hadoopClusterConfig, hostname );
-        waitUntilOperationFinish( uuid );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
     }
@@ -382,53 +308,37 @@ public class RestServiceImpl implements RestService
 
     private HadoopPojo updateStatus( HadoopClusterConfig config )
     {
-        HadoopPojo pojo = new HadoopPojo( config );
-
+        HadoopPojo pojo = new HadoopPojo();
+        Set<ContainerPojo> containerPojoSet = Sets.newHashSet();
         try
         {
             Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
 
-            UUID uuid = hadoopManager.statusNameNode( config );
-            ContainerHost ch = environment.getContainerHostById( pojo.getNameNode().getUuid() );
-            pojo.getNameNode().setHostname( ch.getHostname() );
-            pojo.getNameNode().setIp( ch.getInterfaceByName( "eth0" ).getIp() );
-            pojo.getNameNode().setStatus( parseStatus( uuid ) );
 
-            uuid = hadoopManager.statusSecondaryNameNode( config );
-            ch = environment.getContainerHostById( pojo.getSecondaryNameNode().getUuid() );
-            pojo.getSecondaryNameNode().setHostname( ch.getHostname() );
-            pojo.getSecondaryNameNode().setIp( ch.getInterfaceByName( "eth0" ).getIp() );
-            pojo.getSecondaryNameNode().setStatus( parseStatus( uuid ) );
+            for ( final String uuid : config.getSlaves() )
+            {
+                ContainerHost ch = environment.getContainerHostById( uuid );
+                UUID dataUUID = hadoopManager.statusDataNode( config.getClusterName(), ch.getHostname() );
+                containerPojoSet.add( new ContainerPojo( uuid, ch.getHostname(),
+                        ch.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp(),
+                        checkDataStatus( tracker, dataUUID ) ) );
+            }
 
-            uuid = hadoopManager.statusJobTracker( config );
-            ch = environment.getContainerHostById( pojo.getJobTracker().getUuid() );
-            pojo.getJobTracker().setHostname( ch.getHostname() );
-            pojo.getJobTracker().setIp( ch.getInterfaceByName( "eth0" ).getIp() );
-            pojo.getJobTracker().setStatus( parseStatus( uuid ) );
+            pojo.setSlaves( containerPojoSet );
+
+            ContainerHost namenode = environment.getContainerHostById( config.getNameNode() );
+            UUID nameNodeUUID = hadoopManager.statusNameNode( config.getClusterName(), namenode.getHostname() );
+            ContainerPojo namenodePojo = new ContainerPojo( config.getNameNode(), namenode.getHostname(),
+                    namenode.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp(),
+                    checkNamenodeStatus( tracker, nameNodeUUID ) );
+            pojo.setNameNode( namenodePojo );
+
 
             String envDataSource = environment.toString().contains( "ProxyEnvironment" ) ? "hub" : "subutai";
-
             pojo.setEnvironmentDataSource( envDataSource );
-
-            for ( ContainerPojo container : pojo.getAllDataNodeAgent() )
-            {
-                ch = environment.getContainerHostById( container.getUuid() );
-                container.setHostname( ch.getHostname() );
-                container.setIp( ch.getInterfaceByName( "eth0" ).getIp() );
-
-                uuid = hadoopManager.statusDataNode( config, container.getHostname() );
-                container.setStatus( parseStatus( uuid ) );
-            }
-
-            for ( ContainerPojo container : pojo.getAllTaskTrackerNodeAgents() )
-            {
-                ch = environment.getContainerHostById( container.getUuid() );
-                container.setHostname( ch.getHostname() );
-                container.setIp( ch.getInterfaceByName( "eth0" ).getIp() );
-
-                uuid = hadoopManager.statusTaskTracker( config, container.getHostname() );
-                container.setStatus( parseStatus( uuid ) );
-            }
+            pojo.setClusterName( config.getClusterName() );
+            pojo.setAutoScaling( config.isAutoScaling() );
+            pojo.setEnvironmentId( config.getEnvironmentId() );
         }
         catch ( ContainerHostNotFoundException | EnvironmentNotFoundException e )
         {
@@ -439,29 +349,24 @@ public class RestServiceImpl implements RestService
     }
 
 
-    private String parseStatus( UUID uuid )
+    private String checkNamenodeStatus( Tracker tracker, UUID uuid )
     {
-        String log = "";
+        String state = "UNKNOWN";
         long start = System.currentTimeMillis();
         while ( !Thread.interrupted() )
         {
-            TrackerOperationView po = tracker.getTrackerOperation( HadoopClusterConfig.PRODUCT_NAME, uuid );
+            TrackerOperationView po = tracker.getTrackerOperation( HadoopClusterConfig.PRODUCT_KEY, uuid );
             if ( po != null )
             {
                 if ( po.getState() != OperationState.RUNNING )
                 {
-                    String temp = po.getLog();
-                    if ( temp.contains( "STOPPED" ) )
+                    if ( po.getLog().contains( "NameNode" ) )
                     {
-                        log = "STOPPED";
-                    }
-                    else if ( temp.contains( "RUNNING" ) )
-                    {
-                        log = "RUNNING";
+                        state = "RUNNING";
                     }
                     else
                     {
-                        log = "UNKNOWN";
+                        state = "STOPPED";
                     }
                     break;
                 }
@@ -474,12 +379,53 @@ public class RestServiceImpl implements RestService
             {
                 break;
             }
-            if ( System.currentTimeMillis() - start > ( 60 * 1000 ) )
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
             {
                 break;
             }
         }
-        return log;
+
+        return state;
+    }
+
+
+    private String checkDataStatus( Tracker tracker, UUID uuid )
+    {
+        String state = "UNKNOWN";
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( HadoopClusterConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    if ( po.getLog().contains( "DataNode" ) )
+                    {
+                        state = "RUNNING";
+                    }
+                    else
+                    {
+                        state = "STOPPED";
+                    }
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            {
+                break;
+            }
+        }
+
+        return state;
     }
 
 

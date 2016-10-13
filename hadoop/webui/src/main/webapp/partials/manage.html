@@ -25,6 +25,11 @@
 					</span>
         </a>
 
+        <a href="http://{{hadoopCtrl.currentCluster.nameNode.hostname}}.hadoop"
+           target="_blank" class="b-btn b-btn_blue b-btn_margin-r">
+          Console
+        </a>
+
         <label class="b-form-label">
           <input type="checkbox"
                  ng-change="hadoopCtrl.changeClusterScaling(hadoopCtrl.currentCluster.autoScaling)"
@@ -40,13 +45,14 @@
     </h2>
 
     <div class="b-main-table-border">
-      <table class="b-main-table b-main-table_with-header">
+      <table class="b-main-table b-main-table_with-header ez-ssh-table">
         <tr>
           <th>Status</th>
           <th>Type</th>
           <th>Hostname</th>
           <th>IP</th>
           <th></th>
+          <th>SSH</th>
         </tr>
         <td colspan="5" class="b-main-table__empty-item" ng-if="hadoopCtrl.currentCluster.nameNode === undefined">No
           data available in table
@@ -77,46 +83,37 @@
                   ng-show="hadoopCtrl.currentCluster.nameNode.status != 'STOPPED' && hadoopCtrl.currentCluster.nameNode.status != 'RUNNING'">
 						</span>
           </td>
-        </tr>
-        <tr ng-if="hadoopCtrl.currentCluster.jobTracker !== undefined">
-          <td class="b-main-table__container-status">
-            <div
-                class="b-status-icon b-status-icon_{{ hadoopCtrl.currentCluster.jobTracker.status }}"
-                tooltips
-                tooltip-title="{{ hadoopCtrl.currentCluster.jobTracker.status }}">
-            </div>
-          </td>
-          <td>Job Tracker</td>
-          <td>{{ hadoopCtrl.currentCluster.jobTracker.hostname }}</td>
-          <td>{{ hadoopCtrl.currentCluster.jobTracker.ip }}</td>
           <td>
-            <button ng-show="hadoopCtrl.currentCluster.jobTracker.status == 'RUNNING'"
-                    class="b-btn b-btn_red subt_button__container-stop"
-                    ng-click="hadoopCtrl.stopNode(hadoopCtrl.currentCluster.jobTracker, 'job/')">
-              Stop
-            </button>
-            <button ng-show="hadoopCtrl.currentCluster.jobTracker.status == 'STOPPED'"
-                    class="b-btn b-btn_green subt_button__container-start"
-                    ng-click="hadoopCtrl.startNode(hadoopCtrl.currentCluster.jobTracker, 'job/')">
-              Start
-            </button>
-						<span class="b-load-icon" title="{{ hadoopCtrl.currentCluster.jobTracker.state }}"
-                  ng-show="hadoopCtrl.currentCluster.jobTracker.status != 'STOPPED' && hadoopCtrl.currentCluster.jobTracker.status != 'RUNNING'">
-						</span>
-          </td>
-        </tr>
-        <tr ng-if="hadoopCtrl.currentCluster.secondaryNameNode !== undefined">
-          <td class="b-main-table__container-status">
-            <div
-                class="b-status-icon b-status-icon_{{ hadoopCtrl.currentCluster.secondaryNameNode.status }}"
-                tooltips
-                tooltip-title="{{ hadoopCtrl.currentCluster.secondaryNameNode.status }}">
+            <div env-id="{{ hadoopCtrl.currentCluster.environmentId }}"
+                 container-id="{{ hadoopCtrl.currentCluster.nameNode.uuid }}">
+              <!--<div ng-if="container.dataSource === 'hub'">-->
+              <button class="b-btn b-btn_blue ez-ssh-btn" disabled>
+                <div class="ssh-key-button_block">
+                  <svg class="ssh-key-button" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"  x="0px" y="0px" viewBox="0 0 28 26" enable-background="new 0 0 28 26" xml:space="preserve">
+										<g>
+										<path fill="#FFFFFF" d="M21,23.4H7.4c-1.6,0-3-1.3-3-3v-6.3h2.5v4.4c0,0.3,0.2,0.5,0.5,0.5h1.5c0.3,0,0.5-0.2,0.5-0.5v-4.4h4.4
+											l0.1,0.3c0.7,3.2,3.6,5.4,6.8,5.4c3.9,0,7-3.1,7-7c0-3.9-3.1-7-7-7c-3.2,0-6.1,2.3-6.8,5.4l-0.1,0.3l-12.1,0
+											c-0.6,0-1.1,0.4-1.3,0.9c-0.2,0.8,0.4,1.5,1.2,1.6l0.4,0v6.3c0,3,2.5,5.5,5.5,5.5H21c3,0,5.5-2.5,5.5-5.5v0c0-0.2-0.3-0.4-0.5-0.2
+											c-0.7,0.6-1.5,1-2.3,1.3C23.3,22.7,22.2,23.4,21,23.4z M20.7,8.4c2.5,0,4.5,2,4.5,4.5c0,2.5-2,4.5-4.5,4.5c-2.5,0-4.5-2-4.5-4.5
+											C16.2,10.4,18.2,8.4,20.7,8.4z"/>
+										<path fill="#FFFFFF" d="M26.5,5.6L26.5,5.6c0-3-2.5-5.5-5.5-5.5H7.4c-3,0-5.5,2.5-5.5,5.5V9c0,0.3,0.2,0.5,0.5,0.5h1.5
+											c0.3,0,0.5-0.2,0.5-0.5V5.6c0-1.6,1.3-3,3-3H21c1.2,0,2.2,0.7,2.7,1.8c0,0.1,0.1,0.1,0.1,0.1c0.8,0.3,1.5,0.8,2.2,1.3
+											C26.2,6,26.5,5.8,26.5,5.6z"/>
+										</g>
+									</svg>
+                </div>
+                <div class="ssh-key-button_title">SSH</div>
+              </button>
+							<span class="ssh-info-button">
+								?
+								<div class="ssh-plugin-info-tooltip tooltip">
+									<div
+                      style="padding-bottom: 10px">EZ ssh access to your environment container, use it with ease, pz.</div>
+									<a href="https://github.com/subutai-io/browsers/releases/latest" target="_blank">Download</a>
+								</div>
+							</span>
             </div>
           </td>
-          <td>Secondary Name Node</td>
-          <td>{{ hadoopCtrl.currentCluster.secondaryNameNode.hostname }}</td>
-          <td>{{ hadoopCtrl.currentCluster.secondaryNameNode.ip }}</td>
-          <td></td>
         </tr>
       </table>
     </div>
@@ -126,41 +123,72 @@
       Slaves nodes
     </h2>
 
-    <div class="b-data-table">
+    <div class="b-data-table ">
 
       <table datatable="ng"
              dt-options="hadoopCtrl.dtOptions"
              dt-column-defs="hadoopCtrl.dtColumnDefs"
-             class="row-border hover">
+             class="row-border hover ez-ssh-table">
         <thead>
         <tr>
           <th>Status</th>
           <th>Hostname</th>
           <th>IP</th>
+          <th>SSH</th>
           <th></th>
         </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="(key, dataNode) in hadoopCtrl.currentCluster.dataNodes">
+        <tr ng-repeat="(key, slave) in hadoopCtrl.currentCluster.slaves">
           <td class="b-main-table__container-status">
             <div
-                class="b-status-icon b-status-icon_{{ dataNode.status }}"
+                class="b-status-icon b-status-icon_{{ slave.status }}"
                 tooltips
-                tooltip-title="{{ dataNode.status }}">
+                tooltip-title="{{ slave.status }}">
             </div>
           </td>
-          <td>{{ dataNode.hostname }}</td>
-          <td class="subt_text__container-ip">{{ dataNode.ip }}</td>
+          <td>{{ slave.hostname }}</td>
+          <td class="subt_text__container-ip">{{ slave.ip }}</td>
+          <td>
+            <div env-id="{{ hadoopCtrl.currentCluster.environmentId }}"
+                 container-id="{{ slave.uuid }}">
+              <!--<div ng-if="container.dataSource === 'hub'">-->
+              <button class="b-btn b-btn_blue ez-ssh-btn" disabled>
+                <div class="ssh-key-button_block">
+                  <svg class="ssh-key-button" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"  x="0px" y="0px" viewBox="0 0 28 26" enable-background="new 0 0 28 26" xml:space="preserve">
+										<g>
+										<path fill="#FFFFFF" d="M21,23.4H7.4c-1.6,0-3-1.3-3-3v-6.3h2.5v4.4c0,0.3,0.2,0.5,0.5,0.5h1.5c0.3,0,0.5-0.2,0.5-0.5v-4.4h4.4
+											l0.1,0.3c0.7,3.2,3.6,5.4,6.8,5.4c3.9,0,7-3.1,7-7c0-3.9-3.1-7-7-7c-3.2,0-6.1,2.3-6.8,5.4l-0.1,0.3l-12.1,0
+											c-0.6,0-1.1,0.4-1.3,0.9c-0.2,0.8,0.4,1.5,1.2,1.6l0.4,0v6.3c0,3,2.5,5.5,5.5,5.5H21c3,0,5.5-2.5,5.5-5.5v0c0-0.2-0.3-0.4-0.5-0.2
+											c-0.7,0.6-1.5,1-2.3,1.3C23.3,22.7,22.2,23.4,21,23.4z M20.7,8.4c2.5,0,4.5,2,4.5,4.5c0,2.5-2,4.5-4.5,4.5c-2.5,0-4.5-2-4.5-4.5
+											C16.2,10.4,18.2,8.4,20.7,8.4z"/>
+										<path fill="#FFFFFF" d="M26.5,5.6L26.5,5.6c0-3-2.5-5.5-5.5-5.5H7.4c-3,0-5.5,2.5-5.5,5.5V9c0,0.3,0.2,0.5,0.5,0.5h1.5
+											c0.3,0,0.5-0.2,0.5-0.5V5.6c0-1.6,1.3-3,3-3H21c1.2,0,2.2,0.7,2.7,1.8c0,0.1,0.1,0.1,0.1,0.1c0.8,0.3,1.5,0.8,2.2,1.3
+											C26.2,6,26.5,5.8,26.5,5.6z"/>
+										</g>
+									</svg>
+                </div>
+                <div class="ssh-key-button_title">SSH</div>
+              </button>
+							<span class="ssh-info-button">
+								?
+								<div class="ssh-plugin-info-tooltip tooltip">
+									<div
+                      style="padding-bottom: 10px">EZ ssh access to your environment container, use it with ease, pz.</div>
+									<a href="https://github.com/subutai-io/browsers/releases/latest" target="_blank">Download</a>
+								</div>
+							</span>
+            </div>
+          </td>
           <td>
             <a href
                class="b-icon b-icon_remove"
-               ng-click="hadoopCtrl.deleteNode(dataNode.hostname)">
+               ng-click="hadoopCtrl.deleteNode(slave.hostname)">
             </a>
           </td>
         </tr>
         </tbody>
       </table>
-
     </div>
   </div>
 </div>

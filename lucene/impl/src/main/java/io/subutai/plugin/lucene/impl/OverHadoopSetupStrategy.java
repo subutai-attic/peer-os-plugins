@@ -27,7 +27,6 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
 {
     private Environment environment;
 
-
     public OverHadoopSetupStrategy( LuceneImpl manager, LuceneConfig config, TrackerOperation po,
                                     Environment environment )
     {
@@ -47,7 +46,6 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
 
     private void check() throws ClusterSetupException
     {
-
         if ( Strings.isNullOrEmpty( config.getHadoopClusterName() ) || CollectionUtil
                 .isCollectionEmpty( config.getNodes() ) )
         {
@@ -110,14 +108,6 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
                                     node.getHostname() ) );
                     config.getNodes().remove( node.getId() );
                 }
-                else if ( !result.getStdOut()
-                                 .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
-                {
-                    trackerOperation.addLog(
-                            String.format( "Node %s has no Hadoop installation. Omitting this node from installation",
-                                    node.getHostname() ) );
-                    config.getNodes().remove( node.getId() );
-                }
             }
             catch ( CommandException e )
             {
@@ -174,7 +164,6 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
 
     public void processResult( EnvironmentContainerHost host, CommandResult result ) throws ClusterSetupException
     {
-
         if ( !result.hasSucceeded() )
         {
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
@@ -195,7 +184,7 @@ class OverHadoopSetupStrategy extends LuceneSetupStrategy
             throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
         }
 
-        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( LuceneConfig.PRODUCT_PACKAGE ) ) )
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( Commands.PACKAGE_NAME ) ) )
         {
             trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),

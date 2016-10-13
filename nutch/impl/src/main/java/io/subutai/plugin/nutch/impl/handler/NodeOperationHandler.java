@@ -24,8 +24,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<NutchImpl, Nu
     private String hostname;
     private NodeOperationType operationType;
     private NutchConfig config;
-    Commands commands = new Commands();
-    CommandUtil commandUtil = new CommandUtil();
 
 
     public NodeOperationHandler( final NutchImpl manager, String clusterName, final String hostname,
@@ -95,22 +93,15 @@ public class NodeOperationHandler extends AbstractOperationHandler<NutchImpl, Nu
 
         try
         {
-            CommandResult result = commandUtil.execute( commands.getCheckInstallationCommand(), node );
-            if ( result.getStdOut().contains( NutchConfig.PRODUCT_PACKAGE ) )
+            CommandResult result = node.execute( Commands.getCheckInstallationCommand() );
+            if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
             {
                 trackerOperation
                         .addLogFailed( String.format( "Node %s already has Nutch installed", node.getHostname() ) );
                 return;
             }
-            else if ( !result.getStdOut()
-                             .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
-            {
-                trackerOperation
-                        .addLogFailed( String.format( "Node %s has no Hadoop installation", node.getHostname() ) );
-                return;
-            }
 
-            commandUtil.execute( commands.getInstallCommand(), node );
+            node.execute( Commands.getInstallCommand() );
 
             config.getNodes().add( node.getId() );
 
@@ -130,7 +121,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<NutchImpl, Nu
     {
         try
         {
-            commandUtil.execute( commands.getUninstallCommand(), node );
+            node.execute( Commands.getUninstallCommand() );
 
             config.getNodes().remove( node.getId() );
 

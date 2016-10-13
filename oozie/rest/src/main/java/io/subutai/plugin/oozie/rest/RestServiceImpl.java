@@ -9,6 +9,7 @@ import javax.ws.rs.core.Response;
 
 import io.subutai.common.host.HostInterface;
 import io.subutai.plugin.oozie.rest.pojo.VersionPojo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,58 +60,57 @@ public class RestServiceImpl implements RestService
     }
 
 
+    @Override
+    public Response getPluginInfo()
+    {
+        Properties prop = new Properties();
+        VersionPojo pojo = new VersionPojo();
+        InputStream input = null;
+        try
+        {
+            input = getClass().getResourceAsStream( "/git.properties" );
 
-	@Override
-	public Response getPluginInfo()
-	{
-		Properties prop = new Properties();
-		VersionPojo pojo = new VersionPojo();
-		InputStream input = null;
-		try
-		{
-			input = getClass().getResourceAsStream("/git.properties");
+            prop.load( input );
+            pojo.setGitCommitId( prop.getProperty( "git.commit.id" ) );
+            pojo.setGitCommitTime( prop.getProperty( "git.commit.time" ) );
+            pojo.setGitBranch( prop.getProperty( "git.branch" ) );
+            pojo.setGitCommitUserName( prop.getProperty( "git.commit.user.name" ) );
+            pojo.setGitCommitUserEmail( prop.getProperty( "git.commit.user.email" ) );
+            pojo.setProjectVersion( prop.getProperty( "git.build.version" ) );
 
-			prop.load( input );
-			pojo.setGitCommitId( prop.getProperty( "git.commit.id" ) );
-			pojo.setGitCommitTime( prop.getProperty( "git.commit.time" ) );
-			pojo.setGitBranch( prop.getProperty( "git.branch" ) );
-			pojo.setGitCommitUserName( prop.getProperty( "git.commit.user.name" ) );
-			pojo.setGitCommitUserEmail( prop.getProperty( "git.commit.user.email" ) );
-			pojo.setProjectVersion( prop.getProperty( "git.build.version" ) );
+            pojo.setGitBuildUserName( prop.getProperty( "git.build.user.name" ) );
+            pojo.setGitBuildUserEmail( prop.getProperty( "git.build.user.email" ) );
+            pojo.setGitBuildHost( prop.getProperty( "git.build.host" ) );
+            pojo.setGitBuildTime( prop.getProperty( "git.build.time" ) );
 
-			pojo.setGitBuildUserName( prop.getProperty( "git.build.user.name" ) );
-			pojo.setGitBuildUserEmail( prop.getProperty( "git.build.user.email" ) );
-			pojo.setGitBuildHost( prop.getProperty( "git.build.host" ) );
-			pojo.setGitBuildTime( prop.getProperty( "git.build.time" ) );
+            pojo.setGitClosestTagName( prop.getProperty( "git.closest.tag.name" ) );
+            pojo.setGitCommitIdDescribeShort( prop.getProperty( "git.commit.id.describe-short" ) );
+            pojo.setGitClosestTagCommitCount( prop.getProperty( "git.closest.tag.commit.count" ) );
+            pojo.setGitCommitIdDescribe( prop.getProperty( "git.commit.id.describe" ) );
+        }
+        catch ( IOException ex )
+        {
+            ex.printStackTrace();
+        }
+        finally
+        {
+            if ( input != null )
+            {
+                try
+                {
+                    input.close();
+                }
+                catch ( IOException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
 
-			pojo.setGitClosestTagName( prop.getProperty( "git.closest.tag.name" ) );
-			pojo.setGitCommitIdDescribeShort( prop.getProperty( "git.commit.id.describe-short" ) );
-			pojo.setGitClosestTagCommitCount( prop.getProperty( "git.closest.tag.commit.count" ) );
-			pojo.setGitCommitIdDescribe( prop.getProperty( "git.commit.id.describe" ) );
-		}
-		catch ( IOException ex )
-		{
-			ex.printStackTrace();
-		}
-		finally
-		{
-			if ( input != null )
-			{
-				try
-				{
-					input.close();
-				}
-				catch ( IOException e )
-				{
-					e.printStackTrace();
-				}
-			}
-		}
+        String projectInfo = JsonUtil.GSON.toJson( pojo );
 
-		String projectInfo = JsonUtil.GSON.toJson( pojo );
-
-		return Response.status( Response.Status.OK ).entity( projectInfo ).build();
-	}
+        return Response.status( Response.Status.OK ).entity( projectInfo ).build();
+    }
 
 
     @Override
@@ -145,29 +145,17 @@ public class RestServiceImpl implements RestService
 
 
     @Override
-    public Response installCluster( String clusterName, String hadoopClusterName, String server, String clients )
+    public Response installCluster( String clusterName, String hadoopClusterName, String server )
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hadoopClusterName );
         Preconditions.checkNotNull( server );
-        Preconditions.checkNotNull( clients);
 
-		Set<String> uuidSet = Sets.newHashSet ();
         OozieClusterConfig config = new OozieClusterConfig();
         config.setSetupType( SetupType.OVER_HADOOP );
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
         config.setServer( server );
-
-        List<String> hosts = JsonUtil.fromJson( clients, new TypeToken<List<String>>()
-        {
-        }.getType() );
-
-        for ( final String host : hosts )
-        {
-        	uuidSet.add (host);
-        }
-		config.setClients (uuidSet);
 
         UUID uuid = oozieManager.installCluster( config );
         OperationState state = waitUntilOperationFinish( uuid );
@@ -285,21 +273,14 @@ public class RestServiceImpl implements RestService
 
             Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
 
-            for ( final String uuid : config.getClients() )
-            {
-                ContainerHost ch = environment.getContainerHostById( uuid );
-				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
-                containerPojoSet.add( new ContainerPojo( ch.getHostname(), hostInterface.getIp () ) );
-            }
 
             pojo.setClients( containerPojoSet );
 
             ContainerHost ch = environment.getContainerHostById( config.getServer() );
-            HostInterface hostInterface = ch.getInterfaceByName ("eth0");
+            HostInterface hostInterface = ch.getInterfaceByName( "eth0" );
             UUID uuid = oozieManager.checkNode( config.getClusterName(), ch.getHostname() );
-            pojo.setServer( new ContainerPojo( ch.getHostname(), hostInterface.getIp (),
-                    checkStatus( tracker, uuid ) ) );
-
+            pojo.setServer(
+                    new ContainerPojo( ch.getHostname(), hostInterface.getIp(), checkStatus( tracker, uuid ) ) );
         }
         catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
         {
@@ -340,7 +321,7 @@ public class RestServiceImpl implements RestService
         }
         else
         {
-            LOG.info( "All nodes in corresponding Hadoop cluster have Nutch installed" );
+            LOG.info( "All nodes in corresponding Hadoop cluster have Oozie installed" );
         }
 
         String hosts = JsonUtil.GSON.toJson( hostsName );

@@ -223,40 +223,40 @@ public class HadoopImplTest
     }
 
 
-    @Test
-    public void testStartNameNode()
-    {
-        hadoopImpl.startNameNode( hadoopClusterConfig );
-
-        assertNotNull( hadoopImpl.startNameNode( hadoopClusterConfig ) );
-    }
-
-
-    @Test
-    public void testStopNameNode()
-    {
-        hadoopImpl.stopNameNode( hadoopClusterConfig );
-
-        assertNotNull( hadoopImpl.stopNameNode( hadoopClusterConfig ) );
-    }
+    //    @Test
+    //    public void testStartNameNode()
+    //    {
+    //        hadoopImpl.startNameNode( hadoopClusterConfig );
+    //
+    //        assertNotNull( hadoopImpl.startNameNode( hadoopClusterConfig ) );
+    //    }
 
 
-    @Test
-    public void testStatusNameNode()
-    {
-        hadoopImpl.statusNameNode( hadoopClusterConfig );
+    //    @Test
+    //    public void testStopNameNode()
+    //    {
+    //        hadoopImpl.stopNameNode( hadoopClusterConfig );
+    //
+    //        assertNotNull( hadoopImpl.stopNameNode( hadoopClusterConfig ) );
+    //    }
 
-        assertNotNull( hadoopImpl.statusNameNode( hadoopClusterConfig ) );
-    }
+
+    //    @Test
+    //    public void testStatusNameNode()
+    //    {
+    //        hadoopImpl.statusNameNode( hadoopClusterConfig );
+    //
+    //        assertNotNull( hadoopImpl.statusNameNode( hadoopClusterConfig ) );
+    //    }
 
 
-    @Test
-    public void testStatusSecondaryNameNode()
-    {
-        hadoopImpl.statusSecondaryNameNode( hadoopClusterConfig );
-
-        assertNotNull( hadoopImpl.statusSecondaryNameNode( hadoopClusterConfig ) );
-    }
+    //    @Test
+    //    public void testStatusSecondaryNameNode()
+    //    {
+    //        hadoopImpl.statusSecondaryNameNode( hadoopClusterConfig );
+    //
+    //        assertNotNull( hadoopImpl.statusSecondaryNameNode( hadoopClusterConfig ) );
+    //    }
 
 
     @Test
@@ -276,73 +276,6 @@ public class HadoopImplTest
         hadoopImpl.stopDataNode( hadoopClusterConfig, hostname );
 
         assertNotNull( hadoopImpl.stopDataNode( hadoopClusterConfig, hostname ) );
-    }
-
-
-    @Test
-    public void testStatusDataNode()
-    {
-        String hostname = "test";
-        hadoopImpl.statusDataNode( hadoopClusterConfig, hostname );
-
-        assertNotNull( hadoopImpl.statusDataNode( hadoopClusterConfig, hostname ) );
-    }
-
-
-    @Test
-    public void testStartJobTracker()
-    {
-        hadoopImpl.startJobTracker( hadoopClusterConfig );
-
-        assertNotNull( hadoopImpl.startJobTracker( hadoopClusterConfig ) );
-    }
-
-
-    @Test
-    public void testStopJobTracker()
-    {
-        hadoopImpl.stopJobTracker( hadoopClusterConfig );
-
-        assertNotNull( hadoopImpl.stopJobTracker( hadoopClusterConfig ) );
-    }
-
-
-    @Test
-    public void testStatusJobTracker()
-    {
-        hadoopImpl.statusJobTracker( hadoopClusterConfig );
-
-        assertNotNull( hadoopImpl.statusJobTracker( hadoopClusterConfig ) );
-    }
-
-
-    @Test
-    public void testStartTaskTracker()
-    {
-        String hostname = "test";
-        hadoopImpl.startTaskTracker( hadoopClusterConfig, hostname );
-
-        assertNotNull( hadoopImpl.startTaskTracker( hadoopClusterConfig, hostname ) );
-    }
-
-
-    @Test
-    public void testStopTaskTracker()
-    {
-        String hostname = "test";
-        hadoopImpl.stopTaskTracker( hadoopClusterConfig, hostname );
-
-        assertNotNull( hadoopImpl.stopTaskTracker( hadoopClusterConfig, hostname ) );
-    }
-
-
-    @Test
-    public void testStatusTaskTracker()
-    {
-        String hostname = "test";
-        hadoopImpl.statusTaskTracker( hadoopClusterConfig, hostname );
-
-        assertNotNull( hadoopImpl.statusTaskTracker( hadoopClusterConfig, hostname ) );
     }
 
 
@@ -369,15 +302,6 @@ public class HadoopImplTest
 
 
     @Test
-    public void testCheckDecomissionStatus()
-    {
-        hadoopImpl.checkDecomissionStatus( hadoopClusterConfig );
-
-        assertNotNull( hadoopImpl.checkDecomissionStatus( hadoopClusterConfig ) );
-    }
-
-
-    @Test
     public void testExcludeNode()
     {
         String hostname = "test";
@@ -394,15 +318,6 @@ public class HadoopImplTest
         hadoopImpl.includeNode( hadoopClusterConfig, hostname );
 
         assertNotNull( hadoopImpl.includeNode( hadoopClusterConfig, hostname ) );
-    }
-
-
-    @Test
-    public void testGetDefaultEnvironmentBlueprint() throws ClusterSetupException
-    {
-//        hadoopImpl.getDefaultEnvironmentBlueprint( hadoopClusterConfig );
-
-//        assertNotNull( hadoopImpl.getDefaultEnvironmentBlueprint( hadoopClusterConfig ) );
     }
 
 

@@ -142,7 +142,6 @@ public class ClusterOperationHandlerTest
         when( oozieImpl.getCluster( anyString() ) ).thenReturn( oozieClusterConfig );
         Set<String> myUUID = new HashSet<>();
         myUUID.add( UUID.randomUUID().toString() );
-        when( oozieClusterConfig.getClients() ).thenReturn( myUUID );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
@@ -152,7 +151,7 @@ public class ClusterOperationHandlerTest
         clusterOperationHandler2.run();
 
         // assertions
-        verify( trackerOperation ).addLogFailed( "Uninstallation of oozie client failed" );
+        verify( trackerOperation ).addLogFailed( "Uninstallation of oozie server failed" );
         assertFalse( commandResult.hasSucceeded() );
     }
 
@@ -163,7 +162,6 @@ public class ClusterOperationHandlerTest
         when( oozieImpl.getCluster( anyString() ) ).thenReturn( oozieClusterConfig );
         Set<String> myUUID = new HashSet<>();
         myUUID.add( UUID.randomUUID().toString() );
-        when( oozieClusterConfig.getClients() ).thenReturn( myUUID );
         when( oozieImpl.getEnvironmentManager() ).thenReturn( environmentManager );
         when( environmentManager.loadEnvironment( any( String.class ) ) ).thenReturn( environment );
         when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );

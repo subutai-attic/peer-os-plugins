@@ -1,9 +1,6 @@
 package io.subutai.plugin.oozie.rest.pojo;
 
 
-/**
- * Created by ermek on 11/27/15.
- */
 public class ContainerPojo
 {
     private String hostname;

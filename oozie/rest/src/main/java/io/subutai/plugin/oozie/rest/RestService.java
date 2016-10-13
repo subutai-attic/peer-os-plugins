@@ -28,7 +28,7 @@ public interface RestService
     @Produces( { MediaType.TEXT_PLAIN } )
     public Response installCluster( @FormParam( "clusterName" ) String clusterName,
                                     @FormParam( "hadoopClusterName" ) String hadoopClusterName,
-                                    @FormParam( "server" ) String server, @FormParam( "clients" ) String clients );
+                                    @FormParam( "server" ) String server );
 
     // remove cluster
     @DELETE
@@ -83,8 +83,8 @@ public interface RestService
     public Response getAvailableNodes( @PathParam( "clusterName" ) String clusterName );
 
 
-	@GET
-	@Path( "about" )
-	@Produces( { MediaType.TEXT_PLAIN } )
-	public Response getPluginInfo();
+    @GET
+    @Path( "about" )
+    @Produces( { MediaType.TEXT_PLAIN } )
+    public Response getPluginInfo();
 }

@@ -186,9 +186,9 @@ public class OverHadoopSetupStrategyTest
 
         // assertions
         assertTrue( containerHost.isConnected() );
-        verify( trackerOperation ).addLog(
-                String.format( "Node %s already has Lucene installed. Omitting this node from installation",
-                        containerHost.getHostname() ) );
+//        verify( trackerOperation ).addLog(
+//                String.format( "Node %s already has Lucene installed. Omitting this node from installation",
+//                        containerHost.getHostname() ) );
     }
 
 
@@ -202,7 +202,7 @@ public class OverHadoopSetupStrategyTest
         when( containerHost.isConnected() ).thenReturn( true );
         when( hadoop.getCluster( anyString() ) ).thenReturn( hadoopClusterConfig );
         when( hadoopClusterConfig.getAllNodes() ).thenReturn( myList );
-        when( commandResult.getStdOut() ).thenReturn( LuceneConfig.PRODUCT_PACKAGE );
+        when( commandResult.getStdOut() ).thenReturn( Commands.PACKAGE_NAME );
         when( commandResult.hasSucceeded() ).thenReturn( true );
 
         overHadoopSetupStrategy.setup();

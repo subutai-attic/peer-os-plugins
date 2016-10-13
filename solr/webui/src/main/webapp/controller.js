@@ -60,7 +60,6 @@ function SolrCtrl(solrSrv, SweetAlert) {
     function startNodes() {
         if (vm.nodes2Action.length == 0) return;
         if (vm.currentCluster.name === undefined) return;
-        LOADING_SCREEN();
         vm.globalChecker = false;
         SweetAlert.swal({
             title: 'Success!',
@@ -68,10 +67,10 @@ function SolrCtrl(solrSrv, SweetAlert) {
             timer: VARS_TOOLTIP_TIMEOUT,
             showConfirmButton: false
         });
+        LOADING_SCREEN();
         solrSrv.startNodes(vm.currentCluster.name, JSON.stringify(vm.nodes2Action)).success(function (data) {
             SweetAlert.swal("Success!", "Your cluster nodes started successfully.", "success");
             getClustersInfo(vm.currentCluster.name);
-            LOADING_SCREEN('none');
         }).error(function (error) {
             SweetAlert.swal("ERROR!", 'Cluster start error: ' + error.replace(/\\n/g, ' '), "error");
             LOADING_SCREEN('none');
@@ -81,7 +80,6 @@ function SolrCtrl(solrSrv, SweetAlert) {
     function stopNodes() {
         if (vm.nodes2Action.length == 0) return;
         if (vm.currentCluster.name === undefined) return;
-        LOADING_SCREEN();
         vm.globalChecker = false;
         SweetAlert.swal({
             title: 'Success!',
@@ -89,10 +87,10 @@ function SolrCtrl(solrSrv, SweetAlert) {
             timer: VARS_TOOLTIP_TIMEOUT,
             showConfirmButton: false
         });
+        LOADING_SCREEN();
         solrSrv.stopNodes(vm.currentCluster.name, JSON.stringify(vm.nodes2Action)).success(function (data) {
             SweetAlert.swal("Success!", "Your cluster nodes stoped successfully.", "success");
             getClustersInfo(vm.currentCluster.name);
-            LOADING_SCREEN('none');
         }).error(function (error) {
             SweetAlert.swal("ERROR!", 'Cluster stop error: ' + error.replace(/\\n/g, ' '), "error");
             LOADING_SCREEN('none');
@@ -137,7 +135,7 @@ function SolrCtrl(solrSrv, SweetAlert) {
         if (vm.currentCluster.name === undefined) return;
         SweetAlert.swal({
                 title: "Are you sure?",
-                text: "Your will not be able to recover this node!",
+                text: "This operation removes the Solr node from the cluster, and does not delete the container itself.",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#ff3f3c",
@@ -150,7 +148,7 @@ function SolrCtrl(solrSrv, SweetAlert) {
             function (isConfirm) {
                 if (isConfirm) {
                     solrSrv.deleteNode(vm.currentCluster.name, nodeId).success(function (data) {
-                        SweetAlert.swal("Deleted!", "Node has been deleted.", "success");
+                        SweetAlert.swal("Deleted!", "Node has been removed.", "success");
                         vm.currentCluster = {};
                     });
                 }
@@ -219,7 +217,7 @@ function SolrCtrl(solrSrv, SweetAlert) {
         for (var i in vm.environments) {
             if (environmentId == vm.environments[i].id) {
                 for (var j = 0; j < vm.environments[i].containers.length; j++) {
-                    if (vm.environments[i].containers[j].templateName == 'solr') {
+                    if (vm.environments[i].containers[j].templateName == 'solr62') {
                         vm.containers.push(vm.environments[i].containers[j]);
                     }
                 }

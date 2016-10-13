@@ -20,7 +20,7 @@ import io.subutai.common.metric.QuotaAlertValue;
 import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.ExceededQuotaAlertHandler;
-import io.subutai.common.resource.ResourceValue;
+import io.subutai.hub.share.resource.ResourceValue;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;

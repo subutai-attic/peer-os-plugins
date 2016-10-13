@@ -58,14 +58,6 @@ public class InstallHBaseClusterCommand extends OsgiCommandSupport
         Collections.addAll( regionList, regionServers );
         config.setRegionServers( regionList );
 
-        Set<String> quorumList = new HashSet<>();
-        Collections.addAll( quorumList, quorumPeers );
-        config.setQuorumPeers( quorumList );
-
-        Set<String> backupMasterList = new HashSet<>();
-        Collections.addAll( backupMasterList, backupMasters );
-        config.setBackupMasters( backupMasterList );
-
         UUID uuid = hbaseManager.installCluster( config );
         System.out.println(
                 "Install operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) + "." );

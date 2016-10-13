@@ -133,20 +133,12 @@ class PigSetupStrategy implements ClusterSetupStrategy
             }
             try
             {
+                CommandResult result = node.execute( checkInstalledCommand );
                 commandUtil.execute( Commands.getAptUpdate(), node );
-                CommandResult result = commandUtil.execute( checkInstalledCommand, node );
                 if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
                 {
                     trackerOperation.addLog(
                             String.format( "Node %s already has Pig installed. Omitting this node from installation",
-                                    node.getHostname() ) );
-                    config.getNodes().remove( node.getId() );
-                }
-                else if ( !result.getStdOut()
-                                 .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
-                {
-                    trackerOperation.addLog(
-                            String.format( "Node %s has no Hadoop installation. Omitting this node from installation",
                                     node.getHostname() ) );
                     config.getNodes().remove( node.getId() );
                 }

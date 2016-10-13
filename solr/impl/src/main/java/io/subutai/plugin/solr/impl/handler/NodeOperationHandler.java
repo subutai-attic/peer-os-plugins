@@ -2,19 +2,23 @@ package io.subutai.plugin.solr.impl.handler;
 
 
 import java.util.Iterator;
+import java.util.Set;
 
 import com.google.common.base.Preconditions;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.plugin.solr.api.SolrClusterConfig;
+import io.subutai.plugin.solr.impl.ClusterConfiguration;
 import io.subutai.plugin.solr.impl.Commands;
 import io.subutai.plugin.solr.impl.SolrImpl;
 
@@ -52,6 +56,9 @@ public class NodeOperationHandler extends AbstractOperationHandler<SolrImpl, Sol
         try
         {
             Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
+            ClusterConfiguration configuration = new ClusterConfiguration( manager, trackerOperation );
+            String hostnames =
+                    configuration.collectHostnames( environment.getContainerHostsByIds( config.getNodes() ) );
             Iterator iterator = environment.getContainerHosts().iterator();
             ContainerHost host = null;
             while ( iterator.hasNext() )
@@ -73,18 +80,22 @@ public class NodeOperationHandler extends AbstractOperationHandler<SolrImpl, Sol
             switch ( operationType )
             {
                 case START:
-                    result = host.execute( new RequestBuilder( Commands.startCommand ) );
+                    result = host.execute( Commands.getStartSolrCommand( hostnames, host.getHostname() ) );
                     break;
                 case STOP:
-                    result = host.execute( new RequestBuilder( Commands.stopCommand ) );
+                    result = host.execute( Commands.getStopSolrCommand( hostnames, host.getHostname() ) );
                     break;
                 case STATUS:
-                    result = host.execute( new RequestBuilder( Commands.statusCommand ) );
+                    result = host.execute( Commands.getSolrStatusCommand() );
+                    if ( !result.getStdOut().contains( "QuorumPeerMain" ) )
+                    {
+                        host.execute( Commands.getStartZkServerCommand() );
+                    }
                     break;
             }
             logStatusResults( trackerOperation, result );
         }
-        catch ( CommandException | EnvironmentNotFoundException e )
+        catch ( CommandException | EnvironmentNotFoundException | ContainerHostNotFoundException e )
         {
             trackerOperation.addLogFailed( String.format( "Command failed, %s", e.getMessage() ) );
         }

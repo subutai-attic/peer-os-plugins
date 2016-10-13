@@ -19,6 +19,7 @@ function SparkCtrl($scope, sparkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
     vm.availableNodes = [];
     vm.otherNodes = [];
     vm.nodes2Action = [];
+    vm.master = {};
 
 
     //functions
@@ -192,39 +193,8 @@ function SparkCtrl($scope, sparkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
     function getHadoopClusterNodes(selectedCluster) {
         LOADING_SCREEN();
         sparkSrv.getHadoopClusters(selectedCluster).success(function (data) {
-            vm.currentClusterNodes = data.dataNodes;
-            var tempArray = [];
-
-            var nameNodeFound = false;
-            var jobTrackerFound = false;
-            var secondaryNameNodeFound = false;
-            for (var i = 0; i < vm.currentClusterNodes.length; i++) {
-                var node = vm.currentClusterNodes[i];
-                if (node.hostname === data.nameNode.hostname) nameNodeFound = true;
-                if (node.hostname === data.jobTracker.hostname) jobTrackerFound = true;
-                if (node.hostname === data.secondaryNameNode.hostname) secondaryNameNodeFound = true;
-            }
-            if (!nameNodeFound) {
-                tempArray.push(data.nameNode);
-            }
-            if (!jobTrackerFound) {
-                if (tempArray[0].hostname != data.jobTracker.hostname) {
-                    tempArray.push(data.jobTracker);
-                }
-            }
-            if (!secondaryNameNodeFound) {
-                var checker = 0;
-                for (var i = 0; i < tempArray.length; i++) {
-                    if (tempArray[i].hostname != data.secondaryNameNode.hostname) {
-                        checker++;
-                    }
-                }
-                if (checker == tempArray.length) {
-                    tempArray.push(data.secondaryNameNode);
-                }
-            }
-            vm.currentClusterNodes = vm.currentClusterNodes.concat(tempArray);
-
+            vm.currentClusterNodes = data.slaves;
+            vm.master = data.nameNode;
             LOADING_SCREEN('none');
         });
     }
@@ -284,7 +254,7 @@ function SparkCtrl($scope, sparkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
         if (vm.currentCluster.clusterName === undefined) return;
         SweetAlert.swal({
                 title: "Are you sure?",
-                text: "Your will not be able to recover this node!",
+                text: "This operation removes the Spark node from the cluster, and does not delete the container itself.",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#ff3f3c",
@@ -297,7 +267,7 @@ function SparkCtrl($scope, sparkSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
             function (isConfirm) {
                 if (isConfirm) {
                     sparkSrv.deleteNode(vm.currentCluster.clusterName, nodeId).success(function (data) {
-                        SweetAlert.swal("Deleted!", "Node has been deleted.", "success");
+                        SweetAlert.swal("Deleted!", "Node has been removed.", "success");
                         getClustersInfo(vm.currentCluster.clusterName);
                     }).error(function (error) {
                         SweetAlert.swal("ERROR!", 'Failed to delete cluster node error: ' + error.replace(/\\n/g, ' '), "error");

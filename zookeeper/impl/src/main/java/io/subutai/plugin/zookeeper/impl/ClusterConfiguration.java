@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
@@ -25,7 +24,6 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
-import io.subutai.plugin.zookeeper.impl.handler.ZookeeperClusterOperationHandler;
 
 
 /**
@@ -101,7 +99,9 @@ public class ClusterConfiguration
         }
         if ( isSuccesful )
         {
-            restartAllNodes( containerHosts );
+            executeOnAllNodes( containerHosts, new RequestBuilder( Commands.getRestartCommand() ).withTimeout( 60 ) );
+            executeOnAllNodes( containerHosts,
+                    new RequestBuilder( Commands.getRestartZkServerCommand() ).withTimeout( 60 ) );
         }
         else
         {
@@ -111,56 +111,26 @@ public class ClusterConfiguration
     }
 
 
-    private void restartAllNodes( final Set<EnvironmentContainerHost> containerHosts )
+    private void executeOnAllNodes( final Set<EnvironmentContainerHost> containerHosts, final RequestBuilder command )
             throws ClusterConfigurationException
     {
         po.addLog( "Cluster configured\nRestarting cluster..." );
 
         //restart all other nodes with new configuration
-        List<CommandResult> commandsResultList = new ArrayList<>();
 
         removeSnaps( containerHosts );
 
         for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
-            CommandResult commandResult = null;
             try
             {
-                commandResult =
-                        containerHost.execute( new RequestBuilder( Commands.getRestartCommand() ).withTimeout( 60 ) );
+                containerHost.execute( command );
             }
             catch ( CommandException e )
             {
                 po.addLogFailed( "Could not restart node:" + containerHost.getHostname() + ": " + e );
                 LOG.error( "Could not restart node:" + containerHost.getHostname() + ": " + e );
             }
-            commandsResultList.add( commandResult );
-        }
-
-        for ( final EnvironmentContainerHost containerHost : containerHosts )
-        {
-            CommandResult commandResult = null;
-            try
-            {
-                commandResult = containerHost
-                        .execute( new RequestBuilder( Commands.getRestartZkServerCommand() ).withTimeout( 60 ) );
-            }
-            catch ( CommandException e )
-            {
-                po.addLogFailed( "Could not start node:" + containerHost.getHostname() + ": " + e );
-                LOG.error( "Could not restart node:" + containerHost.getHostname() + ": " + e );
-            }
-            commandsResultList.add( commandResult );
-        }
-
-        if ( getFailedCommandResults( commandsResultList ).size() == 0 )
-        {
-            po.addLog( "Cluster successfully restarted" );
-        }
-        else
-        {
-            po.addLogFailed( "Failed to restart cluster" );
-            throw new ClusterConfigurationException( "Cluster configuration failed" );
         }
     }
 
@@ -169,32 +139,17 @@ public class ClusterConfiguration
     {
         po.addLog( "Removing snaps..." );
 
-        //restart all other nodes with new configuration
-        List<CommandResult> commandsResultList = new ArrayList<>();
-
         for ( final EnvironmentContainerHost containerHost : containerHosts )
         {
-            CommandResult commandResult = null;
             try
             {
-                commandResult = containerHost
-                        .execute( new RequestBuilder( Commands.getRemoveSnapsCommand() ).withTimeout( 60 ) );
+                containerHost.execute( new RequestBuilder( Commands.getRemoveSnapsCommand() ).withTimeout( 60 ) );
             }
             catch ( CommandException e )
             {
                 po.addLogFailed( "Could not remove snap in node:" + containerHost.getHostname() + ": " + e );
                 LOG.error( "Could not remove snap in node:" + containerHost.getHostname() + ": " + e );
             }
-            commandsResultList.add( commandResult );
-        }
-
-        if ( getFailedCommandResults( commandsResultList ).size() == 0 )
-        {
-            po.addLog( "Snaps successfully removed" );
-        }
-        else
-        {
-            po.addLogFailed( "Failed to remove snaps, skipping..." );
         }
     }
 
@@ -228,12 +183,6 @@ public class ClusterConfiguration
         zooCfgFile = zooCfgFile
                 .replace( "$" + ConfigParams.DATA_DIR.getPlaceHolder(), ConfigParams.DATA_DIR.getParamValue() );
 
-        /*
-        server.1=zookeeper1:2888:3888
-        server.2=zookeeper2:2888:3888
-        server.3=zookeeper3:2888:3888
-         */
-
         StringBuilder serversBuilder = new StringBuilder();
         int id = 0;
         for ( ContainerHost agent : nodes )
@@ -246,20 +195,6 @@ public class ClusterConfiguration
 
 
         return zooCfgFile;
-    }
-
-
-    private List<CommandResult> getFailedCommandResults( final List<CommandResult> commandResultList )
-    {
-        List<CommandResult> failedCommands = new ArrayList<>();
-        for ( CommandResult commandResult : commandResultList )
-        {
-            if ( !commandResult.hasSucceeded() )
-            {
-                failedCommands.add( commandResult );
-            }
-        }
-        return failedCommands;
     }
 
 
@@ -288,7 +223,9 @@ public class ClusterConfiguration
 
             removeSnaps( containerHosts );
 
-            restartAllNodes( containerHosts );
+            executeOnAllNodes( containerHosts, new RequestBuilder( Commands.getRestartCommand() ).withTimeout( 60 ) );
+            executeOnAllNodes( containerHosts,
+                    new RequestBuilder( Commands.getRestartZkServerCommand() ).withTimeout( 60 ) );
         }
         catch ( ContainerHostNotFoundException e )
         {

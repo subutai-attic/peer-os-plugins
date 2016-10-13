@@ -26,8 +26,8 @@ import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.PeerException;
-import io.subutai.common.quota.ContainerQuota;
-import io.subutai.common.resource.PeerGroupResources;
+import io.subutai.hub.share.quota.ContainerQuota;
+import io.subutai.hub.share.resource.PeerGroupResources;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
@@ -54,6 +54,7 @@ public class ClusterOperationHandler
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private ElasticsearchClusterConfiguration config;
+    private TemplateManager templateManager;
     CommandUtil commandUtil = new CommandUtil();
     private TemplateManager templateManager;
 

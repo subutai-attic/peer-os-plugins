@@ -79,8 +79,8 @@ public class CheckClusterTest
         when( cassandraImpl.getTracker() ).thenReturn( tracker );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
 
-        checkClusterHandler = new ClusterOperationHandler( cassandraImpl, templateManager, cassandraClusterConfig,
-                ClusterOperationType.STATUS_ALL );
+        checkClusterHandler =
+                new ClusterOperationHandler( cassandraImpl, templateManager, cassandraClusterConfig, ClusterOperationType.STATUS_ALL );
     }
 
 

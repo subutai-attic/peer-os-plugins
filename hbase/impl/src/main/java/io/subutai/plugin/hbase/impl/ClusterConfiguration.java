@@ -3,26 +3,32 @@ package io.subutai.plugin.hbase.impl;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Sets;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.host.HostId;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Host;
+import io.subutai.common.peer.HostNotFoundException;
+import io.subutai.common.peer.LocalPeer;
+import io.subutai.common.peer.PeerException;
+import io.subutai.common.peer.ResourceHost;
+import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.metric.api.MonitorException;
+import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
 import io.subutai.core.plugincommon.api.ConfigBase;
 import io.subutai.plugin.hadoop.api.Hadoop;
-import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hbase.api.HBaseConfig;
 
 
@@ -46,109 +52,39 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     public void configureCluster( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
         HBaseConfig config = ( HBaseConfig ) configBase;
-        HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
 
-        // clear configuration files
-        clearConfigurationFiles( config.getAllNodes(), environment );
-
-        // configure master
-        po.addLog( "Configuring hmaster... !" );
-        String hmaster = config.getHbaseMaster();
-        ContainerHost hmasterContainerHost;
+        po.addLog( "Configuring Hbase cluster... !" );
+        EnvironmentContainerHost hmasterContainerHost;
         try
         {
-            hmasterContainerHost = environment.getContainerHostById( hmaster );
+            hmasterContainerHost = environment.getContainerHostById( config.getHbaseMaster() );
+            Set<EnvironmentContainerHost> allNodes = environment.getContainerHostsByIds( config.getAllNodes() );
+
+            // configure all nodes
+            for ( final EnvironmentContainerHost node : allNodes )
+            {
+                configureNode( hmasterContainerHost, node );
+            }
+
+            // collecting slaves ip
+            Set<EnvironmentContainerHost> slaves = environment.getContainerHostsByIds( config.getRegionServers() );
+
+            String slavesHostnames = collectSlavesHostnames( slaves );
+
+
+            // Configure hbasemaster
+            executeCommand( hmasterContainerHost, Commands.setRegionServers( slavesHostnames ) );
         }
         catch ( ContainerHostNotFoundException e )
         {
+            e.printStackTrace();
             LOG.error( "Error getting hmaster container host.", e );
             po.addLogFailed( "Error getting hmaster container host." );
             return;
         }
-        ContainerHost namenode;
-        try
-        {
-            namenode = environment.getContainerHostById( hadoopClusterConfig.getNameNode() );
-        }
-        catch ( ContainerHostNotFoundException e )
-        {
-            LOG.error( "Error getting nameNode container host.", e );
-            po.addLogFailed( "Error getting nameNode container host." );
-            return;
-        }
 
-        executeCommandOnAllContainer( config.getAllNodes(),
-                Commands.getConfigMasterCommand( namenode.getHostname(), hmasterContainerHost.getHostname() ),
-                environment );
-
-
-        // configure region servers
-        po.addLog( "Configuring region servers..." );
-        StringBuilder sb = new StringBuilder();
-        for ( String uuid : config.getRegionServers() )
-        {
-            ContainerHost tmp;
-            try
-            {
-                tmp = environment.getContainerHostById( uuid );
-                sb.append( tmp.getHostname() );
-                sb.append( " " );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Error getting container host by id for region servers", e );
-                po.addLogFailed( "Error getting container host by id for region servers" );
-                return;
-            }
-        }
-        executeCommandOnAllContainer( config.getAllNodes(), Commands.getConfigRegionCommand( sb.toString() ),
-                environment );
-
-        // configure quorum peers
-        po.addLog( "Configuring quorum peers..." );
-        sb = new StringBuilder();
-        for ( String uuid : config.getQuorumPeers() )
-        {
-            ContainerHost tmp;
-            try
-            {
-                tmp = environment.getContainerHostById( uuid );
-                sb.append( tmp.getHostname() );
-                sb.append( " " );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Error getting container host for quorum peers", e );
-                po.addLogFailed( "Error getting container host for quorum peers" );
-                return;
-            }
-        }
-        executeCommandOnAllContainer( config.getAllNodes(), Commands.getConfigQuorumCommand( sb.toString() ),
-                environment );
-
-
-        // configure back up master
-        po.addLog( "Configuring backup masters..." );
-        sb = new StringBuilder();
-        for ( String uuid : config.getBackupMasters() )
-        {
-            ContainerHost tmp;
-            try
-            {
-                tmp = environment.getContainerHostById( uuid );
-                sb.append( tmp.getHostname() );
-                sb.append( " " );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Error getting container host for backup master", e );
-                po.addLogFailed( "Error getting container host for backup master" );
-                return;
-            }
-        }
-        executeCommandOnAllContainer( config.getAllNodes(), Commands.getConfigBackupMastersCommand( sb.toString() ),
-                environment );
-
+        po.addLog( "Configuring reverse proxy for web console" );
+        configureReverseProxy( hmasterContainerHost, hmasterContainerHost.getHostname().toLowerCase() + ".hbase" );
 
         po.addLog( "Configuration is finished !" );
 
@@ -168,172 +104,157 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    public static void clearConfigurationFiles( Set<String> allUUIDs, Environment environment )
+    private void configureNode( final ContainerHost hmasterContainerHost, final EnvironmentContainerHost node )
     {
-        for ( String uuid : allUUIDs )
-        {
-            try
-            {
-                ContainerHost containerHost = environment.getContainerHostById( uuid );
-                containerHost.execute( Commands.getClearRegionServerConfFile() );
-                containerHost.execute( Commands.getClearBackupMastersConfFile() );
-            }
-            catch ( CommandException e )
-            {
-                LOG.error( "Error executing command on container", e );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Error getting container host by uuid: " + uuid, e );
-            }
-        }
+        String hmasterIp = hmasterContainerHost.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp();
+
+        // set Hbase master info port
+        executeCommand( node, Commands.setHbaseMasterInfoPort() );
+
+        // set Hbase rootdir
+        executeCommand( node, Commands.setHbaseRootDir( hmasterIp ) );
+
+        // set Hbase cluster distributed value
+        executeCommand( node, Commands.setHbaseClusterDistributed() );
+
+        // set Hbase Zookeeper quorum
+        executeCommand( node, Commands.setHbaseZookeeperQuorum( hmasterIp ) );
+
+        // set Hbase Zookeeper DataDir
+        executeCommand( node, Commands.setHbaseZookeeperDataDir( hmasterIp ) );
+
+        // set Hbase Zookeeper clientPort
+        executeCommand( node, Commands.setHbaseZookeeperClientPort() );
     }
 
 
-    public static void executeCommandOnAllContainer( Set<String> allUUIDs, RequestBuilder command,
-                                                     Environment environment )
+    public void clearConfigurationFiles( final HBaseConfig config, final EnvironmentContainerHost node,
+                                         final Environment environment )
     {
-        CommandUtil commandUtil = new CommandUtil();
         try
         {
-            Set<Host> hosts = new HashSet<>();
-            for ( String uuid : allUUIDs )
-            {
-                hosts.add( environment.getContainerHostById( uuid ) );
-            }
-            commandUtil.execute( command, hosts, environment.getId() );
+            EnvironmentContainerHost master = environment.getContainerHostById( config.getHbaseMaster() );
+            master.execute( Commands.getRemoveRegionServerCommand( node.getHostname() ) );
+            node.execute( Commands.getStopRegionServerCommand() );
+        }
+        catch ( CommandException e )
+        {
+            LOG.error( "Error executing command on container", e );
+            e.printStackTrace();
         }
         catch ( ContainerHostNotFoundException e )
         {
-            LOG.error( "Could not get all containers", e );
+            LOG.error( "Error getting container host by uuid: " + config.getHbaseMaster(), e );
             e.printStackTrace();
         }
     }
 
 
-    public void configureNewRegionServerNode( ConfigBase configBase, Environment environment, ContainerHost host )
-            throws ClusterConfigurationException
+    private void executeCommand( ContainerHost host, String command )
     {
-        HBaseConfig config = ( HBaseConfig ) configBase;
-        HadoopClusterConfig hadoopClusterConfig = hadoop.getCluster( config.getHadoopClusterName() );
-
-        // clear configuration files
-        clearConfigurationFiles( Sets.newHashSet( host.getId() ), environment );
-
-        // configure master
-        po.addLog( "Configuring hmaster... !" );
-        String hmaster = config.getHbaseMaster();
-        ContainerHost hmasterContainerHost;
         try
         {
-            hmasterContainerHost = environment.getContainerHostById( hmaster );
+            host.execute( new RequestBuilder( command ) );
         }
-        catch ( ContainerHostNotFoundException e )
+        catch ( CommandException e )
         {
-            LOG.error( "Error getting hmaster container host.", e );
-            po.addLogFailed( "Error getting hmaster container host." );
-            return;
+            e.printStackTrace();
         }
-        ContainerHost namenode;
-        try
-        {
-            namenode = environment.getContainerHostById( hadoopClusterConfig.getNameNode() );
-        }
-        catch ( ContainerHostNotFoundException e )
-        {
-            LOG.error( "Error getting nameNode container host.", e );
-            po.addLogFailed( "Error getting nameNode container host." );
-            return;
-        }
-
-        executeCommandOnAllContainer( Sets.newHashSet( host.getId() ),
-                Commands.getConfigMasterCommand( namenode.getHostname(), hmasterContainerHost.getHostname() ),
-                environment );
+    }
 
 
-        // configure region servers
-        po.addLog( "Configuring region servers..." );
+    private String collectSlavesHostnames( final Set<EnvironmentContainerHost> slaves )
+    {
         StringBuilder sb = new StringBuilder();
-        for ( String uuid : config.getRegionServers() )
+
+        for ( final EnvironmentContainerHost slave : slaves )
         {
-            ContainerHost tmp;
-            try
-            {
-                tmp = environment.getContainerHostById( uuid );
-                sb.append( tmp.getHostname() );
-                sb.append( " " );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Error getting container host by id for region servers", e );
-                po.addLogFailed( "Error getting container host by id for region servers" );
-                return;
-            }
+            sb.append( slave.getHostname() ).append( "\n" );
         }
-        executeCommandOnAllContainer( Sets.newHashSet( host.getId() ), Commands.getConfigRegionCommand( sb.toString() ),
-                environment );
 
-        // configure quorum peers
-        po.addLog( "Configuring quorum peers..." );
-        sb = new StringBuilder();
-        for ( String uuid : config.getQuorumPeers() )
+        if ( !sb.toString().isEmpty() )
         {
-            ContainerHost tmp;
-            try
-            {
-                tmp = environment.getContainerHostById( uuid );
-                sb.append( tmp.getHostname() );
-                sb.append( " " );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Error getting container host for quorum peers", e );
-                po.addLogFailed( "Error getting container host for quorum peers" );
-                return;
-            }
+            sb.replace( sb.toString().length() - 1, sb.toString().length(), "" );
         }
-        executeCommandOnAllContainer( Sets.newHashSet( host.getId() ), Commands.getConfigQuorumCommand( sb.toString() ),
-                environment );
+
+        return sb.toString();
+    }
 
 
-        // configure back up master
-        po.addLog( "Configuring backup masters..." );
-        sb = new StringBuilder();
-        for ( String uuid : config.getBackupMasters() )
-        {
-            ContainerHost tmp;
-            try
-            {
-                tmp = environment.getContainerHostById( uuid );
-                sb.append( tmp.getHostname() );
-                sb.append( " " );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                LOG.error( "Error getting container host for backup master", e );
-                po.addLogFailed( "Error getting container host for backup master" );
-                return;
-            }
-        }
-        executeCommandOnAllContainer( Sets.newHashSet( host.getId() ),
-                Commands.getConfigBackupMastersCommand( sb.toString() ), environment );
-
-
-        po.addLog( "Configuration is finished !" );
-
-        config.setEnvironmentId( environment.getId() );
-        hBase.getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, configBase.getClusterName(), configBase );
-        po.addLogDone( "HBase cluster data saved into database" );
-
-
-        //subscribe to alerts
+    public void addnode( final HBaseConfig config, final EnvironmentContainerHost node, final Environment environment )
+    {
         try
         {
-            hBase.subscribeToAlerts( environment );
+            EnvironmentContainerHost master = environment.getContainerHostById( config.getHbaseMaster() );
+            master.execute( Commands.getAddRegionServerCommand( node.getHostname() ) );
+            configureNode( master, node );
+            node.execute( Commands.getStartRegionServerCommand() );
         }
-        catch ( MonitorException e )
+        catch ( CommandException e )
         {
-            throw new ClusterConfigurationException( e );
+            LOG.error( "Error executing command on container", e );
+            e.printStackTrace();
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Error getting container host by uuid: " + config.getHbaseMaster(), e );
+            e.printStackTrace();
+        }
+    }
+
+
+    private void configureReverseProxy( final EnvironmentContainerHost hbaseMaster, final String domainName )
+    {
+        PeerManager peerManager = hBase.getPeerManager();
+        LocalPeer localPeer = peerManager.getLocalPeer();
+        String ipAddress = hbaseMaster.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp();
+
+        try
+        {
+            ResourceHost resourceHost = null;
+            try
+            {
+                resourceHost = localPeer.getResourceHostByContainerId( hbaseMaster.getContainerId().toString() );
+            }
+            catch ( HostNotFoundException e )
+            {
+                LOG.error( e.toString() );
+                HostId hid = null;
+                try
+                {
+                    hid = peerManager.getPeer( peerManager.getRemotePeerIdByIp( ipAddress ) )
+                                     .getResourceHostIdByContainerId( hbaseMaster.getContainerId() );
+                    resourceHost = ( ResourceHost ) hid;
+                }
+                catch ( PeerException ex )
+                {
+                    LOG.error( ex.toString() );
+                    po.addLogFailed( "NO HOST FOUND!!!" );
+                }
+            }
+            finally
+            {
+                if ( resourceHost == null )
+                {
+                    LOG.error( "No ResourceHost connected" );
+                    po.addLogFailed( "No ResourceHost connected" );
+                }
+            }
+
+            LOG.info( "resouceHostID: " + resourceHost );
+
+            String vlanString = UUID.randomUUID().toString();
+            resourceHost.execute( new RequestBuilder( String.format( "subutai proxy del %s -d", vlanString ) ) );
+            resourceHost.execute( new RequestBuilder(
+                    String.format( "subutai proxy add %s -d %s -f /mnt/lib/lxc/%s/rootfs/etc/nginx/ssl.pem", vlanString,
+                            domainName, hbaseMaster.getHostname() ) ) );
+            resourceHost.execute(
+                    new RequestBuilder( String.format( "subutai proxy add %s -h %s:16010", vlanString, ipAddress ) ) );
+        }
+        catch ( CommandException ex )
+        {
+            LOG.error( ex.toString() );
+            po.addLogFailed( ex.toString() );
         }
     }
 }

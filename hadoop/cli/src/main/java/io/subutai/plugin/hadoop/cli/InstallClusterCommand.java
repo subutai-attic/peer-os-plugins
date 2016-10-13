@@ -75,16 +75,16 @@ public class InstallClusterCommand extends OsgiCommandSupport
         config.setEnvironmentId( environmentId );
         config.setClusterName( clusterName );
         config.setDomainName( domainName );
-        config.setReplicationFactor( replicationFactor );
+//        config.setReplicationFactor( replicationFactor );
         config.setNameNode( namenodeUUID );
-        config.setJobTracker( jobTrackerUUID );
-        config.setSecondaryNameNode( secondaryNamenodeUUID );
+//        config.setJobTracker( jobTrackerUUID );
+//        config.setSecondaryNameNode( secondaryNamenodeUUID );
 
         String[] configNodes = slaveNodes.replaceAll( "\\s+", "" ).split( "," );
         List<String> slaves = new ArrayList<>();
         Collections.addAll( slaves, configNodes );
-        config.setDataNodes( slaves );
-        config.setTaskTrackers( slaves );
+//        config.setDataNodes( slaves );
+//        config.setTaskTrackers( slaves );
         System.out.println( "Configuring " + clusterName + " hadoop cluster..." );
         UUID uuid = hadoopManager.installCluster( config );
         waitUntilOperationFinish( tracker, uuid );

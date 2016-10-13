@@ -92,7 +92,7 @@ public class RestServiceImpl implements RestService
 
     @Override
     public Response installCluster( final String clusterName, final String hadoopClusterName, final String server,
-                                    final String clients )
+                                    final String namenode, final String clients )
     {
         Preconditions.checkNotNull( clusterName );
         Preconditions.checkNotNull( hadoopClusterName );
@@ -104,6 +104,7 @@ public class RestServiceImpl implements RestService
         config.setClusterName( clusterName );
         config.setHadoopClusterName( hadoopClusterName );
         config.setServer( server );
+        config.setNamenode( namenode );
 
         List<String> hosts = JsonUtil.fromJson( clients, new TypeToken<List<String>>()
         {
@@ -404,13 +405,13 @@ public class RestServiceImpl implements RestService
             {
                 if ( po.getState() != OperationState.RUNNING )
                 {
-                    if ( po.getLog().contains( "Hive Thrift Server is not running" ) )
-                    {
-                        state = "STOPPED";
-                    }
-                    else if ( po.getLog().contains( "Hive Thrift Server is running" ) )
+                    if ( po.getLog().contains( "RunJar" ) && po.getLog().contains( "NetworkServerControl" ) )
                     {
                         state = "RUNNING";
+                    }
+                    else
+                    {
+                        state = "STOPPED";
                     }
                     break;
                 }
@@ -438,9 +439,10 @@ public class RestServiceImpl implements RestService
         this.hadoopManager = hadoopManager;
     }
 
+
     @Override
     public Response getAngularConfig()
     {
-        return Response.ok (hiveManager.getWebModule().getAngularDependecyList()).build();
+        return Response.ok( hiveManager.getWebModule().getAngularDependecyList() ).build();
     }
 }

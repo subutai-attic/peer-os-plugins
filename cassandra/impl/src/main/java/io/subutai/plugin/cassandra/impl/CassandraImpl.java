@@ -51,6 +51,7 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     private StrategyManager strategyManager;
     private TemplateManager templateManager;
     private Monitor monitor;
+    private TemplateManager templateManager;
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
 

@@ -87,18 +87,18 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
             switch ( operationType )
             {
                 case START:
-                    result = host.execute( new RequestBuilder( Commands.startCommand ) );
-                    host.execute( new RequestBuilder( Commands.startDerbyCommand ) );
+                    result = host.execute( new RequestBuilder( Commands.START_COMMAND ) );
+                    host.execute( new RequestBuilder( Commands.START_DERBY_COMMAND ) );
                     break;
                 case STOP:
-                    result = host.execute( new RequestBuilder( Commands.stopCommand ) );
-                    host.execute( new RequestBuilder( Commands.startDerbyCommand ) );
+                    result = host.execute( new RequestBuilder( Commands.STOP_COMMAND ) );
+                    host.execute( new RequestBuilder( Commands.STOP_DERBY_COMMAND ) );
                     break;
                 case STATUS:
-                    result = host.execute( new RequestBuilder( Commands.statusCommand ) );
+                    result = host.execute( new RequestBuilder( Commands.STATUS_COMMAND ) );
                     break;
                 case RESTART:
-                    result = host.execute( new RequestBuilder( Commands.restartCommand ) );
+                    result = host.execute( new RequestBuilder( Commands.RESTART_COMMAND ) );
                     break;
                 case UNINSTALL:
                     result = uninstallProductOnNode( host );
@@ -153,8 +153,8 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
             try
             {
                 result = host.execute( new RequestBuilder(
-                        Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() )
-                        .withTimeout( 600 ) );
+                        Commands.INSTALL_COMMAND + Common.PACKAGE_PREFIX + Commands.PRODUCT_KEY )
+                        .withTimeout( 2000 ) );
                 if ( result.hasSucceeded() )
                 {
                     config.getClients().add( host.getId() );
@@ -192,7 +192,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<HiveImpl, Hiv
             try
             {
                 result = host.execute( new RequestBuilder(
-                        Commands.uninstallCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() ) );
+                        Commands.UNINSTALL_COMMAND + Common.PACKAGE_PREFIX + Commands.PRODUCT_KEY ) );
                 if ( result.hasSucceeded() )
                 {
                     config.getClients().remove( host.getId() );

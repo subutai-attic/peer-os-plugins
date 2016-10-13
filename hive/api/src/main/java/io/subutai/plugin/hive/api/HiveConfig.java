@@ -18,6 +18,7 @@ public class HiveConfig implements ConfigBase, Serializable
     private String server;
     private Set<String> clients = new HashSet<>();
     private String environmentId;
+    private String namenode;
 
 
     public HiveConfig()
@@ -142,5 +143,17 @@ public class HiveConfig implements ConfigBase, Serializable
         return "Config{" + "clusterName=" + clusterName + ", server=" + server + ", clients=" + ( clients != null ?
                                                                                                   clients.size() : 0 )
                 + '}';
+    }
+
+
+    public String getNamenode()
+    {
+        return namenode;
+    }
+
+
+    public void setNamenode( final String namenode )
+    {
+        this.namenode = namenode;
     }
 }

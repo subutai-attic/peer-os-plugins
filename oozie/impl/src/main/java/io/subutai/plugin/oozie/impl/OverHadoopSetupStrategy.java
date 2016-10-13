@@ -59,8 +59,7 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
     {
         // CHECKING for oozie - clients and server
         // =====================================================================================================================
-        if ( Strings.isNullOrEmpty( oozieClusterConfig.getClusterName() ) ||
-                oozieClusterConfig.getServer() == null || oozieClusterConfig.getClients().isEmpty() )
+        if ( Strings.isNullOrEmpty( oozieClusterConfig.getClusterName() ) || oozieClusterConfig.getServer() == null )
         {
             throw new ClusterSetupException( "Malformed configuration" );
         }
@@ -141,222 +140,76 @@ public class OverHadoopSetupStrategy implements ClusterSetupStrategy
             po.addLogFailed( "Container host not found" );
         }
 
-        try
-        {
-            clients = environment.getContainerHostsByIds( oozieClusterConfig.getClients() );
-        }
-        catch ( ContainerHostNotFoundException e )
-        {
-            LOG.error( "Container hosts not found", e );
-            po.addLogFailed( "Container hosts not found" );
-        }
-
-
-        //check installed subutai packages
-        List<CommandResult> commandResultList = runCommandOnContainers( Commands.getCheckInstalledCommand(), clients );
-
-        if ( getFailedCommandResults( commandResultList ).size() != 0 )
-        {
-            throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
-        }
-
-        Iterator<EnvironmentContainerHost> iterator = clients.iterator();
-        int nodeIndex = 0;
-        while ( iterator.hasNext() )
-        {
-            EnvironmentContainerHost host = iterator.next();
-            CommandResult result = commandResultList.get( nodeIndex++ );
-
-            if ( result.getStdOut().contains( Common.PACKAGE_PREFIX + OozieClusterConfig.PRODUCT_NAME_CLIENT ) )
-            {
-                throw new ClusterSetupException(
-                        String.format( "Node %s already has OozieClient installed", host.getHostname() ) );
-            }
-            else if ( !result.getStdOut().contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME ) )
-            {
-                throw new ClusterSetupException(
-                        String.format( "Node %s has no Hadoop installed", host.getHostname() ) );
-            }
-        }
 
         //======================================================================================================================
         // CHECKING for oozie - server
         //======================================================================================================================
-        po.addLog( "Configuring cluster..." );
-        Set<EnvironmentContainerHost> oozieServerNodes = new HashSet<>();
-        oozieServerNodes.add( server );
 
-        //check installed subutai packages
-        List<CommandResult> commandResultList2 =
-                runCommandOnContainers( Commands.getCheckInstalledCommand(), oozieServerNodes );
+        po.addLog( "Installing Oozie Server..." );
 
-        if ( getFailedCommandResults( commandResultList2 ).size() != 0 )
-        {
-            throw new ClusterSetupException( "Failed to check presence of installed subutai packages" );
-        }
-
-        Iterator<EnvironmentContainerHost> iterator2 = oozieServerNodes.iterator();
-        int nodeIndex2 = 0;
-        while ( iterator2.hasNext() )
-        {
-            EnvironmentContainerHost host = iterator2.next();
-            CommandResult result = commandResultList2.get( nodeIndex2++ );
-
-            if ( result.getStdOut().contains( Common.PACKAGE_PREFIX + OozieClusterConfig.PRODUCT_NAME_SERVER ) )
-            {
-                throw new ClusterSetupException(
-                        String.format( "Node %s already has OozieServer installed", host.getHostname() ) );
-            }
-        }
-        //======================================================================================================================
-
-        po.addLog( String.format( "Installing Oozie Server and Oozie Client..." ) );
-
-        List<EnvironmentContainerHost> servers = new ArrayList<>( oozieServerNodes );
-        List<EnvironmentContainerHost> clientNodes = new ArrayList<>( clients );
         //install
-        runCommandOnContainers( Commands.getAptUpdate(), oozieServerNodes );
-        runCommandOnContainers( Commands.getInstallPythonCommand(), oozieServerNodes);
-        commandResultList2 = runCommandOnContainers( Commands.getInstallServerCommand(), oozieServerNodes );
-        checkInstalled( servers, commandResultList2, Commands.SERVER_PACKAGE_NAME );
+        runCommandOnContainer( Commands.getAptUpdate(), server );
+        CommandResult result = runCommandOnContainer( Commands.getInstallServerCommand(), server );
+        checkInstalled( server, result );
 
-        runCommandOnContainers( Commands.getAptUpdate(), clients );
-        runCommandOnContainers( Commands.getInstallPythonCommand(), clients);
-        commandResultList = runCommandOnContainers( Commands.getInstallClientsCommand(), clients );
-        checkInstalled( clientNodes, commandResultList, Commands.CLIENT_PACKAGE_NAME );
+        po.addLog( "Installation succeeded\nConfiguring cluster..." );
 
-        if ( ( getFailedCommandResults( commandResultList2 ).size() == 0 ) && (
-                getFailedCommandResults( commandResultList ).size() == 0 ) )
+        try
         {
-            po.addLog( "Installation succeeded\nConfiguring cluster..." );
-
-            try
-            {
-                new ClusterConfiguration( manager, po ).configureCluster( oozieClusterConfig, environment );
-            }
-            catch ( ClusterConfigurationException e )
-            {
-                throw new ClusterSetupException( e.getMessage() );
-            }
-
-            po.addLog( "Saving cluster information to database..." );
-
-
-            oozieClusterConfig.setEnvironmentId( environment.getId() );
-
-            manager.getPluginDao()
-                   .saveInfo( OozieClusterConfig.PRODUCT_KEY, oozieClusterConfig.getClusterName(), oozieClusterConfig );
-            po.addLog( "Cluster information saved to database" );
+            new ClusterConfiguration( manager, po ).configureCluster( oozieClusterConfig, environment );
         }
-        else
+        catch ( ClusterConfigurationException e )
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            for ( CommandResult commandResult : getFailedCommandResults( commandResultList2 ) )
-            {
-                stringBuilder.append( commandResult.getStdErr() );
-            }
-
-            throw new ClusterSetupException( String.format( "Installation failed, %s", stringBuilder ) );
+            throw new ClusterSetupException( e.getMessage() );
         }
+
+        po.addLog( "Saving cluster information to database..." );
+
+
+        oozieClusterConfig.setEnvironmentId( environment.getId() );
+
+        manager.getPluginDao()
+               .saveInfo( OozieClusterConfig.PRODUCT_KEY, oozieClusterConfig.getClusterName(), oozieClusterConfig );
+        po.addLog( "Cluster information saved to database" );
 
         return oozieClusterConfig;
     }
 
 
-    private List<CommandResult> runCommandOnContainers( RequestBuilder command,
-                                                        final Set<EnvironmentContainerHost> oozieNodes )
+    private CommandResult runCommandOnContainer( RequestBuilder command, EnvironmentContainerHost node )
     {
-        List<CommandResult> commandResults = new ArrayList<>();
-        for ( EnvironmentContainerHost containerHost : oozieNodes )
+        CommandResult result = null;
+        try
         {
-            try
-            {
-                commandResults.add( containerHost.execute( command ) );
-            }
-            catch ( CommandException e )
-            {
-                e.printStackTrace();
-            }
+            result = node.execute( command );
         }
-        return commandResults;
+        catch ( CommandException e )
+        {
+            LOG.error( "Error executin command on container", e.getMessage() );
+            po.addLogFailed( "Error executin command on container" );
+            e.printStackTrace();
+        }
+        return result;
     }
 
 
-    public List<CommandResult> getFailedCommandResults( final List<CommandResult> commandResultList )
+    public void checkInstalled( EnvironmentContainerHost host, CommandResult result ) throws ClusterSetupException
     {
-        List<CommandResult> failedCommands = new ArrayList<>();
-        for ( CommandResult commandResult : commandResultList )
+        CommandResult statusResult;
+        try
         {
-            if ( !commandResult.hasSucceeded() )
-            {
-                failedCommands.add( commandResult );
-            }
+            statusResult = host.execute( Commands.getCheckInstalledCommand() );
         }
-        return failedCommands;
-    }
-
-
-    public void checkInstalled( List<EnvironmentContainerHost> hosts, List<CommandResult> resultList,
-                                String packageName ) throws ClusterSetupException
-    {
-        String okString = "install ok installed";
-        boolean status = true;
-        CommandResult currentResult = null;
-        EnvironmentContainerHost currentContainer = null;
-        //nodes which already oozie installed on.
-        List<EnvironmentContainerHost> nodes = new ArrayList<>();
-        for ( int i = 0; i < resultList.size(); i++ )
+        catch ( CommandException e )
         {
-            currentResult = resultList.get( i );
-            currentContainer = hosts.get( i );
-            CommandResult statusResult;
-            try
-            {
-                statusResult = hosts.get( i ).execute( Commands.getCheckInstalledCommand( packageName ) );
-            }
-            catch ( CommandException e )
-            {
-                status = false;
-                break;
-            }
-
-            if ( !( resultList.get( i ).hasSucceeded() && statusResult.getStdOut().contains( okString ) ) )
-            {
-                List<EnvironmentContainerHost> node = new ArrayList<>();
-                node.add( currentContainer );
-                uninstallProductOnNode( node, packageName );
-                status = false;
-                break;
-            }
-            nodes.add( hosts.get( i ) );
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
         }
-        if ( !status )
+
+        if ( !( result.hasSucceeded() && ( statusResult.getStdOut().contains( Commands.SERVER_PACKAGE_NAME ) ) ) )
         {
-            uninstallProductOnNode( nodes, packageName );
-            po.addLogFailed(
-                    String.format( "Couldn't install product on container %s:", currentContainer.getHostname() ) );
-            throw new ClusterSetupException( String.format( "Error on container %s: %s", currentContainer.getHostname(),
-                    currentResult.hasCompleted() ? currentResult.getStdErr() : "Command timed out" ) );
-        }
-    }
-
-
-    private void uninstallProductOnNode( List<EnvironmentContainerHost> hosts, String packageName )
-    {
-        RequestBuilder uninstallCommand = packageName.contains( "server" ) ? Commands.getUninstallServerCommand() :
-                                          Commands.getUninstallClientsCommand();
-
-        for ( EnvironmentContainerHost host : hosts )
-        {
-            try
-            {
-                host.execute( Commands.getConfigureCommand() );
-                host.execute( uninstallCommand );
-            }
-            catch ( CommandException e )
-            {
-                po.addLog( String.format( "Unable to execute uninstall command on node %s", host.getHostname() ) );
-            }
+            po.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
+            throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
+                    result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
         }
     }
 }

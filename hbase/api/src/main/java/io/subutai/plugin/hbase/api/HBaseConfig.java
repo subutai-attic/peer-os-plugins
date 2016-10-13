@@ -24,8 +24,6 @@ public class HBaseConfig implements ConfigBase
     private String clusterName = "";
     private String hbaseMaster;
     private Set<String> regionServers = Sets.newHashSet();
-    private Set<String> quorumPeers = Sets.newHashSet();
-    private Set<String> backupMasters = Sets.newHashSet();
     private String domainName = Common.DEFAULT_DOMAIN_NAME;
     private Set<String> hadoopNodes = new HashSet<>();
     private String environmentId;
@@ -129,8 +127,6 @@ public class HBaseConfig implements ConfigBase
     {
         this.hbaseMaster = null;
         this.regionServers = null;
-        this.quorumPeers = null;
-        this.backupMasters = null;
         this.domainName = "";
         this.clusterName = "";
     }
@@ -167,8 +163,6 @@ public class HBaseConfig implements ConfigBase
         final Set<String> allNodes = new HashSet<>();
         allNodes.add( getHbaseMaster() );
         allNodes.addAll( getRegionServers() );
-        allNodes.addAll( getQuorumPeers() );
-        allNodes.addAll( getBackupMasters() );
         return allNodes;
     }
 
@@ -197,30 +191,6 @@ public class HBaseConfig implements ConfigBase
     }
 
 
-    public Set<String> getQuorumPeers()
-    {
-        return quorumPeers;
-    }
-
-
-    public void setQuorumPeers( Set<String> quorumPeers )
-    {
-        this.quorumPeers = quorumPeers;
-    }
-
-
-    public Set<String> getBackupMasters()
-    {
-        return backupMasters;
-    }
-
-
-    public void setBackupMasters( Set<String> backupMasters )
-    {
-        this.backupMasters = backupMasters;
-    }
-
-
     public List<NodeType> getNodeRoles( final ContainerHost containerHost )
     {
         List<NodeType> nodeRoles = new ArrayList<>();
@@ -232,14 +202,6 @@ public class HBaseConfig implements ConfigBase
         if ( regionServers.contains( containerHost.getId() ) )
         {
             nodeRoles.add( NodeType.HREGIONSERVER );
-        }
-        if ( quorumPeers.contains( containerHost.getId() ) )
-        {
-            nodeRoles.add( NodeType.HQUORUMPEER );
-        }
-        if ( backupMasters.contains( containerHost.getId() ) )
-        {
-            nodeRoles.add( NodeType.BACKUPMASTER );
         }
         return nodeRoles;
     }

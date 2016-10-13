@@ -15,138 +15,34 @@ public class HadoopPojo implements Serializable
 {
     private String clusterName, domainName;
     private ContainerPojo nameNode;
-    private ContainerPojo jobTracker;
-    private ContainerPojo secondaryNameNode;
-    private Set<ContainerPojo> dataNodes, taskTrackers;
-    private Integer replicationFactor = 1, countOfSlaveNodes = 1;
-    private Set<ContainerPojo> blockedAgents;
+    private String replicationFactor;
+    private Set<ContainerPojo> slaves;
     private String environmentId;
-
     private String environmentDataSource;
-
     private boolean autoScaling;
 
 
-    public HadoopPojo()
+    public String getClusterName()
     {
-        domainName = Common.DEFAULT_DOMAIN_NAME;
-        dataNodes = new HashSet<>();
-        taskTrackers = new HashSet<>();
-        blockedAgents = new HashSet<>();
-        autoScaling = false;
+        return clusterName;
     }
 
 
-    public HadoopPojo( HadoopClusterConfig config )
+    public void setClusterName( final String clusterName )
     {
-        domainName = Common.DEFAULT_DOMAIN_NAME;
-        dataNodes = new HashSet<>();
-        taskTrackers = new HashSet<>();
-        blockedAgents = new HashSet<>();
-        autoScaling = false;
-
-
-        clusterName = config.getClusterName();
-        domainName = config.getDomainName();
-        replicationFactor = config.getReplicationFactor();
-        environmentId = config.getEnvironmentId();
-
-        nameNode = new ContainerPojo( config.getNameNode(), "", "" );
-        secondaryNameNode = new ContainerPojo( config.getSecondaryNameNode(), "", "" );
-        jobTracker = new ContainerPojo( config.getJobTracker(), "", "" );
-
-        for ( String uuid : config.getAllDataNodeAgent() )
-        {
-            dataNodes.add( new ContainerPojo( uuid, "", "" ) );
-        }
-
-        for ( String uuid : config.getAllTaskTrackerNodeAgents() )
-        {
-            taskTrackers.add( new ContainerPojo( uuid, "", "" ) );
-        }
-
-        for ( String uuid : config.getBlockedAgentUUIDs() )
-        {
-            blockedAgents.add( new ContainerPojo( uuid, "", "" ) );
-        }
-
-        countOfSlaveNodes = config.getCountOfSlaveNodes();
+        this.clusterName = clusterName;
     }
 
 
-    public boolean isAutoScaling()
+    public String getDomainName()
     {
-        return autoScaling;
+        return domainName;
     }
 
 
-    public void setAutoScaling( final boolean autoScaling )
+    public void setDomainName( final String domainName )
     {
-        this.autoScaling = autoScaling;
-    }
-
-
-    public boolean isDataNode( String uuid )
-    {
-        return getAllDataNodeAgent().contains( uuid );
-    }
-
-
-    public Set<ContainerPojo> getAllDataNodeAgent()
-    {
-        Set<ContainerPojo> allAgents = new HashSet<>();
-        for ( ContainerPojo id : getDataNodes() )
-        {
-            allAgents.add( id );
-        }
-        return allAgents;
-    }
-
-
-    public Set<ContainerPojo> getDataNodes()
-    {
-        return dataNodes;
-    }
-
-
-    public void setDataNodes( Set<ContainerPojo> dataNodes )
-    {
-        this.dataNodes = dataNodes;
-    }
-
-
-    public boolean isTaskTracker( String uuid )
-    {
-        return getAllTaskTrackerNodeAgents().contains( uuid );
-    }
-
-
-    public Set<ContainerPojo> getAllTaskTrackerNodeAgents()
-    {
-        Set<ContainerPojo> allAgents = new HashSet<>();
-        for ( ContainerPojo id : getTaskTrackers() )
-        {
-            allAgents.add( id );
-        }
-        return allAgents;
-    }
-
-
-    public Set<ContainerPojo> getTaskTrackers()
-    {
-        return taskTrackers;
-    }
-
-
-    public void setTaskTrackers( Set<ContainerPojo> taskTrackers )
-    {
-        this.taskTrackers = taskTrackers;
-    }
-
-
-    public boolean isNameNode( String uuid )
-    {
-        return getNameNode().equals( uuid );
+        this.domainName = domainName;
     }
 
 
@@ -156,45 +52,33 @@ public class HadoopPojo implements Serializable
     }
 
 
-    public void setNameNode( ContainerPojo nameNode )
+    public void setNameNode( final ContainerPojo nameNode )
     {
         this.nameNode = nameNode;
     }
 
 
-    public boolean isJobTracker( String uuid )
+    public String getReplicationFactor()
     {
-        return getJobTracker().equals( uuid );
+        return replicationFactor;
     }
 
 
-    public ContainerPojo getJobTracker()
+    public void setReplicationFactor( final String replicationFactor )
     {
-        return jobTracker;
+        this.replicationFactor = replicationFactor;
     }
 
 
-    public void setJobTracker( ContainerPojo jobTracker )
+    public Set<ContainerPojo> getSlaves()
     {
-        this.jobTracker = jobTracker;
+        return slaves;
     }
 
 
-    public boolean isSecondaryNameNode( String id )
+    public void setSlaves( final Set<ContainerPojo> slaves )
     {
-        return getSecondaryNameNode().equals( id );
-    }
-
-
-    public ContainerPojo getSecondaryNameNode()
-    {
-        return secondaryNameNode;
-    }
-
-
-    public void setSecondaryNameNode( ContainerPojo secondaryNameNode )
-    {
-        this.secondaryNameNode = secondaryNameNode;
+        this.slaves = slaves;
     }
 
 
@@ -216,194 +100,20 @@ public class HadoopPojo implements Serializable
     }
 
 
-    public void setEnvironmentDataSource( String environmentDataSource )
+    public void setEnvironmentDataSource( final String environmentDataSource )
     {
         this.environmentDataSource = environmentDataSource;
     }
 
 
-    public Set<ContainerPojo> getAllNodes()
+    public boolean isAutoScaling()
     {
-        Set<ContainerPojo> allAgents = new HashSet<>();
-        if ( dataNodes != null )
-        {
-            allAgents.addAll( dataNodes );
-        }
-        if ( taskTrackers != null )
-        {
-            allAgents.addAll( taskTrackers );
-        }
-
-        if ( nameNode != null )
-        {
-            allAgents.add( nameNode );
-        }
-        if ( jobTracker != null )
-        {
-            allAgents.add( jobTracker );
-        }
-        if ( secondaryNameNode != null )
-        {
-            allAgents.add( secondaryNameNode );
-        }
-
-        return new HashSet<>( allAgents );
+        return autoScaling;
     }
 
 
-    public Set<ContainerPojo> getAllMasterNodes()
+    public void setAutoScaling( final boolean autoScaling )
     {
-        Preconditions.checkNotNull( nameNode, "NameNode is null" );
-        Preconditions.checkNotNull( jobTracker, "JobTracker is null" );
-        Preconditions.checkNotNull( secondaryNameNode, "SecondaryNameNode is null" );
-
-        Set<ContainerPojo> allMastersNodes = new HashSet<>();
-        allMastersNodes.add( nameNode );
-        allMastersNodes.add( jobTracker );
-        allMastersNodes.add( secondaryNameNode );
-        return allMastersNodes;
-    }
-
-
-    public Set<ContainerPojo> getAllSlaveNodes()
-    {
-        Set<ContainerPojo> allAgents = new HashSet<>();
-        if ( dataNodes != null )
-        {
-            allAgents.addAll( dataNodes );
-        }
-        if ( taskTrackers != null )
-        {
-            allAgents.addAll( taskTrackers );
-        }
-
-        return new HashSet<>( allAgents );
-    }
-
-
-    public void removeNode( String agent )
-    {
-        if ( dataNodes.contains( agent ) )
-        {
-            dataNodes.remove( agent );
-        }
-        if ( taskTrackers.contains( agent ) )
-        {
-            taskTrackers.remove( agent );
-        }
-    }
-
-
-    public String getClusterName()
-    {
-        return clusterName;
-    }
-
-
-    public void setClusterName( String clusterName )
-    {
-        this.clusterName = clusterName;
-    }
-
-
-    public String getDomainName()
-    {
-        return domainName;
-    }
-
-
-    public void setDomainName( String domainName )
-    {
-        this.domainName = domainName;
-    }
-
-
-    public Integer getReplicationFactor()
-    {
-        return replicationFactor;
-    }
-
-
-    public void setReplicationFactor( Integer replicationFactor )
-    {
-        this.replicationFactor = replicationFactor;
-    }
-
-
-    public Integer getCountOfSlaveNodes()
-    {
-        return countOfSlaveNodes;
-    }
-
-
-    public void setCountOfSlaveNodes( Integer countOfSlaveNodes )
-    {
-        this.countOfSlaveNodes = countOfSlaveNodes;
-    }
-
-
-    public Set<ContainerPojo> getBlockedAgentUUIDs()
-    {
-        Set<ContainerPojo> blockedAgents = new HashSet<>();
-        for ( ContainerPojo id : getBlockedAgents() )
-        {
-            blockedAgents.add( id );
-        }
-        return blockedAgents;
-    }
-
-
-    public Set<ContainerPojo> getBlockedAgents()
-    {
-        return blockedAgents;
-    }
-
-
-    public void setBlockedAgents( Set<ContainerPojo> blockedAgents )
-    {
-        this.blockedAgents = blockedAgents;
-    }
-
-
-    @Override
-    public int hashCode()
-    {
-        return clusterName != null ? clusterName.hashCode() : 0;
-    }
-
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        HadoopPojo hadoopClusterConfig = ( HadoopPojo ) o;
-
-        return !( clusterName != null ? !clusterName.equals( hadoopClusterConfig.clusterName ) :
-                  hadoopClusterConfig.clusterName != null );
-    }
-
-
-    @Override
-    public String toString()
-    {
-        return "Config{" +
-                "clusterName='" + clusterName + '\'' +
-                ", domainName='" + domainName + '\'' +
-                ", nameNode=" + nameNode +
-                ", jobTracker=" + jobTracker +
-                ", secondaryNameNode=" + secondaryNameNode +
-                ", dataNodes=" + dataNodes +
-                ", taskTrackers=" + taskTrackers +
-                ", replicationFactor=" + replicationFactor +
-                ", countOfSlaveNodes=" + countOfSlaveNodes +
-                '}';
+        this.autoScaling = autoScaling;
     }
 }

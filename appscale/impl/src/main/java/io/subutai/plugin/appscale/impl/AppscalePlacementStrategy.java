@@ -16,9 +16,9 @@ import io.subutai.common.environment.Node;
 import io.subutai.common.environment.NodeSchema;
 import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerSize;
-import io.subutai.common.quota.ContainerQuota;
-import io.subutai.common.resource.PeerGroupResources;
-import io.subutai.common.resource.PeerResources;
+import io.subutai.hub.share.quota.ContainerQuota;
+import io.subutai.hub.share.resource.PeerGroupResources;
+import io.subutai.hub.share.resource.PeerResources;
 import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.core.strategy.api.ContainerPlacementStrategy;
 import io.subutai.core.strategy.api.StrategyException;
@@ -55,7 +55,7 @@ public class AppscalePlacementStrategy implements ContainerPlacementStrategy
         //        NodeSchema schema =
         //                new NodeSchema( "appscale-" + UUID.randomUUID().toString(), ContainerSize.HUGE, "appscale",
         // 0, 0 );
-        //
+
         //        result.add( schema );
 
         return result;
@@ -133,10 +133,12 @@ public class AppscalePlacementStrategy implements ContainerPlacementStrategy
             {
                 for ( Allocator.AllocatedContainer container : containers )
                 {
-//                    Node node =
-//                            new Node( UUID.randomUUID().toString(), container.getName(), container.getTemplateName(),
-//                                    container.getSize(), container.getPeerId(), container.getHostId() );
-//                    nodes.add( node );
+                    //                    Node node =
+                    //                            new Node( UUID.randomUUID().toString(), container.getName(),
+                    // container.getTemplateName(),
+                    //                                    container.getSize(), container.getPeerId(), container
+                    // .getHostId() );
+                    //                    nodes.add( node );
                 }
             }
         }

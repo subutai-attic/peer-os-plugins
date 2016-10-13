@@ -264,7 +264,7 @@ function MongoCtrl(mongoSrv, SweetAlert) {
         if (vm.currentCluster.clusterName === undefined) return;
         SweetAlert.swal({
                 title: "Are you sure?",
-                text: "Your will not be able to recover this node!",
+                text: "This operation removes the Mongo node from the cluster, and does not delete the container itself.",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#ff3f3c",
@@ -277,7 +277,7 @@ function MongoCtrl(mongoSrv, SweetAlert) {
             function (isConfirm) {
                 if (isConfirm) {
                     mongoSrv.destroyNode(vm.currentCluster.clusterName, nodeId, nodeType).success(function (data) {
-                        SweetAlert.swal("Deleted!", "Node has been deleted.", "success");
+                        SweetAlert.swal("Deleted!", "Node has been removed.", "success");
                         getClustersInfo(vm.currentCluster.clusterName);
                     }).error(function (error) {
                         SweetAlert.swal("ERROR!", 'Cluster node delete error: ' + error.replace(/\\n/g, ' '), "error");

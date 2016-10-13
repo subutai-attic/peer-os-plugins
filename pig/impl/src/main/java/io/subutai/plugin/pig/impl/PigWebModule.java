@@ -15,14 +15,14 @@ public class PigWebModule implements WebuiModule
 {
     private static String NAME = "Pig";
     private static String IMG = "plugins/pig/pig.png";
-    private static final String SIZE = "SMALL";
+    private static final String SIZE = "LARGE";
 
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "hadoop", 3 );
+        TEMPLATES_REQUIREMENT.put( "hadoop27", 3 );
     }
 
 

@@ -4,9 +4,6 @@ package io.subutai.plugin.storm.rest.pojo;
 import java.util.Set;
 
 
-/**
- * Created by ermek on 11/29/15.
- */
 public class StormPojo
 {
     private String clusterName;

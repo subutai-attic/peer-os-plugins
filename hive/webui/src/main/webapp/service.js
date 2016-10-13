@@ -59,7 +59,7 @@ function hiveSrv($http, hadoopSrv) {
 	function createHive(hiveObj) {
 		var postData = 'clusterName=' + hiveObj.clusterName 
 			+ '&hadoopClusterName=' + hiveObj.hadoopClusterName 
-			+ '&server=' + hiveObj.server + "&clients=" 
+			+ '&server=' + hiveObj.server + '&namenode=' + hiveObj.namenode.uuid + "&clients=" 
 			+ JSON.stringify(hiveObj.clients);
 		return $http.post(
 			CLUSTER_URL + 'install',

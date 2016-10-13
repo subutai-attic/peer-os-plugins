@@ -7,6 +7,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
@@ -23,6 +26,7 @@ import io.subutai.plugin.oozie.api.OozieClusterConfig;
 
 public class ClusterConfiguration
 {
+    private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class );
 
     private OozieImpl manager;
     private TrackerOperation po;
@@ -38,85 +42,32 @@ public class ClusterConfiguration
     public void configureCluster( final OozieClusterConfig config, Environment environment )
             throws ClusterConfigurationException
     {
-        HadoopClusterConfig hadoopClusterConfig =
-                manager.getHadoopManager().getCluster( config.getHadoopClusterName() );
-        Set<String> nodeIds = new HashSet<>( hadoopClusterConfig.getAllNodes() );
-        Set<EnvironmentContainerHost> containerHosts = null;
         try
         {
-            containerHosts = environment.getContainerHostsByIds( nodeIds );
+            EnvironmentContainerHost namenode = environment.getContainerHostById( config.getServer() );
+
+            namenode.execute( new RequestBuilder( Commands.getStopDfsCommand() ) );
+            namenode.execute( new RequestBuilder( Commands.getStopYarnCommand() ) );
+            namenode.execute( Commands.getConfigureRootHostsCommand() );
+            namenode.execute( Commands.getConfigureRootGroupsCommand() );
+            namenode.execute( new RequestBuilder( Commands.getStartDfsCommand() ) );
+            namenode.execute( new RequestBuilder( Commands.getStartYarnCommand() ) );
+            namenode.execute( Commands.getBuildWarCommand() );
+            namenode.execute( Commands.getCopyToHdfsCommand( namenode.getHostname() ) );
+            namenode.execute( Commands.getStartServerCommand() );
         }
         catch ( ContainerHostNotFoundException e )
         {
+            LOG.error( "Container host not found", e );
+            po.addLogFailed( "Container host not found" );
             e.printStackTrace();
         }
-        if ( CollectionUtil.isCollectionEmpty( containerHosts ) )
+        catch ( CommandException e )
         {
-            throw new ClusterConfigurationException( "Node nodes found in environment" );
+            LOG.error( "Error executin command on container", e.getMessage() );
+            po.addLogFailed( "Error executin command on container" );
+            e.printStackTrace();
         }
-        Iterator<EnvironmentContainerHost> iterator = containerHosts.iterator();
-
-        List<CommandResult> commandsResultList = new ArrayList<>();
-        List<CommandResult> commandsResultList2 = new ArrayList<>();
-
-        while ( iterator.hasNext() )
-        {
-            EnvironmentContainerHost hadoopNode;
-            try
-            {
-                hadoopNode = environment.getContainerHostById( iterator.next().getId() );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                throw new ClusterConfigurationException( e );
-            }
-			HostInterface hostInterface = hadoopNode.getInterfaceByName ("eth0");
-            RequestBuilder requestBuilder =
-                    Commands.getConfigureRootHostsCommand( hostInterface.getIp () );
-            RequestBuilder requestBuilder2 = Commands.getConfigureRootGroupsCommand();
-            CommandResult commandResult = null;
-            CommandResult commandResult2 = null;
-            try
-            {
-                commandResult = hadoopNode.execute( requestBuilder );
-                commandResult2 = hadoopNode.execute( requestBuilder2 );
-            }
-            catch ( CommandException e )
-            {
-                po.addLogFailed( "Could not run command " + "configureRootHostsCommand" + ": " + e );
-                e.printStackTrace();
-            }
-            commandsResultList.add( commandResult );
-            commandsResultList2.add( commandResult2 );
-        }
-
-//        boolean isSuccesful = true;
-//        for ( CommandResult aCommandsResultList : commandsResultList )
-//        {
-//            if ( !aCommandsResultList.hasSucceeded() )
-//            {
-//                isSuccesful = false;
-//            }
-//        }
-//
-//        boolean isSuccesful2 = true;
-//        for ( CommandResult aCommandsResultList : commandsResultList2 )
-//        {
-//            if ( !aCommandsResultList.hasSucceeded() )
-//            {
-//                isSuccesful2 = false;
-//            }
-//        }
-//
-//        if ( isSuccesful && isSuccesful2 )
-//        {
-            po.addLog( "Cluster configured\n" );
-//        }
-//        else
-//        {
-//
-//            throw new ClusterConfigurationException( String.format( "Cluster configuration failed" ) );
-//        }
     }
 }
 

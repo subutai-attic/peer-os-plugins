@@ -55,71 +55,64 @@ public class DescribeClusterCommand extends OsgiCommandSupport
                     }
                 }
                 sb.append( "Slave nodes:" ).append( "\n" );
-                for ( String id : hadoopClusterConfig.getAllSlaveNodes() )
-                {
-                    try
-                    {
-                        EnvironmentContainerHost host = environment.getContainerHostById( id );
-                        sb.append( "   Hostname: " ).append( host.getHostname() ).append( "\n" );
-                    }
-                    catch ( ContainerHostNotFoundException e )
-                    {
-                        e.printStackTrace();
-                    }
-                }
+//                for ( String id : hadoopClusterConfig.getAllSlaveNodes() )
+//                {
+//                    try
+//                    {
+//                        EnvironmentContainerHost host = environment.getContainerHostById( id );
+//                        sb.append( "   Hostname: " ).append( host.getHostname() ).append( "\n" );
+//                    }
+//                    catch ( ContainerHostNotFoundException e )
+//                    {
+//                        e.printStackTrace();
+//                    }
+//                }
                 sb.append( "Data nodes:" ).append( "\n" );
-                for ( String id : hadoopClusterConfig.getDataNodes() )
-                {
-                    try
-                    {
-                        EnvironmentContainerHost host = environment.getContainerHostById( id );
-                        sb.append( "   Hostname: " ).append( host.getHostname() ).append( "\n" );
-                    }
-                    catch ( ContainerHostNotFoundException e )
-                    {
-                        e.printStackTrace();
-                    }
-                }
+//                for ( String id : hadoopClusterConfig.getDataNodes() )
+//                {
+//                    try
+//                    {
+//                        EnvironmentContainerHost host = environment.getContainerHostById( id );
+//                        sb.append( "   Hostname: " ).append( host.getHostname() ).append( "\n" );
+//                    }
+//                    catch ( ContainerHostNotFoundException e )
+//                    {
+//                        e.printStackTrace();
+//                    }
+//                }
                 sb.append( "Task trackers:" ).append( "\n" );
-                for ( String id : hadoopClusterConfig.getTaskTrackers() )
-                {
-                    try
-                    {
-                        EnvironmentContainerHost host = environment.getContainerHostById( id );
-                        sb.append( "   Hostname: " ).append( host.getHostname() ).append( "\n" );
-                    }
-                    catch ( ContainerHostNotFoundException e )
-                    {
-                        e.printStackTrace();
-                    }
-                }
-                try
-                {
-                    String jt = hadoopClusterConfig.getJobTracker();
-                    String nn = hadoopClusterConfig.getNameNode();
-                    String snn = hadoopClusterConfig.getSecondaryNameNode();
+//                for ( String id : hadoopClusterConfig.getTaskTrackers() )
+//                {
+//                    try
+//                    {
+//                        EnvironmentContainerHost host = environment.getContainerHostById( id );
+//                        sb.append( "   Hostname: " ).append( host.getHostname() ).append( "\n" );
+//                    }
+//                    catch ( ContainerHostNotFoundException e )
+//                    {
+//                        e.printStackTrace();
+//                    }
+//                }
+                //                    String jt = hadoopClusterConfig.getJobTracker();
+                //                    String nn = hadoopClusterConfig.getNameNode();
+                //                    String snn = hadoopClusterConfig.getSecondaryNameNode();
 
-                    EnvironmentContainerHost namenode = environment.getContainerHostById( nn );
-                    EnvironmentContainerHost secnamenode = environment.getContainerHostById( snn );
-                    EnvironmentContainerHost jobTracker = environment.getContainerHostById( jt );
+                //                    EnvironmentContainerHost namenode = environment.getContainerHostById( nn );
+                //                    EnvironmentContainerHost secnamenode = environment.getContainerHostById( snn );
+                //                    EnvironmentContainerHost jobTracker = environment.getContainerHostById( jt );
 
-                    sb.append( "NameNode" ).append( "\n" );
-                    sb.append( "   Hostname:" ).append( namenode.getHostname() ).append( "\n" );
-                    sb.append( "   IPs:" ).append( namenode.getInterfaceByName( "eth0" ) ).append( "\n" );
-
-                    sb.append( "SecondaryNameNode" ).append( "\n" );
-                    sb.append( "   Hostname:" ).append( secnamenode.getHostname() ).append( "\n" );
-                    sb.append( "   IPs:" ).append( secnamenode.getInterfaceByName( "eth0" ) ).append( "\n" );
-
-                    sb.append( "Job tracker" ).append( "\n" );
-                    sb.append( "   Hostname:" ).append( jobTracker.getHostname() ).append( "\n" );
-                    sb.append( "   IPs:" ).append( jobTracker.getInterfaceByName( "eth0" ) ).append( "\n" );
-                    System.out.println( sb.toString() );
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    e.printStackTrace();
-                }
+                //                    sb.append( "NameNode" ).append( "\n" );
+                //                    sb.append( "   Hostname:" ).append( namenode.getHostname() ).append( "\n" );
+                //                    sb.append( "   IPs:" ).append( namenode.getInterfaceByName( "eth0" ) ).append( "\n" );
+                //
+                //                    sb.append( "SecondaryNameNode" ).append( "\n" );
+                //                    sb.append( "   Hostname:" ).append( secnamenode.getHostname() ).append( "\n" );
+                //                    sb.append( "   IPs:" ).append( secnamenode.getInterfaceByName( "eth0" ) ).append( "\n" );
+                //
+                //                    sb.append( "Job tracker" ).append( "\n" );
+                //                    sb.append( "   Hostname:" ).append( jobTracker.getHostname() ).append( "\n" );
+                //                    sb.append( "   IPs:" ).append( jobTracker.getInterfaceByName( "eth0" ) ).append( "\n" );
+                //                    System.out.println( sb.toString() );
             }
             catch ( EnvironmentNotFoundException e )
             {

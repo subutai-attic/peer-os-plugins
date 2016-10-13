@@ -1,8 +1,0 @@
-<features name="accumulo-plugin" version="4.0.4-SNAPSHOT">
-  <feature name="accumulo-plugin" version="4.0.4-SNAPSHOT">
-    <bundle>mvn:io.subutai/accumulo-plugin-api/4.0.4-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai/accumulo-plugin-impl/4.0.4-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai/accumulo-plugin-cli/4.0.4-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai/accumulo-plugin-rest/4.0.4-SNAPSHOT</bundle>
-  </feature>
-</features>

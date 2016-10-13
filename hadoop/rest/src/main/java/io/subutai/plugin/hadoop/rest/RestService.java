@@ -15,7 +15,6 @@ import javax.ws.rs.core.Response;
 
 public interface RestService
 {
-
     // get cluster list
     @GET
     @Path( "clusters" )
@@ -44,45 +43,18 @@ public interface RestService
 
     //startNameNode
     @PUT
-    @Path( "clusters/{clusterName}/start" )
+    @Path( "clusters/{clusterName}/start/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    Response startNameNode( @PathParam( "clusterName" ) String clusterName );
+    Response startNameNode( @PathParam( "clusterName" ) String clusterName,
+                            @PathParam( "lxcHostName" ) String lxcHostName );
 
     //stopNameNode
     @PUT
-    @Path( "clusters/{clusterName}/stop" )
+    @Path( "clusters/{clusterName}/stop/{lxcHostName}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    Response stopNameNode( @PathParam( "clusterName" ) String clusterName );
+    Response stopNameNode( @PathParam( "clusterName" ) String clusterName,
+                           @PathParam( "lxcHostName" ) String lxcHostName );
 
-    //statusNameNode
-    @GET
-    @Path( "clusters/{clusterName}/status" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    Response statusNameNode( @PathParam( "clusterName" ) String clusterName );
-
-    //statusSecondaryNameNode
-    @GET
-    @Path( "clusters/{clusterName}/status/secondary" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    Response statusSecondaryNameNode( @PathParam( "clusterName" ) String clusterName );
-
-    //startJobTracker
-    @PUT
-    @Path( "clusters/job/{clusterName}/start" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    Response startJobTracker( @PathParam( "clusterName" ) String clusterName );
-
-    //stopJobTracker
-    @PUT
-    @Path( "clusters/job/{clusterName}/stop" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    Response stopJobTracker( @PathParam( "clusterName" ) String clusterName );
-
-    //statusJobTracker
-    @GET
-    @Path( "clusters/job/{clusterName}/status" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    Response statusJobTracker( @PathParam( "clusterName" ) String clusterName );
 
     //addNode
     @POST
@@ -97,19 +69,6 @@ public interface RestService
     public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
                                  @PathParam( "lxcHostName" ) String node );
 
-
-    //statusDataNode
-    @GET
-    @Path( "clusters/{clusterName}/node/{hostname}/status" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    Response statusDataNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "hostname" ) String hostname );
-
-    //statusTaskTracker
-    @GET
-    @Path( "clusters/{clusterName}/task/{hostname}/status" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    Response statusTaskTracker( @PathParam( "clusterName" ) String clusterName,
-                                @PathParam( "hostname" ) String hostname );
 
     //auto-scale cluster
     @POST

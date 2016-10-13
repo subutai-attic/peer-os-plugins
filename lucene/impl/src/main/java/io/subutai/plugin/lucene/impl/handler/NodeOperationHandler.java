@@ -92,7 +92,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<LuceneImpl, L
         CommandResult result = null;
         try
         {
-            result = host.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 600 ) );
+            result = host.execute( new RequestBuilder( Commands.installCommand ).withTimeout( 2000 ) );
             if ( result.hasSucceeded() )
             {
                 config.getNodes().add( host.getId() );

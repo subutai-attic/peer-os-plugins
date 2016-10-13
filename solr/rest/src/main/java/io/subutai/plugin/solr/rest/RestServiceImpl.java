@@ -84,6 +84,7 @@ public class RestServiceImpl implements RestService
 
 
         ClusterDto clusterDto = new ClusterDto( clusterName );
+        clusterDto.setEnvironmentId( config.getEnvironmentId() );
 
         for ( String node : config.getNodes() )
         {
@@ -102,7 +103,7 @@ public class RestServiceImpl implements RestService
                 UUID uuid = solrManager.checkNode( clusterName, node );
                 OperationState state = waitUntilOperationFinish( uuid );
                 Response response = createResponse( uuid, state );
-                if ( response.getStatus() == 200 && !response.getEntity().toString().toUpperCase().contains( "NOT" ) )
+                if ( response.getStatus() == 200 && response.getEntity().toString().contains( "QuorumPeerMain" ) && response.getEntity().toString().contains( "jar" ) )
                 {
                     containerDtoJson.setStatus( "RUNNING" );
                 }

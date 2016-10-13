@@ -12,12 +12,12 @@ import io.subutai.plugin.spark.api.SparkClusterConfig;
 public class Commands
 {
 
-    public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + SparkClusterConfig.PRODUCT_KEY.toLowerCase();
+    public static final String PACKAGE_NAME = "subutai-spark2";
 
 
     public RequestBuilder getInstallCommand()
     {
-        return new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 600 )
+        return new RequestBuilder( "apt-get --force-yes --assume-yes install " + PACKAGE_NAME ).withTimeout( 2000 )
                                                                                                .withStdOutRedirection(
                                                                                                        OutputRedirection.NO );
     }
@@ -43,76 +43,76 @@ public class Commands
     }
 
 
-    public RequestBuilder getStartAllCommand()
-    {
-        return new RequestBuilder( "service spark-all start" ).daemon();
-    }
+    //    public RequestBuilder getStartAllCommand()
+    //    {
+    //        return new RequestBuilder( "service spark-all start" ).daemon();
+    //    }
 
 
-    public RequestBuilder getStopAllCommand()
-    {
-        return new RequestBuilder( "service spark-all stop" ).daemon();
-    }
+    //    public RequestBuilder getStopAllCommand()
+    //    {
+    //        return new RequestBuilder( "service spark-all stop" ).daemon();
+    //    }
 
 
-    public RequestBuilder getStatusAllCommand()
-    {
-        return new RequestBuilder( "service spark-all status" ).daemon();
-    }
+    //    public RequestBuilder getStatusAllCommand()
+    //    {
+    //        return new RequestBuilder( "service spark-all status" ).daemon();
+    //    }
 
 
-    public RequestBuilder getStartMasterCommand()
-    {
-        return new RequestBuilder( "service spark-master start" ).daemon();
-    }
+    //    public RequestBuilder getStartMasterCommand()
+    //    {
+    //        return new RequestBuilder( "service spark-master start" ).daemon();
+    //    }
 
 
-    public RequestBuilder getRestartMasterCommand()
-    {
-        return new RequestBuilder( "service spark-master stop && service spark-master start" ).daemon();
-    }
+    //    public RequestBuilder getRestartMasterCommand()
+    //    {
+    //        return new RequestBuilder( "service spark-master stop && service spark-master start" ).daemon();
+    //    }
 
 
-    public RequestBuilder getObtainMasterPidCommand()
-    {
-        return new RequestBuilder( "service spark-master status" );
-    }
+    //    public RequestBuilder getObtainMasterPidCommand()
+    //    {
+    //        return new RequestBuilder( "service spark-master status" );
+    //    }
 
 
-    public RequestBuilder getObtainSlavePidCommand()
-    {
-        return new RequestBuilder( "service spark-slave status" );
-    }
+    //    public RequestBuilder getObtainSlavePidCommand()
+    //    {
+    //        return new RequestBuilder( "service spark-slave status" );
+    //    }
 
 
-    public RequestBuilder getStopMasterCommand()
-    {
-        return new RequestBuilder( "service spark-master stop" );
-    }
+    //    public RequestBuilder getStopMasterCommand()
+    //    {
+    //        return new RequestBuilder( "service spark-master stop" );
+    //    }
 
 
-    public RequestBuilder getStatusMasterCommand()
-    {
-        return new RequestBuilder( "service spark-master status" );
-    }
+    //    public RequestBuilder getStatusMasterCommand()
+    //    {
+    //        return new RequestBuilder( "service spark-master status" );
+    //    }
 
 
-    public RequestBuilder getStartSlaveCommand()
-    {
-        return new RequestBuilder( "service spark-slave start" ).daemon();
-    }
+    //    public RequestBuilder getStartSlaveCommand()
+    //    {
+    //        return new RequestBuilder( "service spark-slave start" ).daemon();
+    //    }
 
 
-    public RequestBuilder getStatusSlaveCommand()
-    {
-        return new RequestBuilder( "service spark-slave status" );
-    }
+    //    public RequestBuilder getStatusSlaveCommand()
+    //    {
+    //        return new RequestBuilder( "service spark-slave status" );
+    //    }
 
 
-    public RequestBuilder getStopSlaveCommand()
-    {
-        return new RequestBuilder( "service spark-slave stop" );
-    }
+    //    public RequestBuilder getStopSlaveCommand()
+    //    {
+    //        return new RequestBuilder( "service spark-slave stop" );
+    //    }
 
 
     public RequestBuilder getSetMasterIPCommand( String masterHostname )
@@ -129,10 +129,9 @@ public class Commands
     }
 
 
-    public RequestBuilder getClearSlaveCommand( String slaveHostname )
+    public RequestBuilder getClearSlaveCommand( String slaveIP )
     {
-        return new RequestBuilder( String.format( "/opt/spark*/bin/sparkSlaveConf.sh clear %s", slaveHostname ) )
-                .withTimeout( 60 );
+        return new RequestBuilder( String.format( "sed -i -e \"/%s/d\" /opt/spark/conf/slaves", slaveIP ) );
     }
 
 
@@ -154,5 +153,65 @@ public class Commands
         return new RequestBuilder(
                 String.format( "/opt/spark*/bin/sparkSlaveConf.sh clear ; /opt/spark*/bin/sparkSlaveConf.sh %s",
                         slaves ) ).withTimeout( 60 );
+    }
+
+
+    public static RequestBuilder getSetEnvVariablesCommand()
+    {
+        return new RequestBuilder( "source /etc/profile" );
+    }
+
+
+    public static RequestBuilder getSetIpCommand( String ip )
+    {
+        return new RequestBuilder( String.format( "bash /opt/spark/conf/spark-conf.sh ip %s", ip ) );
+    }
+
+
+    public static RequestBuilder getSetWorkerCoreCommand( final String worker )
+    {
+        return new RequestBuilder( String.format( "bash /opt/spark/conf/spark-conf.sh worker.core %s", worker ) );
+    }
+
+
+    public static RequestBuilder getSetSlavesCommand( final String slaveIPs )
+    {
+        return new RequestBuilder( String.format( "echo -e \"%s\" > /opt/spark/conf/slaves", slaveIPs ) );
+    }
+
+
+    public static RequestBuilder getStartAllCommand()
+    {
+        return new RequestBuilder( "bash /opt/spark/sbin/start-all.sh" );
+    }
+
+
+    public static RequestBuilder getNodeStatusCommand()
+    {
+        return new RequestBuilder( "source /etc/profile ; jps" );
+    }
+
+
+    public RequestBuilder getStartMasterCommand()
+    {
+        return new RequestBuilder( "bash /opt/spark/sbin/start-master.sh" );
+    }
+
+
+    public RequestBuilder getStartSlaveCommand( final String hostname )
+    {
+        return new RequestBuilder( String.format( "bash /opt/spark/sbin/start-slave.sh %s:7077", hostname ) );
+    }
+
+
+    public RequestBuilder getStopMasterCommand()
+    {
+        return new RequestBuilder( "bash /opt/spark/sbin/stop-master.sh" );
+    }
+
+
+    public RequestBuilder getStopSlaveCommand()
+    {
+        return new RequestBuilder( "bash /opt/spark/sbin/stop-slave.sh" );
     }
 }

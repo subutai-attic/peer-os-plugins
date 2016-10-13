@@ -55,57 +55,57 @@ public class RestServiceImpl implements RestService
     }
 
 
-	@Override
-	public Response getPluginInfo()
-	{
-		Properties prop = new Properties();
-		VersionPojo pojo = new VersionPojo();
-		InputStream input = null;
-		try
-		{
-			input = getClass().getResourceAsStream("/git.properties");
+    @Override
+    public Response getPluginInfo()
+    {
+        Properties prop = new Properties();
+        VersionPojo pojo = new VersionPojo();
+        InputStream input = null;
+        try
+        {
+            input = getClass().getResourceAsStream( "/git.properties" );
 
-			prop.load( input );
-			pojo.setGitCommitId( prop.getProperty( "git.commit.id" ) );
-			pojo.setGitCommitTime( prop.getProperty( "git.commit.time" ) );
-			pojo.setGitBranch( prop.getProperty( "git.branch" ) );
-			pojo.setGitCommitUserName( prop.getProperty( "git.commit.user.name" ) );
-			pojo.setGitCommitUserEmail( prop.getProperty( "git.commit.user.email" ) );
-			pojo.setProjectVersion( prop.getProperty( "git.build.version" ) );
+            prop.load( input );
+            pojo.setGitCommitId( prop.getProperty( "git.commit.id" ) );
+            pojo.setGitCommitTime( prop.getProperty( "git.commit.time" ) );
+            pojo.setGitBranch( prop.getProperty( "git.branch" ) );
+            pojo.setGitCommitUserName( prop.getProperty( "git.commit.user.name" ) );
+            pojo.setGitCommitUserEmail( prop.getProperty( "git.commit.user.email" ) );
+            pojo.setProjectVersion( prop.getProperty( "git.build.version" ) );
 
-			pojo.setGitBuildUserName( prop.getProperty( "git.build.user.name" ) );
-			pojo.setGitBuildUserEmail( prop.getProperty( "git.build.user.email" ) );
-			pojo.setGitBuildHost( prop.getProperty( "git.build.host" ) );
-			pojo.setGitBuildTime( prop.getProperty( "git.build.time" ) );
+            pojo.setGitBuildUserName( prop.getProperty( "git.build.user.name" ) );
+            pojo.setGitBuildUserEmail( prop.getProperty( "git.build.user.email" ) );
+            pojo.setGitBuildHost( prop.getProperty( "git.build.host" ) );
+            pojo.setGitBuildTime( prop.getProperty( "git.build.time" ) );
 
-			pojo.setGitClosestTagName( prop.getProperty( "git.closest.tag.name" ) );
-			pojo.setGitCommitIdDescribeShort( prop.getProperty( "git.commit.id.describe-short" ) );
-			pojo.setGitClosestTagCommitCount( prop.getProperty( "git.closest.tag.commit.count" ) );
-			pojo.setGitCommitIdDescribe( prop.getProperty( "git.commit.id.describe" ) );
-		}
-		catch ( IOException ex )
-		{
-			ex.printStackTrace();
-		}
-		finally
-		{
-			if ( input != null )
-			{
-				try
-				{
-					input.close();
-				}
-				catch ( IOException e )
-				{
-					e.printStackTrace();
-				}
-			}
-		}
+            pojo.setGitClosestTagName( prop.getProperty( "git.closest.tag.name" ) );
+            pojo.setGitCommitIdDescribeShort( prop.getProperty( "git.commit.id.describe-short" ) );
+            pojo.setGitClosestTagCommitCount( prop.getProperty( "git.closest.tag.commit.count" ) );
+            pojo.setGitCommitIdDescribe( prop.getProperty( "git.commit.id.describe" ) );
+        }
+        catch ( IOException ex )
+        {
+            ex.printStackTrace();
+        }
+        finally
+        {
+            if ( input != null )
+            {
+                try
+                {
+                    input.close();
+                }
+                catch ( IOException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
 
-		String projectInfo = JsonUtil.GSON.toJson( pojo );
+        String projectInfo = JsonUtil.GSON.toJson( pojo );
 
-		return Response.status( Response.Status.OK ).entity( projectInfo ).build();
-	}
+        return Response.status( Response.Status.OK ).entity( projectInfo ).build();
+    }
 
 
     @Override
@@ -497,14 +497,14 @@ public class RestServiceImpl implements RestService
             pojo.setHadoopClusterName( config.getHadoopClusterName() );
             pojo.setServer( new NodePojo( config.getMasterNodeId(), env ) );
             UUID uuid = sparkManager.checkNode( config.getClusterName(), pojo.getServer().getUuid(), true );
-            pojo.getServer().setStatus( checkStatus( tracker, uuid ) );
+            pojo.getServer().setStatus( checkMasterStatus( tracker, uuid ) );
 
             Set<NodePojo> clients = new HashSet<>();
             for ( String slave : config.getSlaveIds() )
             {
                 NodePojo node = new NodePojo( slave, env );
                 uuid = sparkManager.checkNode( config.getClusterName(), node.getUuid(), false );
-                node.setStatus( checkStatus( tracker, uuid ) );
+                node.setStatus( checkWorkerStatus( tracker, uuid ) );
 
                 clients.add( node );
             }
@@ -515,12 +515,11 @@ public class RestServiceImpl implements RestService
             e.printStackTrace();
         }
 
-
         return pojo;
     }
 
 
-    protected String checkStatus( Tracker tracker, UUID uuid )
+    private String checkMasterStatus( Tracker tracker, UUID uuid )
     {
         String state = "UNKNOWN";
         long start = System.currentTimeMillis();
@@ -531,13 +530,13 @@ public class RestServiceImpl implements RestService
             {
                 if ( po.getState() != OperationState.RUNNING )
                 {
-                    if ( po.getLog().toLowerCase().contains( "not" ) )
-                    {
-                        state = "STOPPED";
-                    }
-                    else if ( po.getLog().toLowerCase().contains( "is running" ) )
+                    if ( po.getLog().contains( "Master" ) )
                     {
                         state = "RUNNING";
+                    }
+                    else
+                    {
+                        state = "STOPPED";
                     }
                     break;
                 }
@@ -550,7 +549,47 @@ public class RestServiceImpl implements RestService
             {
                 break;
             }
-            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 10000 )
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
+            {
+                break;
+            }
+        }
+
+        return state;
+    }
+
+
+    private String checkWorkerStatus( Tracker tracker, UUID uuid )
+    {
+        String state = "UNKNOWN";
+        long start = System.currentTimeMillis();
+        while ( !Thread.interrupted() )
+        {
+            TrackerOperationView po = tracker.getTrackerOperation( SparkClusterConfig.PRODUCT_KEY, uuid );
+            if ( po != null )
+            {
+                if ( po.getState() != OperationState.RUNNING )
+                {
+                    if ( po.getLog().contains( "Worker" ) )
+                    {
+                        state = "RUNNING";
+                    }
+                    else
+                    {
+                        state = "STOPPED";
+                    }
+                    break;
+                }
+            }
+            try
+            {
+                Thread.sleep( 1000 );
+            }
+            catch ( InterruptedException ex )
+            {
+                break;
+            }
+            if ( System.currentTimeMillis() - start > ( 30 + 3 ) * 1000 )
             {
                 break;
             }

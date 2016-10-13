@@ -64,20 +64,6 @@ public class DescribeClusterCommand extends OsgiCommandSupport
                 LOG.error( "Could not find container host !!!" );
                 e.printStackTrace();
             }
-            sb.append( "Clients :" ).append( "\n" );
-            for ( String containerId : config.getClients() )
-            {
-                try
-                {
-                    sb.append( "   Container Hostname: " ).
-                            append( environment.getContainerHostById( containerId ).getHostname() ).append( "\n" );
-                }
-                catch ( ContainerHostNotFoundException e )
-                {
-                    LOG.error( "Could not find container host !!!" );
-                    e.printStackTrace();
-                }
-            }
             System.out.println( sb.toString() );
         }
         catch ( EnvironmentNotFoundException e )

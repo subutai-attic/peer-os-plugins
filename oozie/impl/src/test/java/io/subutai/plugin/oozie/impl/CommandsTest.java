@@ -42,94 +42,58 @@ public class CommandsTest
 
 
     @Test
-    public void testMakeCommandTypeStatus() throws Exception
-    {
-        commands.make( CommandType.STATUS );
-        commands.make( CommandType.INSTALL_CLIENT );
-        commands.make( CommandType.INSTALL_SERVER );
-        commands.make( CommandType.PURGE );
-        commands.make( CommandType.START );
-        commands.make( CommandType.STOP );
-    }
-
-    @Test
     public void testGetStartServerCommand() throws Exception
     {
-        RequestBuilder command = commands.getStartServerCommand();
+        RequestBuilder command = Commands.getStartServerCommand();
 
         assertNotNull( command );
-        //assertEquals( new RequestBuilder( "service oozie-server start &" ), command );
     }
 
 
     @Test
     public void testGetStopServerCommand() throws Exception
     {
-        RequestBuilder command = commands.getStopServerCommand();
+        RequestBuilder command = Commands.getStopServerCommand();
 
         assertNotNull( command );
-        assertEquals( new RequestBuilder( "service oozie-server stop" ), command );
     }
 
 
     @Test
     public void testGetStatusServerCommand() throws Exception
     {
-        RequestBuilder command = commands.getStatusServerCommand();
+        RequestBuilder command = Commands.getStatusServerCommand();
 
         assertNotNull( command );
-        assertEquals( new RequestBuilder( "service oozie-server status" ), command );
+        assertEquals( new RequestBuilder( "jps" ), command );
     }
 
 
     @Test
     public void testGetConfigureRootHostsCommand() throws Exception
     {
-        RequestBuilder command = commands.getConfigureRootHostsCommand( "test" );
+        RequestBuilder command = Commands.getConfigureRootHostsCommand();
 
         assertNotNull( command );
-        assertEquals( new RequestBuilder( String.format(
-                ". /etc/profile && $HADOOP_HOME/bin/hadoop-property.sh add core-site.xml hadoop.proxyuser"
-                        + ".root.hosts %s", "test" ) ).withTimeout( 600 ).withStdOutRedirection( OutputRedirection.NO ), command );
     }
 
 
     @Test
     public void testGetConfigureRootGroupsCommand() throws Exception
     {
-        RequestBuilder command = commands.getConfigureRootGroupsCommand();
+        RequestBuilder command = Commands.getConfigureRootGroupsCommand();
 
         assertNotNull( command );
-        assertEquals( new RequestBuilder( String.format(
-                ". /etc/profile && $HADOOP_HOME/bin/hadoop-property.sh add core-site.xml hadoop.proxyuser"
-                        + ".root.groups '\\*' " ) ).withTimeout( 600 ).withStdOutRedirection( OutputRedirection.NO ), command );
     }
 
 
     @Test
     public void testGetUninstallServerCommand() throws Exception
     {
-        RequestBuilder command = commands.getUninstallServerCommand();
+        RequestBuilder command = Commands.getUninstallServerCommand();
 
         assertNotNull( command );
-        assertEquals(
-                new RequestBuilder( "apt-get --force-yes --assume-yes purge " + SERVER_PACKAGE_NAME ).withTimeout( 90 )
-                                                                                                     .withStdOutRedirection(
-                                                                                                             OutputRedirection.NO ),
-                command );
-    }
-
-
-    @Test
-    public void testGetUninstallClientsCommand() throws Exception
-    {
-        RequestBuilder command = commands.getUninstallClientsCommand();
-
-        assertNotNull( command );
-        assertEquals(
-                new RequestBuilder( "apt-get --force-yes --assume-yes purge " + CLIENT_PACKAGE_NAME ).withTimeout( 90 )
-                                                                                                     .withStdOutRedirection(
-                                                                                                             OutputRedirection.NO ),
-                command );
+        assertEquals( new RequestBuilder( "apt-get --force-yes --assume-yes purge " + Commands.SERVER_PACKAGE_NAME )
+                .withTimeout( 90 ).withStdOutRedirection( OutputRedirection.NO ), command );
     }
 }

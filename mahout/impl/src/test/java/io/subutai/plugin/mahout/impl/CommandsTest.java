@@ -19,7 +19,7 @@ import static org.junit.Assert.assertNotNull;
 public class CommandsTest
 {
     private Commands commands;
-    public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + MahoutClusterConfig.PRODUCT_KEY.toLowerCase();
+    public static final String PACKAGE_NAME = "subutai-mahout2";
 
 
     @Before
@@ -64,7 +64,7 @@ public class CommandsTest
 
         // assertions
         assertNotNull( commands.getInstallCommand() );
-        assertEquals( new RequestBuilder( "dpkg -l | grep '^ii' | grep " + Common.PACKAGE_PREFIX_WITHOUT_DASH ),
+        assertEquals( new RequestBuilder( "dpkg -l | grep '^ii' | grep " + Commands.PACKAGE_NAME ),
                 requestBuilder );
     }
 }

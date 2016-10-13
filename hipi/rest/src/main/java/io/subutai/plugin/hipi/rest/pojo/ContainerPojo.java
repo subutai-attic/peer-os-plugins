@@ -1,13 +1,11 @@
 package io.subutai.plugin.hipi.rest.pojo;
 
 
-/**
- * Created by ermek on 11/26/15.
- */
 public class ContainerPojo
 {
     private String hostname;
     private String ip;
+    private String id;
 
 
     public String getId()
@@ -20,9 +18,6 @@ public class ContainerPojo
     {
         this.id = id;
     }
-
-
-    private String id;
 
 
     public ContainerPojo()

@@ -13,6 +13,8 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.NodeOperationType;
@@ -20,6 +22,7 @@ import io.subutai.plugin.flume.api.FlumeConfig;
 import io.subutai.plugin.flume.impl.CommandType;
 import io.subutai.plugin.flume.impl.Commands;
 import io.subutai.plugin.flume.impl.FlumeImpl;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 
 
 public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, FlumeConfig>
@@ -128,6 +131,17 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
             result = host.execute( new RequestBuilder( Commands.make( CommandType.INSTALL ) ).withTimeout( 600 ) );
             if ( result.hasSucceeded() )
             {
+                // configure node
+                Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
+                HadoopClusterConfig hadoopClusterConfig =
+                        manager.getHadoopManager().getCluster( config.getClusterName() );
+                EnvironmentContainerHost namenode =
+                        environment.getContainerHostById( hadoopClusterConfig.getNameNode() );
+
+                host.execute( Commands.getCreatePropertiesCommand() );
+                host.execute( Commands.getConfigurePropertiesCommand(
+                        namenode.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp() ) );
+
                 config.getNodes().add( host.getId() );
                 manager.getPluginDao().saveInfo( FlumeConfig.PRODUCT_KEY, config.getClusterName(), config );
                 trackerOperation.addLogDone(
@@ -143,6 +157,14 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
         {
             e.printStackTrace();
         }
+        catch ( ContainerHostNotFoundException e )
+        {
+            e.printStackTrace();
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            e.printStackTrace();
+        }
         return result;
     }
 
@@ -152,6 +174,7 @@ public class NodeOperationHandler extends AbstractOperationHandler<FlumeImpl, Fl
         CommandResult result = null;
         try
         {
+            host.execute( new RequestBuilder( Commands.make( CommandType.STOP ) ) );
             result = host.execute( new RequestBuilder( Commands.make( CommandType.PURGE ) ).withTimeout( 600 ) );
             if ( result.hasSucceeded() )
             {

@@ -64,8 +64,8 @@ public class StopClusterTest
         when( cassandraImpl.getTracker() ).thenReturn( tracker );
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
         when( cassandraClusterConfig.getClusterName() ).thenReturn( "test" );
-        stopClusterHandler =
-                new ClusterOperationHandler( cassandraImpl, templateManager, cassandraClusterConfig, ClusterOperationType.STOP_ALL );
+        stopClusterHandler = new ClusterOperationHandler( cassandraImpl, templateManager, cassandraClusterConfig,
+                ClusterOperationType.STOP_ALL );
     }
 
 

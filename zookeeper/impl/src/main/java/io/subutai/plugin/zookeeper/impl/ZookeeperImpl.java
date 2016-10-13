@@ -60,6 +60,7 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
 
     private PluginDAO pluginDAO;
     private QuotaManager quotaManager;
+    private TemplateManager templateManager;
 
 
     public ZookeeperImpl( Monitor monitor, PluginDAO pluginDAO )

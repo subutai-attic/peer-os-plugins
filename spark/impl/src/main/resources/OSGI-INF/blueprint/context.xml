@@ -11,6 +11,8 @@
   <reference id="monitor" availability="mandatory"
              interface="io.subutai.core.metric.api.Monitor" />
   <reference id="pluginDAO" interface="io.subutai.core.plugincommon.api.PluginDAO" />
+  <reference id="peerManager" availability="mandatory"
+             interface="io.subutai.core.peer.api.PeerManager" />
   <!-- *********************************************************************************** -->
 
   <bean id="spark-impl" scope="singleton" class="io.subutai.plugin.spark.impl.SparkImpl"
@@ -20,6 +22,7 @@
     <argument ref="hadoopManager" />
     <argument ref="monitor" />
     <argument ref="pluginDAO" />
+    <property name="peerManager" ref="peerManager" />
   </bean>
 
   <bean id="alertListener" scope="singleton" class="io.subutai.plugin.spark.impl.alert.SparkAlertListener">

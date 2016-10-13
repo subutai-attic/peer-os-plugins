@@ -35,13 +35,13 @@ public class StartClusterCommand extends OsgiCommandSupport
 
         HadoopClusterConfig config = hadoopManager.getCluster( clusterName );
         System.out.println( "Staring namenode ..." );
-        UUID uuid = hadoopManager.startNameNode( config );
+//        UUID uuid = hadoopManager.startNameNode( config );
 
         System.out.println( "Staring jobtracker ..." );
-        UUID uuid2 = hadoopManager.startJobTracker( config );
+//        UUID uuid2 = hadoopManager.startJobTracker( config );
 
-        System.out.println( "Start namenode operation is " + waitUntilOperationFinish( tracker, uuid ) );
-        System.out.println( "Start jobtracker operation is " + waitUntilOperationFinish( tracker, uuid2 ) );
+//        System.out.println( "Start namenode operation is " + waitUntilOperationFinish( tracker, uuid ) );
+//        System.out.println( "Start jobtracker operation is " + waitUntilOperationFinish( tracker, uuid2 ) );
         return null;
     }
 

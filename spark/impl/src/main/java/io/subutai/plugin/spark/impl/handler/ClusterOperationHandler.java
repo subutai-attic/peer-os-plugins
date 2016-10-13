@@ -108,9 +108,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
         {
             checkPrerequisites();
 
-            CommandResult result = executeCommand( master, manager.getCommands().getStatusAllCommand() );
+//            CommandResult result = executeCommand( master, manager.getCommands().getStatusAllCommand() );
 
-            trackerOperation.addLogDone( String.format( "Cluster status: %s", result.getStdOut() ) );
+//            trackerOperation.addLogDone( String.format( "Cluster status: %s", result.getStdOut() ) );
         }
         catch ( ClusterException e )
         {
@@ -152,7 +152,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
         {
             checkPrerequisites();
 
-            executeCommand( master, manager.getCommands().getStopAllCommand() );
+//            executeCommand( master, manager.getCommands().getStopAllCommand() );
 
             trackerOperation.addLogDone( "Cluster stopped successfully" );
         }

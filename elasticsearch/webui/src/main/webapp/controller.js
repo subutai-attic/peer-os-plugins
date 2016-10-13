@@ -236,7 +236,7 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
         if (vm.currentCluster.clusterName === undefined) return;
         SweetAlert.swal({
                 title: "Are you sure?",
-                text: "Your will not be able to recover this node!",
+                text: "This operation removes the ElasticSearch node from the cluster, and does not delete the container itself.",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#ff3f3c",
@@ -249,7 +249,7 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
             function (isConfirm) {
                 if (isConfirm) {
                     elasticSearchSrv.deleteNode(vm.currentCluster.clusterName, nodeId).success(function (data) {
-                        SweetAlert.swal("Deleted!", "Node has been deleted.", "success");
+                        SweetAlert.swal("Deleted!", "Node has been removed.", "success");
                         getClustersInfo(vm.currentCluster.clusterName);
                     })
                     error(function (error) {

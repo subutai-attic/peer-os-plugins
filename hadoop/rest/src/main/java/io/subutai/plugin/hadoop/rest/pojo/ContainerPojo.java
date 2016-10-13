@@ -12,18 +12,11 @@ public class ContainerPojo implements Serializable
     private String ip;
 
 
-    public ContainerPojo()
-    {
-        hostname = "";
-        status = "";
-        uuid = "";
-    }
-
-
-    public ContainerPojo( final String uuid, final String hostname, final String status )
+    public ContainerPojo( final String uuid, final String hostname, final String ip, final String status )
     {
         this.uuid = uuid;
         this.hostname = hostname;
+        this.ip = ip;
         this.status = status;
     }
 

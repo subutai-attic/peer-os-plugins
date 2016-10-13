@@ -36,8 +36,8 @@
               <select class="b-form-input b-form-input_full"
                       ng-model="sparkCtrl.sparkInstall.server"
                       ng-change="sparkCtrl.changeDirective(sparkCtrl.sparkInstall.server)">
-                <option ng-repeat="node in sparkCtrl.currentClusterNodes" value="{{ node.uuid }}">
-                  {{ node.hostname }}
+                <option value="{{ sparkCtrl.master.uuid }}">
+                  {{ sparkCtrl.master.hostname }}
                 </option>
               </select>
             </div>

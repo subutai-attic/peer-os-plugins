@@ -59,8 +59,7 @@ function oozieSrv($http, hadoopSrv) {
 	function createOozie(oozieObj) {
 		var postData = 'clusterName=' + oozieObj.clusterName 
 			+ '&hadoopClusterName=' + oozieObj.hadoopClusterName 
-			+ '&server=' + oozieObj.server 
-			+ "&clients=" + JSON.stringify (oozieObj.nodes);
+			+ '&server=' + oozieObj.server;
 		return $http.post(
 			CLUSTER_URL + 'install',
 			postData, 

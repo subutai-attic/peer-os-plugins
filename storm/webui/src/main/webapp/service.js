@@ -62,7 +62,7 @@ function stormSrv($http, environmentService) {
 	function createStorm(stormObj) {
 		var postData = 'clusterName=' + stormObj.clusterName 
 			+ '&environmentId=' + stormObj.environmentId
-			+ '&nimbus=' + stormObj.server
+			+ '&nimbus=' + stormObj.nimbus
 			+ "&supervisors=" + JSON.stringify (stormObj.nodes);
 		console.log (stormObj);
 		console.log (postData);
@@ -73,12 +73,12 @@ function stormSrv($http, environmentService) {
 		);
 	}
 
-	function startNode (clusterName, lxcHostName) {
-		return $http.put (CLUSTER_URL + clusterName + "/start/node/" + lxcHostName);
+	function startNode (clusterName, nodeId) {
+		return $http.put (CLUSTER_URL + clusterName + "/start/node/" + nodeId);
 	}
 
-	function stopNode (clusterName, lxcHostName) {
-		return $http.put (CLUSTER_URL + clusterName + "/stop/node/" + lxcHostName);
+	function stopNode (clusterName, nodeId) {
+		return $http.put (CLUSTER_URL + clusterName + "/stop/node/" + nodeId);
 	}
 
 	function changeClusterScaling (clusterName, val) {
@@ -86,7 +86,7 @@ function stormSrv($http, environmentService) {
 	}
 
 	function startNodes(clusterName, nodesArray) {
-		var postData = 'clusterName=' + clusterName + '&lxcHostNames=' + nodesArray;
+		var postData = 'clusterName=' + clusterName + '&lxcHostIds=' + nodesArray;
 		return $http.post(
 			CLUSTER_URL + 'nodes/start',
 			postData,
@@ -95,7 +95,7 @@ function stormSrv($http, environmentService) {
 	}
 
 	function stopNodes(clusterName, nodesArray) {
-		var postData = 'clusterName=' + clusterName + '&lxcHostNames=' + nodesArray;
+		var postData = 'clusterName=' + clusterName + '&lxcHostIds=' + nodesArray;
 		console.log (postData);
 		return $http.post(
 			CLUSTER_URL + 'nodes/stop',

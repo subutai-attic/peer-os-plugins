@@ -25,12 +25,12 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	vm.getEnvironmentNodes = getEnvironmentNodes;
 	vm.addContainer = addContainer;	
 	vm.createStorm = createStorm;
-	vm.deleteNode = deleteNode;;
+	vm.deleteNode = deleteNode;
 	vm.addNode = addNode;
 	vm.deleteCluster = deleteCluster;
 	vm.changeDirective = changeDirective;
-	vm.startServer = startServer;
-	vm.stopServer = stopServer;
+	vm.startNimbus = startNimbus;
+	vm.stopNimbus = stopNimbus;
 	vm.pushNode = pushNode;
 	vm.pushAll = pushAll;
 	vm.changeClusterScaling = changeClusterScaling;
@@ -80,7 +80,6 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		vm.currentCluster = {};
 		stormSrv.getClusters(selectedCluster).success(function (data) {
 			vm.currentCluster = data;
-			vm.currentCluster.nimbus.checkbox = false;
 			for (var i = 0; i < vm.currentCluster.supervisors.length; ++i) {
 			    vm.currentCluster.supervisors[i].checkbox = false;
 			}
@@ -111,7 +110,7 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 			if(selectedCluster == vm.environments[i].id) {
 				console.log (vm.environments[i]);
 				for (var j = 0; j < vm.environments[i].containers.length; j++){
-					if(vm.environments[i].containers[j].templateName == 'storm') {
+					if(vm.environments[i].containers[j].templateName == 'storm102') {
 						vm.currentClusterNodes.push(vm.environments[i].containers[j]);
 					}
 				}
@@ -200,41 +199,41 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 		vm.stormInstall = {};
 		vm.stormInstall.domainName = "intra.lan"
 		vm.stormInstall.nodes = [];
-		vm.stormInstall.server = {};
+		vm.stormInstall.nimbus = {};
 	}
 
 
-	function changeDirective(server) {
+	function changeDirective(nimbus) {
 		vm.otherNodes = [];
 		for (var i = 0; i < vm.currentClusterNodes.length; ++i) {
-			if (vm.currentClusterNodes[i].id !== server) {
+			if (vm.currentClusterNodes[i].id !== nimbus) {
 				vm.otherNodes.push (vm.currentClusterNodes[i]);
 			}
 		}
 	}
 
-	function startServer() {
+	function startNimbus() {
 		if(vm.currentCluster.clusterName === undefined) return;
-		vm.currentCluster.server.status = 'STARTING';
-		stormSrv.startNode (vm.currentCluster.clusterName, vm.currentCluster.server.hostname).success (function (data) {
-			SweetAlert.swal("Success!", "Your server has been started.", "success");
-			vm.currentCluster.server.status = 'RUNNING';
+		vm.currentCluster.nimbus.status = 'STARTING';
+		stormSrv.startNode (vm.currentCluster.clusterName, vm.currentCluster.nimbus.id).success (function (data) {
+			SweetAlert.swal("Success!", "Your nimbus has been started.", "success");
+			vm.currentCluster.nimbus.status = 'RUNNING';
 		}).error(function (error) {
-			SweetAlert.swal("ERROR!", 'Failed to startStorm server error: ' + error, "error");
-			vm.currentCluster.server.status = 'ERROR';
+			SweetAlert.swal("ERROR!", 'Failed to startStorm nimbus error: ' + error, "error");
+			vm.currentCluster.nimbus.status = 'ERROR';
 		});
 	}
 
 
-	function stopServer() {
+	function stopNimbus() {
 		if(vm.currentCluster.clusterName === undefined) return;
-		vm.currentCluster.server.status = 'STOPPING';
-		stormSrv.stopNode (vm.currentCluster.clusterName, vm.currentCluster.server.hostname).success (function (data) {
-			SweetAlert.swal("Success!", "Your server has been stopped.", "success");
-			vm.currentCluster.server.status = 'STOPPED';
+		vm.currentCluster.nimbus.status = 'STOPPING';
+		stormSrv.stopNode (vm.currentCluster.clusterName, vm.currentCluster.nimbus.id).success (function (data) {
+			SweetAlert.swal("Success!", "Your nimbus has been stopped.", "success");
+			vm.currentCluster.nimbus.status = 'STOPPED';
 		}).error(function (error) {
-			SweetAlert.swal("ERROR!", 'Failed to stop Storm server error: ' + error, "error");
-			vm.currentCluster.server.status = 'ERROR';
+			SweetAlert.swal("ERROR!", 'Failed to stop Storm nimbus error: ' + error, "error");
+			vm.currentCluster.nimbus.status = 'ERROR';
 		});
 	}
 
@@ -273,10 +272,10 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
             }
         }
         else {
-            vm.nodes2Action.push ({name: vm.currentCluster.nimbus.hostname, type: "nimbus"});
+            vm.nodes2Action.push ({name: vm.currentCluster.nimbus.id, type: "nimbus"});
             vm.currentCluster.nimbus.checkbox = true;
             for (var i = 0; i < vm.currentCluster.supervisors.length; ++i) {
-                vm.nodes2Action.push ({name: vm.currentCluster.supervisors[i].hostname, type: "supervisor"});
+                vm.nodes2Action.push ({name: vm.currentCluster.supervisors[i].id, type: "supervisor"});
                 vm.currentCluster.supervisors[i].checkbox = true;
             }
             vm.stormAll = true;
@@ -290,9 +289,9 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 
 
 	function startNodes() {
-		console.log (vm.nodes2Action);
 		if(vm.nodes2Action.length == 0) return;
 		if(vm.currentCluster.clusterName === undefined) return;
+		LOADING_SCREEN();
 		SweetAlert.swal({
 			title : 'Success!',
 			text : 'Your request is in progress. You will be notified shortly.',
@@ -304,8 +303,10 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 			getClustersInfo(vm.currentCluster.clusterName);
 			vm.nodes2Action = [];
             vm.stormAll = false;
+			LOADING_SCREEN ("none");
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Failed to start Cluster error: ' + error.ERROR, "error");
+			LOADING_SCREEN ("none");
 		});
 	}
 
@@ -313,6 +314,7 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 	function stopNodes() {
 		if(vm.nodes2Action.length == 0) return;
 		if(vm.currentCluster.clusterName === undefined) return;
+		LOADING_SCREEN();
 		SweetAlert.swal({
 			title : 'Success!',
 			text : 'Your request is in progress. You will be notified shortly.',
@@ -324,8 +326,10 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 			getClustersInfo(vm.currentCluster.clusterName);
 			vm.nodes2Action = [];
             vm.stormAll = false;
+			LOADING_SCREEN ("none");
 		}).error(function (error) {
 			SweetAlert.swal("ERROR!", 'Failed to stop cluster error: ' + error.ERROR, "error");
+			LOADING_SCREEN ("none");
 		});
 	}
 

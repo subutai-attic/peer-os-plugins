@@ -87,10 +87,10 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
                     String.format( "Master %s not found in the environment", config.getMasterNodeId() ) );
         }
 
-        /*if ( !master.isConnected() )
+        if ( !master.isConnected() )
         {
             throw new ClusterSetupException( "Master is not connected" );
-        }*/
+        }
 
         Set<EnvironmentContainerHost> slaves;
         try
@@ -151,27 +151,19 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
 
         nodesToInstallSpark = Sets.newHashSet();
 
+        nodesToInstallSpark.addAll( allNodes );
+
         //check hadoop installation & filter nodes needing Spark installation
         RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
 
-        for ( Iterator<EnvironmentContainerHost> iterator = allNodes.iterator(); iterator.hasNext(); )
+        for ( final EnvironmentContainerHost node : allNodes )
         {
-            final EnvironmentContainerHost node = iterator.next();
             try
             {
                 CommandResult result = node.execute( checkInstalledCommand );
                 if ( !result.getStdOut().contains( Commands.PACKAGE_NAME ) )
                 {
                     nodesToInstallSpark.add( node );
-                }
-                if ( !result.getStdOut()
-                            .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
-                {
-                    po.addLog(
-                            String.format( "Node %s has no Hadoop installation. Omitting this node from installation",
-                                    node.getHostname() ) );
-                    config.getSlaveIds().remove( node.getId() );
-                    iterator.remove();
                 }
             }
             catch ( CommandException e )
@@ -269,7 +261,7 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
             throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
         }
 
-        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( SparkClusterConfig.PRODUCT_PACKAGE ) ) )
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( Commands.PACKAGE_NAME ) ) )
         {
             po.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),

@@ -85,12 +85,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
             case REMOVE:
                 removeCluster();
                 break;
-            case START_ALL:
-            case STOP_ALL:
-            case STATUS_ALL:
-            case DECOMISSION_STATUS:
-                runOperationOnContainers( operationType );
-                break;
         }
     }
 
@@ -99,8 +93,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
     {
         HadoopClusterConfig config = manager.getCluster( clusterName );
         // before removing cluster, stop it first.
-        manager.stopNameNode( config );
-        manager.stopJobTracker( config );
+        //        manager.stopNameNode( config );
 
         // clear "/var/lib/hadoop-root" directories
         try
@@ -112,7 +105,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
             {
                 hostSet.add( host );
             }
-            commandUtil.execute(  new RequestBuilder( Commands.getClearDataDirectory() ), hostSet, environment.getId()  );
+            //            commandUtil.execute( new RequestBuilder( Commands.getClearDataDirectory() ), hostSet,
+            // environment.getId() );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -141,29 +135,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                         e );
                 return;
             }
-            EnvironmentContainerHost jobtracker;
-            try
-            {
-                jobtracker = ( EnvironmentContainerHost ) environment.getContainerHostById( config.getJobTracker() );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                logExceptionWithMessage(
-                        String.format( "Container host with id: %s not found", config.getJobTracker() ), e );
-                return;
-            }
-            EnvironmentContainerHost secondaryNameNode;
-            try
-            {
-                secondaryNameNode =
-                        ( EnvironmentContainerHost ) environment.getContainerHostById( config.getSecondaryNameNode() );
-            }
-            catch ( ContainerHostNotFoundException e )
-            {
-                logExceptionWithMessage(
-                        String.format( "Container host with id: %s not found", config.getSecondaryNameNode() ), e );
-                return;
-            }
 
             CommandResult result = null;
             switch ( clusterOperationType )
@@ -172,13 +143,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                     switch ( nodeType )
                     {
                         case NAMENODE:
-                            result = namenode.execute(
-                                    new RequestBuilder( Commands.getStartNameNodeCommand() ).daemon() );
+//                            result = namenode.execute(
+//                                    new RequestBuilder( Commands.getStartNameNodeCommand() ).daemon() );
                             break;
-                        case JOBTRACKER:
-                            result = jobtracker
-                                    .execute( new RequestBuilder( Commands.getStartJobTrackerCommand() ).daemon() );
-                            break;
+                        //                        case JOBTRACKER:
+                        //                            result = jobtracker
+                        //                                    .execute( new RequestBuilder( Commands
+                        // .getStartJobTrackerCommand() ).daemon() );
+                        //                            break;
                     }
                     assert result != null;
                     if ( result.hasSucceeded() )
@@ -194,11 +166,12 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                     switch ( nodeType )
                     {
                         case NAMENODE:
-                            result = namenode.execute( new RequestBuilder( Commands.getStopNameNodeCommand() ) );
+//                            result = namenode.execute( new RequestBuilder( Commands.getStopNameNodeCommand() ) );
                             break;
-                        case JOBTRACKER:
-                            result = jobtracker.execute( new RequestBuilder( Commands.getStopJobTrackerCommand() ) );
-                            break;
+                        //                        case JOBTRACKER:
+                        //                            result = jobtracker.execute( new RequestBuilder( Commands
+                        // .getStopJobTrackerCommand() ) );
+                        //                            break;
                     }
                     assert result != null;
                     if ( result.hasSucceeded() )
@@ -214,27 +187,27 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                     switch ( nodeType )
                     {
                         case NAMENODE:
-                            result = namenode.execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ) );
+                            //                            result = namenode.execute( new RequestBuilder( Commands
+                            // .getStatusNameNodeCommand() ) );
                             break;
-                        case JOBTRACKER:
-                            result = jobtracker.execute( new RequestBuilder( Commands.getStatusJobTrackerCommand() ) );
-                            break;
-                        case SECONDARY_NAMENODE:
-                            result = secondaryNameNode
-                                    .execute( new RequestBuilder( Commands.getStatusNameNodeCommand() ) );
-                            break;
+                        //                        case JOBTRACKER:
+                        //                            result = jobtracker.execute( new RequestBuilder( Commands
+                        // .getStatusJobTrackerCommand() ) );
+                        //                            break;
+                        //                        case SECONDARY_NAMENODE:
+                        //                            result = secondaryNameNode
+                        //                                    .execute( new RequestBuilder( Commands
+                        // .getStatusNameNodeCommand() ) );
+                        //                            break;
                     }
                     logResults( trackerOperation, result, nodeType );
                     break;
                 case DECOMISSION_STATUS:
-                    result = namenode.execute( new RequestBuilder( Commands.getReportHadoopCommand() ) );
+                    //                    result = namenode.execute( new RequestBuilder( Commands
+                    // .getReportHadoopCommand() ) );
                     logResults( trackerOperation, result, NodeType.SLAVE_NODE );
                     break;
             }
-        }
-        catch ( CommandException e )
-        {
-            logExceptionWithMessage( "Command failed", e );
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -258,52 +231,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                     case NAMENODE:
                         if ( status.contains( "NameNode" ) )
                         {
-                            String temp = status.replaceAll(
-                                    Pattern.quote( "!(SecondaryNameNode is not running on this " + "machine)" ), "" ).
-                                                        replaceAll( "NameNode is ", "" );
-
-                            if ( !temp.toLowerCase().contains( "secondary" ) )
-                            {
-                                if ( temp.toLowerCase().contains( "not" ) )
-                                {
-                                    nodeState = NodeState.STOPPED;
-                                }
-                                else
-                                {
-                                    nodeState = NodeState.RUNNING;
-                                }
-                                break;
-                            }
-                            break;
+                            nodeState = NodeState.RUNNING;
                         }
-                        break;
-                    case JOBTRACKER:
-                        if ( status.contains( "JobTracker" ) )
+                        else
                         {
-                            String temp = status.replaceAll( "JobTracker is ", "" );
-                            if ( temp.toLowerCase().contains( "not" ) )
-                            {
-                                nodeState = NodeState.STOPPED;
-                            }
-                            else
-                            {
-                                nodeState = NodeState.RUNNING;
-                            }
-                            break;
-                        }
-                        break;
-                    case SECONDARY_NAMENODE:
-                        if ( status.contains( "SecondaryNameNode" ) )
-                        {
-                            String temp = status.replaceAll( "SecondaryNameNode is ", "" );
-                            if ( temp.toLowerCase().contains( "not" ) )
-                            {
-                                nodeState = NodeState.STOPPED;
-                            }
-                            else
-                            {
-                                nodeState = NodeState.RUNNING;
-                            }
+                            nodeState = NodeState.STOPPED;
                         }
                         break;
                     case DATANODE:
@@ -381,45 +313,37 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
     @Override
     public void destroyCluster()
     {
-        HadoopClusterConfig config = manager.getCluster( clusterName );
-        // before removing cluster, stop it first.
-        manager.stopNameNode( config );
-        manager.stopJobTracker( config );
-
-        if ( config == null )
-        {
-            trackerOperation.addLogFailed(
-                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
-            return;
-        }
-
         Environment environment;
         try
         {
             environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
+            HadoopClusterConfig config = manager.getCluster( clusterName );
+
+            if ( config == null )
+            {
+                trackerOperation.addLogFailed(
+                        String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
+                return;
+            }
+
+            new ClusterConfiguration( trackerOperation, manager ).deleteClusterConfiguration( config, environment );
+
+            if ( manager.getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+            {
+                trackerOperation.addLogDone( "Cluster information deleted from database" );
+            }
+            else
+            {
+                trackerOperation.addLogFailed( "Failed to delete cluster information from database" );
+            }
         }
         catch ( EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( "Environment not found" );
-            return;
         }
-//
-//        try
-//        {
-//            manager.unsubscribeFromAlerts( environment );
-//        }
-//        catch ( MonitorException e )
-//        {
-//            trackerOperation.addLog( String.format( "Failed to unsubscribe from alerts: %s", e.getMessage() ) );
-//        }
-
-        if ( manager.getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
+        catch ( ContainerHostNotFoundException e )
         {
-            trackerOperation.addLogDone( "Cluster information deleted from database" );
-        }
-        else
-        {
-            trackerOperation.addLogFailed( "Failed to delete cluster information from database" );
+            e.printStackTrace();
         }
     }
 

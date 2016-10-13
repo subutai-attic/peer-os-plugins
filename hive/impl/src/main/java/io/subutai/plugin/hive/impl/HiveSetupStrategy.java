@@ -177,18 +177,17 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         trackerOperation.addLog( "Installing server..." );
         try
         {
-            server.execute( new RequestBuilder( Commands.updateCommand ).withTimeout( 2000 )
-                                                                        .withStdOutRedirection( OutputRedirection.NO ) );
-            if ( !checkIfProductIsInstalled( server, HiveConfig.PRODUCT_KEY.toLowerCase() ) )
+            server.execute( new RequestBuilder( Commands.UPDATE_COMMAND ).withTimeout( 2000 ).withStdOutRedirection(
+                    OutputRedirection.NO ) );
+            if ( !checkIfProductIsInstalled( server, Commands.PRODUCT_KEY ) )
             {
-                server.execute( new RequestBuilder(
-                        Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() )
-                        .withTimeout( 600 ) );
+                server.execute( new RequestBuilder( Commands.INSTALL_COMMAND + Common.PACKAGE_PREFIX + Commands.PRODUCT_KEY )
+                        .withTimeout( 2000 ) );
             }
-            if ( !checkIfProductIsInstalled( server, "derby" ) )
+            if ( !checkIfProductIsInstalled( server, "derby2" ) )
             {
-                server.execute( new RequestBuilder( Commands.installCommand + Common.PACKAGE_PREFIX + "derby" )
-                        .withTimeout( 600 ) );
+                server.execute( new RequestBuilder( Commands.INSTALL_COMMAND + Common.PACKAGE_PREFIX + "derby2" )
+                        .withTimeout( 2000 ) );
             }
         }
         catch ( CommandException e )
@@ -205,13 +204,13 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
         {
             try
             {
-                client.execute( new RequestBuilder( Commands.updateCommand ).withTimeout( 2000 )
-                                                                                                    .withStdOutRedirection( OutputRedirection.NO ) );
-                if ( !checkIfProductIsInstalled( client, HiveConfig.PRODUCT_KEY.toLowerCase() ) )
+                client.execute( new RequestBuilder( Commands.UPDATE_COMMAND ).withTimeout( 2000 ).withStdOutRedirection(
+                        OutputRedirection.NO ) );
+                if ( !checkIfProductIsInstalled( client, "hive2" ) )
                 {
-                    CommandResult result = client.execute( new RequestBuilder(
-                            Commands.installCommand + Common.PACKAGE_PREFIX + HiveConfig.PRODUCT_KEY.toLowerCase() )
-                            .withTimeout( 600 ) );
+                    CommandResult result = client.execute(
+                            new RequestBuilder( Commands.INSTALL_COMMAND + Common.PACKAGE_PREFIX + Commands.PRODUCT_KEY )
+                                    .withTimeout( 600 ) );
                     checkInstalled( client, result );
                     trackerOperation.addLog( HiveConfig.PRODUCT_KEY + " is installed on " + client.getHostname() );
                 }
@@ -265,8 +264,7 @@ public class HiveSetupStrategy implements ClusterSetupStrategy
             throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
         }
 
-        if ( !( result.hasSucceeded() && ( statusResult.getStdOut()
-                                                       .contains( HiveConfig.PRODUCT_KEY.toLowerCase() ) ) ) )
+        if ( !( result.hasSucceeded() && ( statusResult.getStdOut().contains( Commands.PRODUCT_KEY ) ) ) )
         {
             trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),

@@ -64,16 +64,16 @@ public class StormClusterOperationHandlerTest
     ClusterSetupStrategy clusterSetupStrategy;
     @Mock
     PluginDAO pluginDAO;
-//    @Mock
-//    Zookeeper zookeeper;
-//    @Mock
-//    ZookeeperClusterConfig zookeeperClusterConfig;
+    @Mock
+    TemplateManager templateManager;
+    //    @Mock
+    //    Zookeeper zookeeper;
+    //    @Mock
+    //    ZookeeperClusterConfig zookeeperClusterConfig;
     @Mock
     PeerManager peerManager;
     @Mock
     LocalPeer localPeer;
-    @Mock
-    TemplateManager templateManager;
     private StormClusterOperationHandler stormClusterOperationHandler;
     private StormClusterOperationHandler stormClusterOperationHandler2;
     private StormClusterOperationHandler stormClusterOperationHandler3;
@@ -102,27 +102,34 @@ public class StormClusterOperationHandlerTest
         when( trackerOperation.getId() ).thenReturn( UUID.randomUUID() );
 
         stormClusterOperationHandler =
-                new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration, ClusterOperationType.INSTALL );
-        stormClusterOperationHandler2 = new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration,
-                ClusterOperationType.UNINSTALL );
-        stormClusterOperationHandler3 = new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration,
-                ClusterOperationType.START_ALL );
+                new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration,
+                        ClusterOperationType.INSTALL );
+        stormClusterOperationHandler2 =
+                new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration,
+                        ClusterOperationType.UNINSTALL );
+        stormClusterOperationHandler3 =
+                new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration,
+                        ClusterOperationType.START_ALL );
         stormClusterOperationHandler4 =
-                new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration, ClusterOperationType.STOP_ALL );
-        stormClusterOperationHandler5 = new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration,
-                ClusterOperationType.STATUS_ALL );
+                new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration,
+                        ClusterOperationType.STOP_ALL );
+        stormClusterOperationHandler5 =
+                new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration,
+                        ClusterOperationType.STATUS_ALL );
         stormClusterOperationHandler6 =
-                new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration, ClusterOperationType.ADD );
+                new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration,
+                        ClusterOperationType.ADD );
         stormClusterOperationHandler7 =
-                new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration, ClusterOperationType.REMOVE );
+                new StormClusterOperationHandler( stormImpl, templateManager, stormClusterConfiguration,
+                        ClusterOperationType.REMOVE );
 
         when( stormImpl.getClusterSetupStrategy( stormClusterConfiguration, trackerOperation ) )
                 .thenReturn( clusterSetupStrategy );
         when( stormImpl.getEnvironmentManager() ).thenReturn( environmentManager );
-//        when( stormImpl.getZookeeperManager() ).thenReturn( zookeeper );
+        //        when( stormImpl.getZookeeperManager() ).thenReturn( zookeeper );
         //        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
         when( stormClusterConfiguration.getEnvironmentId() ).thenReturn( id );
-//        when( zookeeperClusterConfig.getEnvironmentId() ).thenReturn( id );
+        //        when( zookeeperClusterConfig.getEnvironmentId() ).thenReturn( id );
         when( stormClusterConfiguration.getNimbus() ).thenReturn( id );
         when( containerHost.execute( any( RequestBuilder.class ) ) ).thenReturn( commandResult );
         when( stormImpl.getPluginDAO() ).thenReturn( pluginDAO );
@@ -216,26 +223,26 @@ public class StormClusterOperationHandlerTest
     @Test
     public void testRunOperationTypeUninstallNoEnvironment2() throws Exception
     {
-//        when( stormImpl.getCluster( anyString() ) ).thenReturn( stormClusterConfiguration );
-//        when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
-//        when( environmentManager.loadEnvironment( any( String.class ) ) )
-//                .thenThrow( EnvironmentNotFoundException.class );
-//        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
-//
-//        stormClusterOperationHandler2.run();
+        //        when( stormImpl.getCluster( anyString() ) ).thenReturn( stormClusterConfiguration );
+        //        when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
+        //        when( environmentManager.loadEnvironment( any( String.class ) ) )
+        //                .thenThrow( EnvironmentNotFoundException.class );
+        //        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
+        //
+        //        stormClusterOperationHandler2.run();
     }
 
 
     @Test
     public void testRunOperationTypeUninstallContainerHostNotFound() throws Exception
     {
-//        when( stormImpl.getCluster( anyString() ) ).thenReturn( stormClusterConfiguration );
-//        when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
-//        when( environment.getContainerHostById( any( String.class ) ) )
-//                .thenThrow( ContainerHostNotFoundException.class );
-//        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
-//
-//        stormClusterOperationHandler2.run();
+        //        when( stormImpl.getCluster( anyString() ) ).thenReturn( stormClusterConfiguration );
+        //        when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
+        //        when( environment.getContainerHostById( any( String.class ) ) )
+        //                .thenThrow( ContainerHostNotFoundException.class );
+        //        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
+        //
+        //        stormClusterOperationHandler2.run();
     }
 
 
@@ -243,16 +250,16 @@ public class StormClusterOperationHandlerTest
     @Ignore
     public void testRunOperationTypeUninstall() throws Exception
     {
-//        when( stormImpl.getCluster( anyString() ) ).thenReturn( stormClusterConfiguration );
-//        when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
-//        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
-//        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
-//
-//        stormClusterOperationHandler2.run();
-//
-//        // assertions
-//        verify( trackerOperation ).addLog( "Destroying environment..." );
-//        verify( trackerOperation ).addLogDone( "Cluster destroyed" );
+        //        when( stormImpl.getCluster( anyString() ) ).thenReturn( stormClusterConfiguration );
+        //        when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
+        //        when( environment.getContainerHostById( any( String.class ) ) ).thenReturn( containerHost );
+        //        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
+        //
+        //        stormClusterOperationHandler2.run();
+        //
+        //        // assertions
+        //        verify( trackerOperation ).addLog( "Destroying environment..." );
+        //        verify( trackerOperation ).addLogDone( "Cluster destroyed" );
     }
 
 
@@ -357,11 +364,11 @@ public class StormClusterOperationHandlerTest
     @Ignore
     public void testRunOperationTypeAdd() throws Exception
     {
-//        when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
-//        when( containerHost.getInterfaceByName ("eth0").getIp() ).thenReturn( "test" );
-//        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
-//
-//        stormClusterOperationHandler6.run();
+        //        when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( true );
+        //        when( containerHost.getInterfaceByName ("eth0").getIp() ).thenReturn( "test" );
+        //        when( zookeeper.getCluster( anyString() ) ).thenReturn( zookeeperClusterConfig );
+        //
+        //        stormClusterOperationHandler6.run();
     }
 
 
@@ -369,14 +376,14 @@ public class StormClusterOperationHandlerTest
     @Ignore
     public void testRunOperationTypeAdd2() throws Exception
     {
-//        when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( false );
-//        when( containerHost.getInterfaceByName ("eth0").getIp() ).thenReturn( "test" );
-//        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID().toString() );
-//        when( zookeeper.getCluster( anyString() ) ).thenReturn( null );
-//
-//        stormClusterOperationHandler6.run();
-//
-//        // assertions
-//        verify( trackerOperation ).addLogDone( "Finished." );
+        //        when( stormClusterConfiguration.isExternalZookeeper() ).thenReturn( false );
+        //        when( containerHost.getInterfaceByName ("eth0").getIp() ).thenReturn( "test" );
+        //        when( stormClusterConfiguration.getNimbus() ).thenReturn( UUID.randomUUID().toString() );
+        //        when( zookeeper.getCluster( anyString() ) ).thenReturn( null );
+        //
+        //        stormClusterOperationHandler6.run();
+        //
+        //        // assertions
+        //        verify( trackerOperation ).addLogDone( "Finished." );
     }
 }

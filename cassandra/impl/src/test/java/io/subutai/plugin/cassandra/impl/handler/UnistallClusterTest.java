@@ -64,8 +64,8 @@ public class UnistallClusterTest
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
         when( cassandraClusterConfig.getClusterName() ).thenReturn( "test" );
 
-        uninstallClusterHandler = new ClusterOperationHandler( cassandraImpl, templateManager, cassandraClusterConfig,
-                ClusterOperationType.UNINSTALL );
+        uninstallClusterHandler =
+                new ClusterOperationHandler( cassandraImpl, templateManager, cassandraClusterConfig, ClusterOperationType.UNINSTALL );
     }
 
 

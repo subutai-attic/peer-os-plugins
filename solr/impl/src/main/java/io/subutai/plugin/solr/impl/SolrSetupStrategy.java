@@ -11,11 +11,15 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.OutputRedirection;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
+import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterSetupException;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.core.plugincommon.api.ConfigBase;
@@ -93,22 +97,13 @@ public class SolrSetupStrategy implements ClusterSetupStrategy
             }
         }
 
-        po.addLog( "Starting solr service on nodes" );
-
-
-        for ( final ContainerHost clusterHost : clusterHosts )
+        try
         {
-            try
-            {
-                clusterHost.execute( new RequestBuilder( Commands.startCommand ).withTimeout( 30 ) );
-            }
-            catch ( CommandException e )
-            {
-                String msg = String.format( "Error executing command %s on node %s", Commands.startCommand,
-                        clusterHost.getHostname() );
-                LOGGER.error( msg, e );
-                po.addLogFailed( msg );
-            }
+            new ClusterConfiguration( manager, po ).configureCluster( config, environment );
+        }
+        catch ( ClusterConfigurationException e )
+        {
+            e.printStackTrace();
         }
 
         po.addLog( "Saving cluster information to database..." );

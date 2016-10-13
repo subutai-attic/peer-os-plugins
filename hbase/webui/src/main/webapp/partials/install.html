@@ -40,8 +40,8 @@
 							<select class="b-form-input b-form-input_full"
 								ng-model="hbaseCtrl.hbaseInstall.hmaster"
 								ng-change="hbaseCtrl.changeDirective(hbaseCtrl.hbaseInstall.hmaster)">
-								<option ng-repeat="node in hbaseCtrl.currentClusterNodes" value="{{ node.uuid }}">
-									{{ node.hostname }}
+								<option value="{{ hbaseCtrl.hbaseInstall.namenode.uuid }}">
+									{{ hbaseCtrl.hbaseInstall.namenode.hostname }}
 								</option>
 							</select>
 						</div>
@@ -61,27 +61,6 @@
 
 			<div class="clear"></div>
 		</div>
-
-		<div class="b-workspace-content__row">
-			<h2 class="b-workspace-content-row-h2">
-				Quorum Peers
-			</h2>
-
-			<col-select-quorum-hbase-nodes></col-select-quorum-hbase-nodes>
-
-			<div class="clear"></div>
-		</div>
-
-		<div class="b-workspace-content__row">
-			<h2 class="b-workspace-content-row-h2">
-				Backup Masters
-			</h2>
-
-			<col-select-backup-hbase-nodes></col-select-backup-hbase-nodes>
-
-			<div class="clear"></div>
-		</div>		
-
 	</div>
 
 	<div class="b-workspace__button-group b-workspace__button-group_right">

@@ -14,11 +14,13 @@ import com.google.common.collect.Maps;
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
+import io.subutai.common.command.OutputRedirection;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Host;
+import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
@@ -26,6 +28,8 @@ import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterSetupException;
 import io.subutai.core.plugincommon.api.ConfigBase;
 import io.subutai.plugin.hadoop.api.Hadoop;
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
+import io.subutai.plugin.hbase.api.HBase;
 import io.subutai.plugin.hbase.api.HBaseConfig;
 import io.subutai.plugin.hbase.impl.handler.ClusterOperationHandler;
 
@@ -40,6 +44,8 @@ public class HBaseSetupStrategy
     private Environment environment;
     private TrackerOperation trackerOperation;
     private CommandUtil commandUtil;
+    private EnvironmentContainerHost master;
+    private Set<EnvironmentContainerHost> regions;
 
 
     public HBaseSetupStrategy( HBaseImpl manager, Hadoop hadoop, HBaseConfig config, Environment environment,
@@ -98,39 +104,73 @@ public class HBaseSetupStrategy
             throw new ClusterSetupException( "No nodes eligible for installation. Operation aborted" );
         }
 
+        // Check installed packages
         trackerOperation.addLog( "Checking prerequisites..." );
 
-        // Check installed packages
-        trackerOperation.addLog( "Installing HBase..." );
+        try
+        {
+            master = environment.getContainerHostById( config.getHbaseMaster() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Container host not found" + config.getHbaseMaster(), e );
+            trackerOperation.addLogFailed( "Container host not found" );
+        }
 
-        Set<Host> hostSet = getHosts( config, environment );
+        try
+        {
+            regions = environment.getContainerHostsByIds( config.getRegionServers() );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            LOG.error( "Container hosts not found" + config.getRegionServers(), e );
+            trackerOperation.addLogFailed( "Containers host not found" );
+        }
 
 
-        // execute apt-get update
-        for ( final Host host : hostSet )
+        trackerOperation.addLog( "Installing HBaseMaster..." );
+
+        try
+        {
+            master.execute( new RequestBuilder( Commands.UPDATE_COMAND ).withTimeout( 20000 ).withStdOutRedirection(
+                    OutputRedirection.NO ) );
+            if ( !checkIfProductIsInstalled( master, Commands.PACKAGE_NAME ) )
+            {
+                CommandResult result = master.execute(
+                        new RequestBuilder( Commands.INSTALL_COMMAND ).withTimeout( 20000 )
+                                                                      .withStdOutRedirection( OutputRedirection.NO ) );
+                checkInstalled( master, result );
+            }
+        }
+        catch ( CommandException e )
+        {
+            throw new ClusterSetupException( "Failed to install hbase on master node !!! " );
+        }
+
+        trackerOperation.addLog( "Master installation completed" );
+
+        // installation of regions
+        trackerOperation.addLog( "Installing regions..." );
+        for ( EnvironmentContainerHost client : regions )
         {
             try
             {
-                host.execute( Commands.getAptUpdate() );
+                client.execute( new RequestBuilder( Commands.UPDATE_COMAND ).withTimeout( 20000 ).withStdOutRedirection(
+                        OutputRedirection.NO ) );
+                if ( !checkIfProductIsInstalled( client, Commands.PACKAGE_NAME ) )
+                {
+                    CommandResult result = client.execute(
+                            new RequestBuilder( Commands.INSTALL_COMMAND ).withTimeout( 20000 ).withStdOutRedirection(
+                                    OutputRedirection.NO ) );
+                    checkInstalled( client, result );
+                    trackerOperation.addLog( HBaseConfig.PRODUCT_KEY + " is installed on " + client.getHostname() );
+                }
             }
             catch ( CommandException e )
             {
-                LOG.error( "Error in execution apt-get update command" );
-                trackerOperation.addLogFailed( "Error in execution apt-get update command" );
+                throw new ClusterSetupException(
+                        String.format( "Failed to install %s on server node", HBaseConfig.PRODUCT_KEY ) );
             }
-        }
-
-        CommandUtil.HostCommandResults results =
-                commandUtil.execute( Commands.getInstallCommand(), hostSet, environment.getId() );
-        Set<CommandUtil.HostCommandResult> resultSet = results.getCommandResults();
-        Map<Host, CommandResult> resultMap = Maps.newConcurrentMap();
-        for ( CommandUtil.HostCommandResult result : resultSet )
-        {
-            resultMap.put( result.getHost(), result.getCommandResult() );
-        }
-        if ( ClusterOperationHandler.isAllSuccessful( resultMap, hostSet ) )
-        {
-            trackerOperation.addLog( "HBase debian package is installed on all containers successfully" );
         }
 
         try
@@ -157,7 +197,7 @@ public class HBaseSetupStrategy
     }
 
 
-    void checkConfig() throws ClusterSetupException
+    private void checkConfig() throws ClusterSetupException
     {
         String m = "Invalid configuration: ";
 
@@ -183,5 +223,45 @@ public class HBaseSetupStrategy
             }
         }
         return hosts;
+    }
+
+
+    private boolean checkIfProductIsInstalled( EnvironmentContainerHost containerHost, String productName )
+    {
+        boolean isHbaseInstalled = false;
+        try
+        {
+            CommandResult result = containerHost.execute( Commands.getCheckInstalledCommand() );
+            if ( result.getStdOut().contains( productName ) )
+            {
+                isHbaseInstalled = true;
+            }
+        }
+        catch ( CommandException e )
+        {
+            e.printStackTrace();
+        }
+        return isHbaseInstalled;
+    }
+
+
+    public void checkInstalled( EnvironmentContainerHost host, CommandResult result ) throws ClusterSetupException
+    {
+        CommandResult statusResult;
+        try
+        {
+            statusResult = host.execute( Commands.getCheckInstalledCommand() );
+        }
+        catch ( CommandException e )
+        {
+            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
+        }
+
+        if ( !( result.hasSucceeded() && ( statusResult.getStdOut().contains( Commands.PACKAGE_NAME ) ) ) )
+        {
+            trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
+            throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
+                    result.hasCompleted() ? result.getStdErr() : "Command timed out" ) );
+        }
     }
 }

@@ -1,0 +1,43 @@
+<div ng-controller="AccumuloCtrl as accumuloCtrl">
+
+	<div class="b-workspace__header">
+		<h1 class="b-title">Plugins/<span class="b-title_breadcrumbs">Accumulo</span></h1>
+	</div>
+
+	<div class="b-workspace__content">
+		<div class="b-tabs-menu">
+			<ul>
+				<li class="b-tabs-menu__item" 
+				ng-click="accumuloCtrl.activeTab = 'install'"
+				ng-class="accumuloCtrl.activeTab == 'install' ? 'b-tabs-menu__item_active' : ''">
+					Install
+				</li>
+				<li class="b-tabs-menu__item" 
+				ng-click="accumuloCtrl.activeTab = 'manage'"
+				ng-class="accumuloCtrl.activeTab == 'manage' ? 'b-tabs-menu__item_active' : ''">
+					Manage
+				</li>
+				<li class="b-tabs-menu__item"
+					ng-click="accumuloCtrl.activeTab = 'about'"
+					ng-class="accumuloCtrl.activeTab == 'about' ? 'b-tabs-menu__item_active' : ''">
+					About
+				</li>
+			</ul>
+		</div>
+		<div 
+			ng-if="accumuloCtrl.activeTab == 'install'"
+			ng-include="'plugins/accumulo/partials/install.html'">
+		</div>
+
+		<div 
+			ng-if="accumuloCtrl.activeTab == 'manage'"
+			ng-include="'plugins/accumulo/partials/manage.html'">
+		</div>
+
+		<div
+				ng-if="accumuloCtrl.activeTab == 'about'"
+				ng-include="'plugins/accumulo/partials/about.html'">
+		</div>
+	</div>
+
+</div>

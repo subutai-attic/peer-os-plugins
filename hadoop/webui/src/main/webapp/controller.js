@@ -14,6 +14,8 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
     vm.environments = [];
     vm.containers = [];
     vm.clusters = [];
+    vm.otherNodes = [];
+
 
     //functions
     vm.createHadoop = createHadoop;
@@ -26,6 +28,7 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
     vm.addNode = addNode;
     vm.startNode = startNode;
     vm.stopNode = stopNode;
+    vm.changeDirective = changeDirective;
     vm.addAllContainers = addAllContainers;
     vm.unselectAllContainers = unselectAllContainers;
 
@@ -93,7 +96,7 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
     function startNode(node, nodeType) {
         if (vm.currentCluster.clusterName === undefined) return;
         node.status = 'STARTING';
-        hadoopSrv.startNode(vm.currentCluster.clusterName, nodeType).success(function (data) {
+        hadoopSrv.startNode(vm.currentCluster.clusterName, node.hostname).success(function (data) {
             SweetAlert.swal("Success!", "Your cluster node have been started successfully.", "success");
             node.status = 'RUNNING';
             getClustersInfo(vm.currentCluster.clusterName);
@@ -106,7 +109,7 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
     function stopNode(node, nodeType) {
         if (vm.currentCluster.clusterName === undefined) return;
         node.status = 'STOPPING';
-        hadoopSrv.stopNode(vm.currentCluster.clusterName, nodeType).success(function (data) {
+        hadoopSrv.stopNode(vm.currentCluster.clusterName, node.hostname).success(function (data) {
             SweetAlert.swal("Success!", "Your cluster node have stopped successfully.", "success");
             getClustersInfo(vm.currentCluster.clusterName);
             node.status = 'STOPPED';
@@ -145,7 +148,7 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
         if (vm.currentCluster.clusterName === undefined) return;
         SweetAlert.swal({
                 title: "Are you sure?",
-                text: "Your will not be able to recover this node!",
+                text: "This operation decommission the Hadoop node from the cluster, and does not delete the container itself.",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#ff3f3c",
@@ -158,7 +161,7 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
             function (isConfirm) {
                 if (isConfirm) {
                     hadoopSrv.deleteNode(vm.currentCluster.clusterName, nodeId).success(function (data) {
-                        SweetAlert.swal("Deleted!", "Node has been deleted.", "success");
+                        SweetAlert.swal("Deleted!", "Node has been decommissioned.", "success");
                         getClustersInfo(vm.currentCluster.clusterName);
                     });
                 }
@@ -171,12 +174,6 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
         }
         else if (vm.hadoopInstall.nameNode === undefined || "") {
             SweetAlert.swal("ERROR!", "Please set Namenode", "error");
-        }
-        else if (vm.hadoopInstall.jobTracker === undefined || "") {
-            SweetAlert.swal("ERROR!", "Please set JobTraker node", "error");
-        }
-        else if (vm.hadoopInstall.secNameNode === undefined || "") {
-            SweetAlert.swal("ERROR!", "Please set Secondary node", "error");
         }
         else if (vm.hadoopInstall.slaves.length == 0) {
             SweetAlert.swal("ERROR!", "Please set Slave nodes", "error");
@@ -205,7 +202,7 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
         for (var i in vm.environments) {
             if (environmentId == vm.environments[i].id) {
                 for (var j = 0; j < vm.environments[i].containers.length; j++) {
-                    if (vm.environments[i].containers[j].templateName == 'hadoop') {
+                    if (vm.environments[i].containers[j].templateName == 'hadoop27') {
                         vm.containers.push(vm.environments[i].containers[j]);
                     }
                 }
@@ -230,6 +227,16 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
             vm.hadoopInstall.slaves.push(vm.containers[i].id);
         }
     }
+
+    function changeDirective(server) {
+        vm.otherNodes = [];
+        for (var i = 0; i < vm.containers.length; ++i) {
+            if (vm.containers[i].id !== server) {
+                vm.otherNodes.push(vm.containers[i]);
+            }
+        }
+    }
+
 
     function unselectAllContainers() {
         vm.hadoopInstall.slaves = [];

@@ -309,25 +309,25 @@ public class OozieImplTest
     }
 
 
-//    @Test
-//    public void testSubscribeToAlerts() throws Exception
-//    {
-//        oozieImpl.subscribeToAlerts( containerHost );
-//    }
-//
-//
-//    @Test
-//    public void testSubscribeToAlerts1() throws Exception
-//    {
-//        oozieImpl.subscribeToAlerts( environment );
-//    }
-//
-//
-//    @Test
-//    public void testUnsubscribeFromAlerts() throws Exception
-//    {
-//        oozieImpl.unsubscribeFromAlerts( environment );
-//    }
+    //    @Test
+    //    public void testSubscribeToAlerts() throws Exception
+    //    {
+    //        oozieImpl.subscribeToAlerts( containerHost );
+    //    }
+    //
+    //
+    //    @Test
+    //    public void testSubscribeToAlerts1() throws Exception
+    //    {
+    //        oozieImpl.subscribeToAlerts( environment );
+    //    }
+    //
+    //
+    //    @Test
+    //    public void testUnsubscribeFromAlerts() throws Exception
+    //    {
+    //        oozieImpl.unsubscribeFromAlerts( environment );
+    //    }
 
 
     @Test
@@ -395,7 +395,6 @@ public class OozieImplTest
         Set<String> myUUID = new HashSet<>();
         myUUID.add( id );
         when( oozieClusterConfig.getAllNodes() ).thenReturn( myUUID );
-        when( oozieClusterConfig.getClients() ).thenReturn( myUUID );
         when( pluginDAO.saveInfo( anyString(), anyString(), any() ) ).thenReturn( true );
 
         oozieImpl.onContainerDestroyed( environment, id );
@@ -414,10 +413,9 @@ public class OozieImplTest
         Set<String> myUUID = new HashSet<>();
         myUUID.add( id );
         when( oozieClusterConfig.getAllNodes() ).thenReturn( myUUID );
-        when( oozieClusterConfig.getClients() ).thenReturn( myUUID );
         when( pluginDAO.saveInfo( anyString(), anyString(), any() ) ).thenReturn( false );
 
-        oozieImpl.onContainerDestroyed( environment, id );
+        //        oozieImpl.onContainerDestroyed( environment, id );
     }
 
 
@@ -431,7 +429,7 @@ public class OozieImplTest
         when( environment.getId() ).thenReturn( id );
         when( oozieClusterConfig.getEnvironmentId() ).thenReturn( id );
 
-        oozieImpl.onEnvironmentDestroyed( id );
+        //        oozieImpl.onEnvironmentDestroyed( id );
     }
 
 

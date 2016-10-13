@@ -37,6 +37,10 @@
       <groupId>io.subutai</groupId>
       <artifactId>template-manager-api</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>subutai-hub-share</artifactId>
+    </dependency>
 
     <!-- test dependencies -->
 

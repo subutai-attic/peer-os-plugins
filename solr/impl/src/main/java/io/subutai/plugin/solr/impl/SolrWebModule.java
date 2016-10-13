@@ -23,7 +23,7 @@ public class SolrWebModule implements WebuiModule
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "solr", 3 );
+        TEMPLATES_REQUIREMENT.put( "solr62", 3 );
     }
 
 

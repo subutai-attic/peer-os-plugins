@@ -226,7 +226,7 @@ public class RestServiceImpl implements RestService
             {
                 break;
             }
-            if ( System.currentTimeMillis() - start > ( 200 * 1000 ) )
+            if ( System.currentTimeMillis() - start > ( 200 * 100000 ) )
             {
                 break;
             }
@@ -252,7 +252,7 @@ public class RestServiceImpl implements RestService
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
 				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
-                containerPojoSet.add( new ContainerPojo( ch.getHostname() , hostInterface.getIp () ) );
+                containerPojoSet.add( new ContainerPojo( ch.getHostname() , hostInterface.getIp (), uuid ) );
             }
 
             pojo.setNodes( containerPojoSet );

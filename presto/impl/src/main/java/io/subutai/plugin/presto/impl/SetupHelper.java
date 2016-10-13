@@ -74,13 +74,19 @@ public class SetupHelper
     {
         po.addLog( "Configuring coordinator..." );
 
-        CommandResult result =
-                host.execute( manager.getCommands().getSetCoordinatorCommand( getCoordinatorHost( environment ) ) );
+        CommandResult result = host.execute( Commands.getCopyCoordinatorConfigCommand() );
+        processResult( host, result );
+        result = host.execute( Commands.getSetNodeIdCommand( host.getId() ) );
+        processResult( host, result );
+        result = host.execute( Commands.getSetClusterNameCommand( config.getClusterName() ) );
+        processResult( host, result );
+        result = host.execute( Commands.getConfigureUriCommand( host.getHostname() ) );
         processResult( host, result );
     }
 
 
-    public void configureAsWorker( Set<EnvironmentContainerHost> workerHosts ) throws ClusterSetupException
+    public void configureAsWorker( Set<EnvironmentContainerHost> workerHosts,
+                                   final EnvironmentContainerHost coordinator ) throws ClusterSetupException
     {
         po.addLog( "Configuring worker(s)..." );
 
@@ -88,7 +94,13 @@ public class SetupHelper
         {
             try
             {
-                CommandResult result = host.execute( manager.getCommands().getSetWorkerCommand( host ) );
+                CommandResult result = host.execute( Commands.getCopyWorkerConfigCommand() );
+                processResult( host, result );
+                result = host.execute( Commands.getSetNodeIdCommand( host.getId() ) );
+                processResult( host, result );
+                result = host.execute( Commands.getSetClusterNameCommand( config.getClusterName() ) );
+                processResult( host, result );
+                result = host.execute( Commands.getConfigureUriCommand( coordinator.getHostname() ) );
                 processResult( host, result );
             }
             catch ( CommandException e )
@@ -151,14 +163,14 @@ public class SetupHelper
         CommandResult statusResult;
         try
         {
-            statusResult = commandUtil.execute( manager.getCommands().getCheckInstalledCommand(), host );
+            statusResult = host.execute( Commands.getCheckInstalledCommand() );
         }
         catch ( CommandException e )
         {
             throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
         }
 
-        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( PrestoClusterConfig.PRODUCT_PACKAGE ) ) )
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( Commands.PACKAGE_NAME ) ) )
         {
             po.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),

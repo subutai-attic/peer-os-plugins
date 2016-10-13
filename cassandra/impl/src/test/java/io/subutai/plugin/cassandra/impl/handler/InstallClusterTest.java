@@ -68,8 +68,8 @@ public class InstallClusterTest
         when( tracker.createTrackerOperation( anyString(), anyString() ) ).thenReturn( trackerOperation );
         when( cassandraClusterConfig.getClusterName() ).thenReturn( "test" );
 
-        installClusterHandler =
-                new ClusterOperationHandler( cassandraImpl, templateManager, cassandraClusterConfig, ClusterOperationType.INSTALL );
+        installClusterHandler = new ClusterOperationHandler( cassandraImpl, templateManager, cassandraClusterConfig,
+                ClusterOperationType.INSTALL );
     }
 
 

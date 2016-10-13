@@ -32,15 +32,15 @@ public class StopClusterCommand extends OsgiCommandSupport
     {
         HadoopClusterConfig config = hadoopManager.getCluster( clusterName );
         System.out.println( "Stopping namenode ..." );
-        UUID uuid = hadoopManager.stopNameNode( config );
+//        UUID uuid = hadoopManager.stopNameNode( config );
 
         System.out.println( "Stopping jobtracker ..." );
-        UUID uuid2 = hadoopManager.stopJobTracker( config );
+//        UUID uuid2 = hadoopManager.stopJobTracker( config );
 
-        System.out.println(
-                "Stop namenode operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
-        System.out.println(
-                "Stop jobtracker operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid2 ) );
+//        System.out.println(
+//                "Stop namenode operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid ) );
+//        System.out.println(
+//                "Stop jobtracker operation is " + StartClusterCommand.waitUntilOperationFinish( tracker, uuid2 ) );
         return null;
     }
 

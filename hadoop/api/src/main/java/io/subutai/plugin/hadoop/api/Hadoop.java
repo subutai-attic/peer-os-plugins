@@ -5,6 +5,7 @@ import java.util.UUID;
 
 
 import io.subutai.common.environment.Blueprint;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.plugincommon.api.ApiBase;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterSetupException;
@@ -34,34 +35,28 @@ public interface Hadoop extends ApiBase<HadoopClusterConfig>
     /**
      * Starts namenode along with data nodes and it sends "service hadoop-dfs start" command to namenode container.
      *
-     * @param hadoopClusterConfig hadoop cluster configuration object
+     * @param clusterName hadoop cluster
+     * @param hostName hostname of namenode to start
      */
-    public UUID startNameNode( HadoopClusterConfig hadoopClusterConfig );
+    public UUID startNameNode( String clusterName, String hostName );
 
 
     /**
      * Stops namenode along with data nodes and it sends "service hadoop-dfs stop" command to namenode container.
      *
-     * @param hadoopClusterConfig hadoop cluster configuration object
+     * @param clusterName hadoop cluster
+     * @param hostName hostname of namenode to stop
      */
-    public UUID stopNameNode( HadoopClusterConfig hadoopClusterConfig );
+    public UUID stopNameNode( String clusterName, String hostName );
 
 
     /**
      * Checks namenode along with data nodes and it sends "service hadoop-dfs status" command to namenode container.
      *
-     * @param hadoopClusterConfig hadoop cluster configuration object
+     * @param clusterName hadoop cluster
+     * @param hostName hostname of namenode to check status
      */
-    public UUID statusNameNode( HadoopClusterConfig hadoopClusterConfig );
-
-
-    /**
-     * Checks secondary namenode machine and it sends "service hadoop-dfs status" command to secondary namenode
-     * container.
-     *
-     * @param hadoopClusterConfig hadoop cluster configuration object
-     */
-    public UUID statusSecondaryNameNode( HadoopClusterConfig hadoopClusterConfig );
+    public UUID statusNameNode( String clusterName, String hostName );
 
 
     /**
@@ -83,60 +78,10 @@ public interface Hadoop extends ApiBase<HadoopClusterConfig>
     /**
      * Checks data datanode and it sends "service hadoop-dfs status" command to datanode container.
      *
-     * @param hadoopClusterConfig hadoop cluster configuration object
+     * @param clusterName hadoop cluster
+     * @param hostName hostname of datanode to check status
      */
-    public UUID statusDataNode( HadoopClusterConfig hadoopClusterConfig, String hostname );
-
-
-    /**
-     * Stars jobtracker along with task trackers and it sends "service hadoop-mapred start" command to jobtracker
-     * container.
-     *
-     * @param hadoopClusterConfig hadoop cluster configuration object
-     */
-    public UUID startJobTracker( HadoopClusterConfig hadoopClusterConfig );
-
-
-    /**
-     * Stops jobtracker along with task trackers and it sends "service hadoop-mapred stop" command to jobtracker
-     * container.
-     *
-     * @param hadoopClusterConfig hadoop cluster configuration object
-     */
-    public UUID stopJobTracker( HadoopClusterConfig hadoopClusterConfig );
-
-
-    /**
-     * Checks jobtracker along with task trackers and it sends "service hadoop-mapred status" command to jobtracker
-     * container.
-     *
-     * @param hadoopClusterConfig hadoop cluster configuration object
-     */
-    public UUID statusJobTracker( HadoopClusterConfig hadoopClusterConfig );
-
-
-    /**
-     * Starts task tracker and it sends "hadoop-daemon.sh start tasktracker" command to tasktracker container.
-     *
-     * @param hadoopClusterConfig hadoop cluster configuration object
-     */
-    public UUID startTaskTracker( HadoopClusterConfig hadoopClusterConfig, String hostname );
-
-
-    /**
-     * Stops task tracker and it sends "hadoop-daemon.sh stop tasktracker" command to tasktracker container.
-     *
-     * @param hadoopClusterConfig hadoop cluster configuration object
-     */
-    public UUID stopTaskTracker( HadoopClusterConfig hadoopClusterConfig, String hostname );
-
-
-    /**
-     * Checks task tracker and it sends "service hadoop-mapred status" command to tasktracker container.
-     *
-     * @param hadoopClusterConfig hadoop cluster configuration object
-     */
-    public UUID statusTaskTracker( HadoopClusterConfig hadoopClusterConfig, String hostname );
+    public UUID statusDataNode( String clusterName, String hostName );
 
 
     /**
@@ -162,13 +107,6 @@ public interface Hadoop extends ApiBase<HadoopClusterConfig>
      */
     public UUID destroyNode( HadoopClusterConfig hadoopClusterConfig, String hostname );
 
-    /**
-     * Checks decommission status of data nodes
-     *
-     * @param hadoopClusterConfig hadoop cluster configuration object
-     */
-    public UUID checkDecomissionStatus( HadoopClusterConfig hadoopClusterConfig );
-
 
     /**
      * Excludes data node from cluster
@@ -187,7 +125,7 @@ public interface Hadoop extends ApiBase<HadoopClusterConfig>
      */
     public UUID includeNode( HadoopClusterConfig hadoopClusterConfig, String hostname );
 
-    public Blueprint getDefaultEnvironmentBlueprint(final HadoopClusterConfig config ) throws ClusterSetupException;
+    public Blueprint getDefaultEnvironmentBlueprint( final HadoopClusterConfig config ) throws ClusterSetupException;
 
 
     /**

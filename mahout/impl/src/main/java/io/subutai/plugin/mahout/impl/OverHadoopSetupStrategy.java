@@ -99,18 +99,10 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
                 node.execute( new RequestBuilder( Commands.updateCommand ).withTimeout( 2000 ).withStdOutRedirection(
                         OutputRedirection.NO ) );
                 CommandResult result = node.execute( checkInstalledCommand );
-                if ( result.getStdOut().contains( MahoutClusterConfig.PRODUCT_PACKAGE ) )
+                if ( result.getStdOut().contains( Commands.PACKAGE_NAME ) )
                 {
                     trackerOperation.addLog(
                             String.format( "Node %s already has Mahout installed. Omitting this node from installation",
-                                    node.getHostname() ) );
-                    config.getNodes().remove( node.getId() );
-                }
-                else if ( !result.getStdOut()
-                                 .contains( Common.PACKAGE_PREFIX + HadoopClusterConfig.PRODUCT_NAME.toLowerCase() ) )
-                {
-                    trackerOperation.addLog(
-                            String.format( "Node %s has no Hadoop installation. Omitting this node from installation",
                                     node.getHostname() ) );
                     config.getNodes().remove( node.getId() );
                 }
@@ -157,20 +149,14 @@ class OverHadoopSetupStrategy extends MahoutSetupStrategy
     }
 
 
-    public void processResult( EnvironmentContainerHost host, CommandResult result ) throws ClusterSetupException
+    public void processResult( EnvironmentContainerHost host, CommandResult result )
+            throws ClusterSetupException, CommandException
     {
         CommandResult statusResult;
-        try
-        {
-            RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
-            statusResult = host.execute( checkInstalledCommand );
-        }
-        catch ( CommandException e )
-        {
-            throw new ClusterSetupException( String.format( "Error on container %s:", host.getHostname() ) );
-        }
+        RequestBuilder checkInstalledCommand = manager.getCommands().getCheckInstalledCommand();
+        statusResult = host.execute( checkInstalledCommand );
 
-        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( MahoutClusterConfig.PRODUCT_PACKAGE ) ) )
+        if ( !( result.hasSucceeded() && statusResult.getStdOut().contains( Commands.PACKAGE_NAME ) ) )
         {
             trackerOperation.addLogFailed( String.format( "Error on container %s:", host.getHostname() ) );
             throw new ClusterSetupException( String.format( "Error on container %s: %s", host.getHostname(),
