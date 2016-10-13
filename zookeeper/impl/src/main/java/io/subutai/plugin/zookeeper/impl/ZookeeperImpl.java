@@ -56,7 +56,6 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
     private Monitor monitor;
     private ExecutorService executor;
     private PeerManager peerManager;
-    private TemplateManager templateManager;
 
     private PluginDAO pluginDAO;
     private QuotaManager quotaManager;

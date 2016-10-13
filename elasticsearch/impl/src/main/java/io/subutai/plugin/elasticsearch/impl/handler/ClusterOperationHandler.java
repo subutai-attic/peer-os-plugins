@@ -54,7 +54,6 @@ public class ClusterOperationHandler
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private ElasticsearchClusterConfiguration config;
-    private TemplateManager templateManager;
     CommandUtil commandUtil = new CommandUtil();
     private TemplateManager templateManager;
 

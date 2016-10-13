@@ -62,7 +62,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
     private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
     private ClusterOperationType operationType;
     private CassandraClusterConfig config;
-    private TemplateManager templateManager;
     private CommandUtil commandUtil;
     private TemplateManager templateManager;
 

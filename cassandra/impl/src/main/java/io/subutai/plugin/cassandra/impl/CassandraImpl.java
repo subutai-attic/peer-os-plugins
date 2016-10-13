@@ -49,7 +49,6 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     private PeerManager peerManager;
     private QuotaManager quotaManager;
     private StrategyManager strategyManager;
-    private TemplateManager templateManager;
     private Monitor monitor;
     private TemplateManager templateManager;
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
