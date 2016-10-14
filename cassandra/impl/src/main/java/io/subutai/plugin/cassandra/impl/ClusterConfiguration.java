@@ -12,9 +12,9 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 
 
 public class ClusterConfiguration

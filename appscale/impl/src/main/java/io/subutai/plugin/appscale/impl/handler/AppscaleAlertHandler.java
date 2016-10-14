@@ -26,6 +26,7 @@ import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.ExceededQuotaAlertHandler;
+import io.subutai.hub.share.quota.ContainerOptResource;
 import io.subutai.hub.share.quota.ContainerQuota;
 import io.subutai.hub.share.resource.ByteValueResource;
 import io.subutai.hub.share.resource.ContainerResourceType;
@@ -300,15 +301,16 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
         if ( value.getContainerResourceType() == ContainerResourceType.OPT )
         {
             final ByteValueResource current = value.getCurrentValue( ByteValueResource.class );
-            final ByteValueResource quota = value.getQuotaValue( ByteValueResource.class );
+            final ContainerOptResource quota = value.getContainerResourceQuota( ContainerOptResource.class );
             if ( current == null || quota == null )
             {
                 // invalid value
                 return false;
             }
 
-            boolean stressed = quota.getValue().compareTo( current.getValue() ) < 1
-                    || quota.getValue().multiply( new BigDecimal( "0.8" ) ).compareTo( current.getValue() ) < 1;
+            boolean stressed = quota.getResource().getValue().compareTo( current.getValue() ) < 1 ||
+                    quota.getResource().getValue().multiply( new BigDecimal( "0.8" ) ).compareTo( current.getValue() )
+                            < 1;
 
             return value.getPercentage() >= 80.0;
         }

@@ -131,8 +131,7 @@ public class EsAlertListener extends ExceededQuotaAlertHandler
 
         if ( sourceHost == null )
         {
-            throwAlertException                                            ( String.format( "Alert source host %s not"
-                    + " found in environment",
+            throwAlertException( String.format( "Alert source host %s not" + " found in environment",
                     quotaAlertValue.getValue().getHostId().getId() ), null );
             return;
         }
@@ -204,7 +203,8 @@ public class EsAlertListener extends ExceededQuotaAlertHandler
                 {
                     //read current RAM quota
                     ContainerQuota containerQuota = sourceHost.getQuota();
-                    double ramQuota = containerQuota.get( ContainerResourceType.RAM ).getAsRamResource().getResource().getValue( ByteUnit.MB ).doubleValue();
+                    double ramQuota = containerQuota.get( ContainerResourceType.RAM ).getAsRamResource().getResource()
+                                                    .getValue( ByteUnit.MB ).doubleValue();
                     //                double ramQuota = sourceHost.getQuota( ResourceType.RAM ).getValue( MeasureUnit
                     // .MB ).doubleValue();
 
@@ -218,11 +218,9 @@ public class EsAlertListener extends ExceededQuotaAlertHandler
                         {
 
                             LOG.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
-                                    ramQuota,
-                                    newRamQuota );
+                                    ramQuota, newRamQuota );
                             //we can increase RAM quota
-                            Quota quota = new Quota( new ContainerRamResource( new ByteValueResource(
-                                    ByteValueResource.toBytes( new BigDecimal( newRamQuota ), ByteUnit.MB ) ) ),
+                            Quota quota = new Quota( new ContainerRamResource( newRamQuota, ByteUnit.MB ),
                                     thresholds.getRamAlertThreshold() );
 
                             containerQuota.add( quota );
@@ -246,9 +244,8 @@ public class EsAlertListener extends ExceededQuotaAlertHandler
                         LOG.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
                                 cpuQuota.getResource().getValue().intValue(), newCpuQuota );
                         //we can increase CPU quota
-                        Quota quota = new Quota( new ContainerCpuResource( new ByteValueResource(
-                                ByteValueResource.toBytes( new BigDecimal( newCpuQuota ), ByteUnit.MB ) ) ),
-                                thresholds.getRamAlertThreshold() );
+                        Quota quota =
+                                new Quota( new ContainerCpuResource( newCpuQuota ), thresholds.getRamAlertThreshold() );
 
                         containerQuota.add( quota );
                         sourceHost.setQuota( containerQuota );

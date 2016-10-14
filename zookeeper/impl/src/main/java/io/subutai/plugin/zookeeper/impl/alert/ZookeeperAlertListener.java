@@ -1,7 +1,6 @@
 package io.subutai.plugin.zookeeper.impl.alert;
 
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -23,6 +22,8 @@ import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.ExceededQuotaAlertHandler;
 import io.subutai.common.peer.PeerException;
+import io.subutai.core.metric.api.MonitorException;
+import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.hub.share.quota.ContainerCpuResource;
 import io.subutai.hub.share.quota.ContainerQuota;
 import io.subutai.hub.share.quota.ContainerRamResource;
@@ -30,12 +31,7 @@ import io.subutai.hub.share.quota.Quota;
 import io.subutai.hub.share.resource.ByteUnit;
 import io.subutai.hub.share.resource.ByteValueResource;
 import io.subutai.hub.share.resource.ContainerResourceType;
-import io.subutai.hub.share.resource.MeasureUnit;
-import io.subutai.hub.share.resource.NumericValueResource;
-import io.subutai.hub.share.resource.ResourceType;
 import io.subutai.hub.share.resource.ResourceValue;
-import io.subutai.core.metric.api.MonitorException;
-import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import io.subutai.plugin.zookeeper.impl.Commands;
 import io.subutai.plugin.zookeeper.impl.ZookeeperImpl;
@@ -189,7 +185,8 @@ public class ZookeeperAlertListener extends ExceededQuotaAlertHandler
                 if ( isRamStressedByZookeeper )
                 {
                     //read current RAM quota
-                    double ramQuota = containerQuota.get( ContainerResourceType.RAM ).getAsRamResource().getResource().getValue( ByteUnit.MB ).doubleValue();
+                    double ramQuota = containerQuota.get( ContainerResourceType.RAM ).getAsRamResource().getResource()
+                                                    .getValue( ByteUnit.MB ).doubleValue();
 
 
                     if ( ramQuota < MAX_RAM_QUOTA_MB )
@@ -202,8 +199,7 @@ public class ZookeeperAlertListener extends ExceededQuotaAlertHandler
                             LOGGER.info( "Increasing ram quota of {} from {} MB to {} MB.", sourceHost.getHostname(),
                                     ramQuota, newRamQuota );
                             //we can increase RAM quota
-                            Quota quota = new Quota( new ContainerRamResource( new ByteValueResource(
-                                    ByteValueResource.toBytes( new BigDecimal( newRamQuota ), ByteUnit.MB ) ) ),
+                            Quota quota = new Quota( new ContainerRamResource( newRamQuota, ByteUnit.MB ),
                                     thresholds.getRamAlertThreshold() );
                             containerQuota.add( quota );
                             sourceHost.setQuota( containerQuota );
@@ -224,9 +220,8 @@ public class ZookeeperAlertListener extends ExceededQuotaAlertHandler
                         LOGGER.info( "Increasing cpu quota of {} from {}% to {}%.", sourceHost.getHostname(),
                                 cpuQuota.getResource().getValue().intValue(), newCpuQuota );
                         //we can increase CPU quota
-                        Quota q = new Quota( new ContainerCpuResource( new ByteValueResource(
-                                ByteValueResource.toBytes( new BigDecimal( newCpuQuota ), ByteUnit.MB ) ) ),
-                                thresholds.getRamAlertThreshold() );
+                        Quota q =
+                                new Quota( new ContainerCpuResource( newCpuQuota ), thresholds.getRamAlertThreshold() );
 
                         containerQuota.add( q );
                         sourceHost.setQuota( containerQuota );
