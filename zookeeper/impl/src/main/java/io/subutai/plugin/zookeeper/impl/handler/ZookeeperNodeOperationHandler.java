@@ -362,7 +362,7 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
         CommandResult result;
         try
         {
-            host.execute( new RequestBuilder( Commands.getStopCommand() ) );
+            host.execute( new RequestBuilder( Commands.getStopZkServerCommand() ) );
             result = host.execute( new RequestBuilder( Commands.getUninstallCommand() ) );
             if ( result.hasSucceeded() )
             {

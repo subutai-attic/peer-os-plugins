@@ -31,7 +31,7 @@ public class ClusterConfiguration
     private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class.getName() );
 
     private static final String DEFAULT_CONFIGURATION =
-            "dataDir=/var/zookeeper\n" + "clientPort=2181\n" + "tickTime=2000\n" + "initLimit=5\n" + "syncLimit=2\n"
+            "dataDir=/var/lib/zookeeper/data\n" + "clientPort=2181\n" + "tickTime=2000\n" + "initLimit=5\n" + "syncLimit=2\n"
                     + "#server.1=zookeeper1:2888:3888\n" + "#server.2=zookeeper2:2888:3888\n"
                     + "#server.3=zookeeper3:2888:3888";
 

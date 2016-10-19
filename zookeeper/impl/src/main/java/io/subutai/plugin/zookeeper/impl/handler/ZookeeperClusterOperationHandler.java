@@ -103,7 +103,6 @@ public class ZookeeperClusterOperationHandler
                     {
                         if ( config.getNodes().contains( containerHost.getId() ) )
                         {
-                            commandResultList.add( executeCommand( containerHost, Commands.getStartCommand() ) );
                             commandResultList
                                     .add( executeCommand( containerHost, Commands.getStartZkServerCommand() ) );
                         }
@@ -116,7 +115,6 @@ public class ZookeeperClusterOperationHandler
                     {
                         if ( config.getNodes().contains( containerHost.getId() ) )
                         {
-                            commandResultList.add( executeCommand( containerHost, Commands.getStopCommand() ) );
                             commandResultList.add( executeCommand( containerHost, Commands.getStopZkServerCommand() ) );
                         }
                     }

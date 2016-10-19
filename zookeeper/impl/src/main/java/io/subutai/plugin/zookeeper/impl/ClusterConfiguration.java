@@ -34,8 +34,8 @@ public class ClusterConfiguration
     private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class.getName() );
 
     private static final String DEFAULT_CONFIGURATION =
-            "dataDir=/var/zookeeper\n" + "clientPort=2181\n" + "tickTime=2000\n" + "initLimit=5\n" + "syncLimit=2\n"
-                    + "#server.1=zookeeper1:2888:3888\n" + "#server.2=zookeeper2:2888:3888\n"
+            "dataDir=/var/lib/zookeeper/data\n" + "clientPort=2181\n" + "tickTime=2000\n" + "initLimit=5\n"
+                    + "syncLimit=2\n" + "#server.1=zookeeper1:2888:3888\n" + "#server.2=zookeeper2:2888:3888\n"
                     + "#server.3=zookeeper3:2888:3888";
 
     private ZookeeperImpl manager;
@@ -99,9 +99,8 @@ public class ClusterConfiguration
         }
         if ( isSuccesful )
         {
-            executeOnAllNodes( containerHosts, new RequestBuilder( Commands.getRestartCommand() ).withTimeout( 60 ) );
             executeOnAllNodes( containerHosts,
-                    new RequestBuilder( Commands.getRestartZkServerCommand() ).withTimeout( 60 ) );
+                    new RequestBuilder( Commands.getStartZkServerCommand() ).withTimeout( 60 ) );
         }
         else
         {
@@ -223,9 +222,7 @@ public class ClusterConfiguration
 
             removeSnaps( containerHosts );
 
-            executeOnAllNodes( containerHosts, new RequestBuilder( Commands.getRestartCommand() ).withTimeout( 60 ) );
-            executeOnAllNodes( containerHosts,
-                    new RequestBuilder( Commands.getRestartZkServerCommand() ).withTimeout( 60 ) );
+            executeOnAllNodes( containerHosts, Commands.getKillZkServerCommand() );
         }
         catch ( ContainerHostNotFoundException e )
         {
@@ -244,8 +241,7 @@ public class ClusterConfiguration
         {
             host.execute( new RequestBuilder( configureClusterCommand ).withTimeout( 60 ) );
             host.execute( new RequestBuilder( Commands.getRemoveSnapsCommand() ).withTimeout( 60 ) );
-            host.execute( new RequestBuilder( Commands.getRestartCommand() ).withTimeout( 60 ) );
-            host.execute( new RequestBuilder( Commands.getRestartZkServerCommand() ).withTimeout( 60 ) );
+            host.execute( Commands.getKillZkServerCommand() );
         }
         catch ( CommandException e )
         {

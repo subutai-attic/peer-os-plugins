@@ -22,7 +22,7 @@ public class ZookeeperWebModule implements WebuiModule
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "zookeeper348", 3 );
+        TEMPLATES_REQUIREMENT.put( "zookeeper349", 3 );
     }
 
 
