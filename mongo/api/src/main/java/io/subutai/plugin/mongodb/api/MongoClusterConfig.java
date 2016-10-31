@@ -25,7 +25,7 @@ public class MongoClusterConfig implements ConfigBase
 
     public static final String PRODUCT_KEY = "MongoDB";
     public static final String PRODUCT_NAME = "mongo";
-    public static final String TEMPLATE_NAME = "mongo32";
+    public static final String TEMPLATE_NAME = "mongo";
     public static final String PACKAGE_NAME = Common.PACKAGE_PREFIX + PRODUCT_NAME.toLowerCase();
 
     private String clusterName = "";

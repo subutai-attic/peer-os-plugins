@@ -15,7 +15,7 @@ public class OozieWebModule implements WebuiModule
 {
     private static String NAME = "Oozie";
     private static String IMG = "plugins/oozie/oozie.png";
-    private static final String SIZE = "SMALL";
+    private static final String SIZE = "LARGE";
 
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 

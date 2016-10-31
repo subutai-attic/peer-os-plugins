@@ -3,6 +3,7 @@ package io.subutai.plugin.cassandra.impl;
 
 import com.google.gson.Gson;
 
+import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.webui.api.WebuiModule;
 import io.subutai.webui.entity.AngularjsDependency;
 import io.subutai.webui.entity.WebuiModuleResourse;
@@ -22,7 +23,7 @@ public class CassandraWebModule implements WebuiModule
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "cassandra37", 3 );
+        TEMPLATES_REQUIREMENT.put( CassandraClusterConfig.TEMPLATE_NAME, 3 );
     }
 
 

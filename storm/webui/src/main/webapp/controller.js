@@ -110,7 +110,7 @@ function StormCtrl($scope, stormSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
 			if(selectedCluster == vm.environments[i].id) {
 				console.log (vm.environments[i]);
 				for (var j = 0; j < vm.environments[i].containers.length; j++){
-					if(vm.environments[i].containers[j].templateName == 'storm102') {
+					if(vm.environments[i].containers[j].templateName == 'storm') {
 						vm.currentClusterNodes.push(vm.environments[i].containers[j]);
 					}
 				}

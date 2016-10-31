@@ -15,7 +15,7 @@ public class PrestoWebModule implements WebuiModule
 {
     private static String NAME = "Presto";
     private static String IMG = "plugins/presto/presto.png";
-    private static final String SIZE = "SMALL";
+    private static final String SIZE = "LARGE";
 
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 

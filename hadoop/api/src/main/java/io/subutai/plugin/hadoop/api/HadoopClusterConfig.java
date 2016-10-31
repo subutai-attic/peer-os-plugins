@@ -19,7 +19,7 @@ public class HadoopClusterConfig implements ConfigBase
 {
     public static final String PRODUCT_KEY = "Hadoop";
     public static final String PRODUCT_NAME = PRODUCT_KEY.toLowerCase();
-    public static final String TEMPLATE_NAME = "hadoop27";
+    public static final String TEMPLATE_NAME = "hadoop";
 
     private String clusterName, domainName;
     private String nameNode;

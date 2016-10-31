@@ -16,7 +16,7 @@ public class HipiWebModule implements WebuiModule
     private WebuiModuleResourse hipiResource;
     private static String NAME = "Hipi";
     private static String IMG = "plugins/hipi/hipi.png";
-    private static final String SIZE = "SMALL";
+    private static final String SIZE = "LARGE";
 
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 

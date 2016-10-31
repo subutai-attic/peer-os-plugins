@@ -15,7 +15,7 @@ public class NutchWebModule implements WebuiModule
 {
     private static String NAME = "Nutch";
     private static String IMG = "plugins/nutch/nutch.png";
-    private static final String SIZE = "SMALL";
+    private static final String SIZE = "LARGE";
 
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 

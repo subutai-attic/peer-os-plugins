@@ -22,7 +22,7 @@ public class SparkWebModule implements WebuiModule
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "hadoop27", 3 );
+        TEMPLATES_REQUIREMENT.put( "hadoop", 3 );
     }
 
 

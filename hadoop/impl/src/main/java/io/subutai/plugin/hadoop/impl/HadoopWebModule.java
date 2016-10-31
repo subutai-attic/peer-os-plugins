@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 
+import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.webui.api.WebuiModule;
 import io.subutai.webui.entity.AngularjsDependency;
 import io.subutai.webui.entity.WebuiModuleResourse;
@@ -23,7 +24,7 @@ public class HadoopWebModule implements WebuiModule
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "hadoop27", 3 );
+        TEMPLATES_REQUIREMENT.put( HadoopClusterConfig.TEMPLATE_NAME, 3 );
     }
 
     public void init()

@@ -3,6 +3,7 @@ package io.subutai.plugin.storm.impl;
 
 import com.google.gson.Gson;
 
+import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.webui.api.WebuiModule;
 import io.subutai.webui.entity.AngularjsDependency;
 import io.subutai.webui.entity.WebuiModuleResourse;
@@ -22,7 +23,7 @@ public class StormWebModule implements WebuiModule
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "storm102", 3 );
+        TEMPLATES_REQUIREMENT.put( StormClusterConfiguration.TEMPLATE_NAME, 3 );
     }
 
 

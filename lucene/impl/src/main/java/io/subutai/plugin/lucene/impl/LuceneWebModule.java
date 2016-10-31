@@ -16,7 +16,7 @@ public class LuceneWebModule implements WebuiModule
     private WebuiModuleResourse luceneResource;
     private static String NAME = "Lucene";
     private static String IMG = "plugins/lucene/lucene.png";
-    private static final String SIZE = "SMALL";
+    private static final String SIZE = "LARGE";
 
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 

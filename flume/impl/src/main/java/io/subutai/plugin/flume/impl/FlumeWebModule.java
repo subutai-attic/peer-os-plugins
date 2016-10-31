@@ -16,7 +16,7 @@ public class FlumeWebModule implements WebuiModule
     private WebuiModuleResourse flumeResource;
     private static String NAME = "Flume";
     private static String IMG = "plugins/flume/flume.png";
-    private static final String SIZE = "SMALL";
+    private static final String SIZE = "LARGE";
 
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 

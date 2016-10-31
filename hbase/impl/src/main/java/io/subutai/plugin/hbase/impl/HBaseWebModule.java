@@ -16,7 +16,7 @@ public class HBaseWebModule implements WebuiModule
     private WebuiModuleResourse hbaseResource;
     private static String NAME = "HBase";
     private static String IMG = "plugins/hbase/hbase.png";
-    private static final String SIZE = "SMALL";
+    private static final String SIZE = "LARGE";
 
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 

@@ -3,6 +3,7 @@ package io.subutai.plugin.solr.impl;
 
 import com.google.gson.Gson;
 
+import io.subutai.plugin.solr.api.SolrClusterConfig;
 import io.subutai.webui.api.WebuiModule;
 import io.subutai.webui.entity.AngularjsDependency;
 import io.subutai.webui.entity.WebuiModuleResourse;
@@ -23,7 +24,7 @@ public class SolrWebModule implements WebuiModule
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "solr62", 3 );
+        TEMPLATES_REQUIREMENT.put( SolrClusterConfig.TEMPLATE_NAME, 3 );
     }
 
 

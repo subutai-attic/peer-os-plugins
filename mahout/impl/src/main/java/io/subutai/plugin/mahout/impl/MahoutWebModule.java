@@ -23,7 +23,7 @@ public class MahoutWebModule implements WebuiModule
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "hadoop27", 3 );
+        TEMPLATES_REQUIREMENT.put( "hadoop", 3 );
     }
 
     public void init()

@@ -3,6 +3,7 @@ package io.subutai.plugin.zookeeper.impl;
 
 import com.google.gson.Gson;
 
+import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import io.subutai.webui.api.WebuiModule;
 import io.subutai.webui.entity.AngularjsDependency;
 import io.subutai.webui.entity.WebuiModuleResourse;
@@ -22,7 +23,7 @@ public class ZookeeperWebModule implements WebuiModule
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "zookeeper349", 3 );
+        TEMPLATES_REQUIREMENT.put( ZookeeperClusterConfig.TEMPLATE_NAME, 3 );
     }
 
 

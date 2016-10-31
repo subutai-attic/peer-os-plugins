@@ -15,7 +15,7 @@ public class HiveWebModule implements WebuiModule
 	private WebuiModuleResourse hiveResource;
 	private static String NAME = "Hive";
 	private static String IMG = "plugins/hive/hive.png";
-	private static final String SIZE = "SMALL";
+	private static final String SIZE = "LARGE";
 
 	private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 	static

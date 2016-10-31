@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 
+import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.webui.api.WebuiModule;
 import io.subutai.webui.entity.AngularjsDependency;
 import io.subutai.webui.entity.WebuiModuleResourse;
@@ -23,7 +24,7 @@ public class MongoWebModule implements WebuiModule
     static
     {
         TEMPLATES_REQUIREMENT = new HashMap<>();
-        TEMPLATES_REQUIREMENT.put( "mongo32", 3 );
+        TEMPLATES_REQUIREMENT.put( MongoClusterConfig.TEMPLATE_NAME, 3 );
     }
 
     public void init()
@@ -42,8 +43,8 @@ public class MongoWebModule implements WebuiModule
     public String getModuleInfo()
     {
         return String
-                .format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"size\" : \"%s\", \"requirement\" : %s}", IMG, NAME, SIZE,
-                        new Gson().toJson( TEMPLATES_REQUIREMENT ).toString() );
+                .format( "{\"img\" : \"%s\", \"name\" : \"%s\", \"size\" : \"%s\", \"requirement\" : %s}", IMG, NAME,
+                        SIZE, new Gson().toJson( TEMPLATES_REQUIREMENT ).toString() );
     }
 
 
