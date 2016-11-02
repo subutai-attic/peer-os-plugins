@@ -145,7 +145,7 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( workers );
 
         SparkClusterConfig config = new SparkClusterConfig();
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
         config.setHadoopClusterName( hadoopClusterName );
         config.setMasterNodeId( master );
 

@@ -102,9 +102,9 @@ public class RestServiceImpl implements RestService
     {
         AppScaleConfig appScaleConfig = new AppScaleConfig();
 
-        appScaleConfig.setClusterName( clusterName );
+        appScaleConfig.setClusterName( validateInput( clusterName, true ) );
         appScaleConfig.setControllerNode( controller );
-        appScaleConfig.setDomain( userDomain );
+        appScaleConfig.setDomain( validateInput( userDomain, true ) );
         if ( !zookeeperName.isEmpty() )
         {
 
@@ -119,8 +119,8 @@ public class RestServiceImpl implements RestService
             appScaleConfig.setAppengineNodes( Arrays.asList( appengineName.split( "," ) ) );
         }
 
-        appScaleConfig.setLogin( login );
-        appScaleConfig.setPassword( password );
+        appScaleConfig.setLogin( validateInput( login, true ) );
+        appScaleConfig.setPassword( validateInput( password, true ) );
         appScaleConfig.setEnvironmentId( envID );
 
         UUID uuid = appScaleInterface.installCluster( appScaleConfig );

@@ -144,7 +144,7 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( workers );
 
         PrestoClusterConfig config = new PrestoClusterConfig();
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
         config.setHadoopClusterName( hadoopClusterName );
         config.setCoordinatorNode( masterNode );
 

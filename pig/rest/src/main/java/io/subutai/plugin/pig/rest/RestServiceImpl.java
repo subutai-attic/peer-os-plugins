@@ -139,7 +139,7 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( nodeIds );
 
         PigConfig config = new PigConfig();
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
         config.setHadoopClusterName( hadoopClusterName );
 
         config.setNodes( ( Set<String> ) JsonUtil.fromJson( nodeIds, new TypeToken<Set<String>>()

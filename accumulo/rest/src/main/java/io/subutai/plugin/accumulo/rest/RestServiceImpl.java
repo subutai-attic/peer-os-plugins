@@ -96,7 +96,7 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( slaves );
 
         AccumuloClusterConfig config = new AccumuloClusterConfig();
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
         config.setHadoopClusterName( hadoopClusterName );
         config.setMaster( master );
         config.setPassword( pwd );

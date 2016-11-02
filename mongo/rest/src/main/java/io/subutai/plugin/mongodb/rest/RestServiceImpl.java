@@ -97,7 +97,7 @@ public class RestServiceImpl implements RestService
         mongoConfig.setDataNodePort( trimmedConfig.getDataNodePort() );
         mongoConfig.setCfgSrvPort( trimmedConfig.getCfgSrvPort() );
         mongoConfig.setEnvironmentId( trimmedConfig.getEnvironmentId() );
-        mongoConfig.setClusterName( trimmedConfig.getClusterName() );
+        mongoConfig.setClusterName( validateInput( trimmedConfig.getClusterName(), true ) );
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedConfig.getConfigNodes() ) )
         {
@@ -583,7 +583,7 @@ public class RestServiceImpl implements RestService
 
         MongoClusterConfig clusterConfig = new MongoClusterConfig();
 
-        clusterConfig.setClusterName( clusterConfJson.getName() );
+        clusterConfig.setClusterName( validateInput( clusterConfJson.getName(), true ) );
         clusterConfig.setDomainName( clusterConfJson.getDomainName() );
         clusterConfig.setReplicaSetName( clusterConfJson.getRepl() );
         clusterConfig.setCfgSrvPort( Integer.parseInt( clusterConfJson.getConfigPort() ) );

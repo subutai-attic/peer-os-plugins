@@ -82,7 +82,7 @@ public class RestServiceImpl implements RestService
     {
         TrimmedHBaseConfig trimmedHBaseConfig = JsonUtil.fromJson( config, TrimmedHBaseConfig.class );
         HBaseConfig hbaseConfig = new HBaseConfig();
-        hbaseConfig.setClusterName( trimmedHBaseConfig.getClusterName() );
+        hbaseConfig.setClusterName( validateInput( trimmedHBaseConfig.getClusterName(), true ) );
         hbaseConfig.setHadoopClusterName( trimmedHBaseConfig.getHadoopClusterName() );
         hbaseConfig.setDomainName( trimmedHBaseConfig.getDomainName() );
         hbaseConfig.setEnvironmentId( trimmedHBaseConfig.getEnvironmentId() );

@@ -141,7 +141,7 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( nodeIds );
 
         LuceneConfig config = new LuceneConfig();
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
         config.setHadoopClusterName( hadoopClusterName );
 
         //        String[] arr = nodeIds.replaceAll( "\\s+", "" ).split( "," );

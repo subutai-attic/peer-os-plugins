@@ -62,7 +62,7 @@ public class RestServiceImpl implements RestService
                                       String elasticSearchCSV, String environmentId )
     {
         UsergridConfig usergridConfig = new UsergridConfig();
-        usergridConfig.setClusterName( clusterName );
+        usergridConfig.setClusterName( validateInput( clusterName, true ) );
         usergridConfig.setEnvironmentId( environmentId );
         usergridConfig.setUserDomain( userDomain );
         usergridConfig.setCassandraName( Arrays.asList( cassandraCSV.split( "," ) ) );

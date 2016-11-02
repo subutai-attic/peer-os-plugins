@@ -86,7 +86,7 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( nodeIds );
 
         NutchConfig config = new NutchConfig();
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
         config.setHadoopClusterName( hadoopClusterName );
         List<String> hosts = JsonUtil.fromJson( nodeIds, new TypeToken<List<String>>()
         {

@@ -140,7 +140,7 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( nodes );
 
         SolrClusterConfig config = new SolrClusterConfig();
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
         config.setEnvironmentId( environmentId );
 
         String[] arr = nodes.replaceAll( "\\s+", "" ).split( "," );

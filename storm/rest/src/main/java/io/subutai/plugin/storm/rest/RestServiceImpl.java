@@ -157,7 +157,7 @@ public class RestServiceImpl implements RestService
     public Response installCluster( String clusterName, String environmentId, String nimbus, String supervisors )
     {
         StormClusterConfiguration config = new StormClusterConfiguration();
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
         config.setEnvironmentId( environmentId );
         config.setNimbus( nimbus );
         config.setExternalZookeeper( false );

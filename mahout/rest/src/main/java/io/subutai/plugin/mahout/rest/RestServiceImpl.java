@@ -159,7 +159,7 @@ public class RestServiceImpl implements RestService
     public Response installCluster( String clusterName, String hadoopClusterName, String nodes )
     {
         MahoutClusterConfig mahoutConfig = new MahoutClusterConfig();
-        mahoutConfig.setClusterName( clusterName );
+        mahoutConfig.setClusterName( validateInput( clusterName, true ) );
         mahoutConfig.setHadoopClusterName( hadoopClusterName );
 
         mahoutConfig.setNodes( ( Set<String> ) JsonUtil.fromJson( nodes, new TypeToken<Set<String>>()

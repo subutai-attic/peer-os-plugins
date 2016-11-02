@@ -154,7 +154,7 @@ public class RestServiceImpl implements RestService
 
         OozieClusterConfig config = new OozieClusterConfig();
         config.setSetupType( SetupType.OVER_HADOOP );
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
         config.setHadoopClusterName( hadoopClusterName );
         config.setServer( server );
 

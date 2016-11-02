@@ -208,7 +208,7 @@ public class RestServiceImpl implements RestService
 
         ElasticsearchClusterConfiguration config = new ElasticsearchClusterConfiguration();
         config.setEnvironmentId( environmentId );
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
 
 
         config.setNodes( ( Set<String> ) JsonUtil.fromJson( nodes, new TypeToken<Set<String>>()

@@ -102,7 +102,7 @@ public class RestServiceImpl implements RestService
 
         Set<String> uuidSet = Sets.newHashSet();
         HiveConfig config = new HiveConfig();
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
         config.setHadoopClusterName( hadoopClusterName );
         config.setServer( server );
         config.setNamenode( namenode );

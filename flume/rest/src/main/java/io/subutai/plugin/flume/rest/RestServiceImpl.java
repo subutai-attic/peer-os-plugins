@@ -140,7 +140,7 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( nodes );
 
         FlumeConfig config = new FlumeConfig();
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
         config.setHadoopClusterName( hadoopClusterName );
 
 

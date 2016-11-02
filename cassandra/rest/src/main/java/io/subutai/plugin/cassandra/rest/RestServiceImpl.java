@@ -589,7 +589,7 @@ public class RestServiceImpl implements RestService
         ClusterDto clusterDto = JsonUtil.fromJson( config, ClusterDto.class );
         CassandraClusterConfig clusterConfig = new CassandraClusterConfig();
 
-        clusterConfig.setClusterName( clusterDto.getName() );
+        clusterConfig.setClusterName( validateInput( clusterDto.getName(), true ) );
         clusterConfig.setDomainName( clusterDto.getDomainName() );
         clusterConfig.setDataDirectory( clusterDto.getDataDir() );
         clusterConfig.setCommitLogDirectory( clusterDto.getCommitDir() );
