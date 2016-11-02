@@ -27,6 +27,7 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.common.util.StringUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.tracker.api.Tracker;
@@ -168,7 +169,7 @@ public class RestServiceImpl implements RestService
 
         ZookeeperClusterConfig config = new ZookeeperClusterConfig();
         config.setEnvironmentId( environmentId );
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
         config.setSetupType( SetupType.OVER_ENVIRONMENT );
 
         List<String> hosts = JsonUtil.fromJson( nodes, new TypeToken<List<String>>()
@@ -692,5 +693,11 @@ public class RestServiceImpl implements RestService
     public void setHadoopManager( final Hadoop hadoopManager )
     {
         this.hadoopManager = hadoopManager;
+    }
+
+
+    private String validateInput( String inputStr, boolean removeSpaces )
+    {
+        return StringUtil.removeHtmlAndSpecialChars( inputStr, removeSpaces );
     }
 }

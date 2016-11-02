@@ -27,6 +27,7 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.common.util.StringUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.tracker.api.Tracker;
@@ -200,7 +201,7 @@ public class RestServiceImpl implements RestService
 
         CassandraClusterConfig config = new CassandraClusterConfig();
         config.setEnvironmentId( environmentId );
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
         Set<String> allNodes = new HashSet<>();
         Set<String> allSeeds = new HashSet<>();
         String[] configNodes = nodes.replaceAll( "\\s+", "" ).split( "," );
@@ -622,5 +623,11 @@ public class RestServiceImpl implements RestService
         waitUntilOperationFinish( uuid );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
+    }
+
+
+    private String validateInput( String inputStr, boolean removeSpaces )
+    {
+        return StringUtil.removeHtmlAndSpecialChars( inputStr, removeSpaces );
     }
 }

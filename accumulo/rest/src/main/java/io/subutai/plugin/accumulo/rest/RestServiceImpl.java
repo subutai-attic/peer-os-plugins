@@ -29,6 +29,7 @@ import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.common.util.StringUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.accumulo.api.Accumulo;
@@ -95,7 +96,7 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( slaves );
 
         AccumuloClusterConfig config = new AccumuloClusterConfig();
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
         config.setHadoopClusterName( hadoopClusterName );
         config.setMaster( master );
         config.setPassword( pwd );
@@ -453,6 +454,12 @@ public class RestServiceImpl implements RestService
         }
 
         return pojo;
+    }
+
+
+    private String validateInput( String inputStr, boolean removeSpaces )
+    {
+        return StringUtil.removeHtmlAndSpecialChars( inputStr, removeSpaces );
     }
 
 

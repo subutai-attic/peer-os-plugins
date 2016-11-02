@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import io.subutai.common.util.StringUtil;
 import io.subutai.plugin.appscale.rest.pojo.VersionPojo;
 import io.subutai.webui.api.WebuiModule;
 
@@ -101,9 +102,9 @@ public class RestServiceImpl implements RestService
     {
         AppScaleConfig appScaleConfig = new AppScaleConfig();
 
-        appScaleConfig.setClusterName( clusterName );
+        appScaleConfig.setClusterName( validateInput( clusterName, true ) );
         appScaleConfig.setControllerNode( controller );
-        appScaleConfig.setDomain( userDomain );
+        appScaleConfig.setDomain( validateInput( userDomain, true ) );
         if ( !zookeeperName.isEmpty() )
         {
 
@@ -280,6 +281,12 @@ public class RestServiceImpl implements RestService
         String projectInfo = JsonUtil.GSON.toJson( pojo );
 
         return Response.status( Response.Status.OK ).entity( projectInfo ).build();
+    }
+
+
+    private String validateInput( String inputStr, boolean removeSpaces )
+    {
+        return StringUtil.removeHtmlAndSpecialChars( inputStr, removeSpaces );
     }
 }
 

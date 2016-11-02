@@ -28,6 +28,7 @@ import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.common.util.StringUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.tracker.api.Tracker;
@@ -90,13 +91,13 @@ public class RestServiceImpl implements RestService
     {
         TrimmedMongodbConfig trimmedConfig = JsonUtil.fromJson( config, TrimmedMongodbConfig.class );
         MongoClusterConfig mongoConfig = mongo.newMongoClusterConfigInstance();
-        mongoConfig.setDomainName( trimmedConfig.getDomainName() );
-        mongoConfig.setReplicaSetName( trimmedConfig.getReplicaSetName() );
+        mongoConfig.setDomainName( validateInput( trimmedConfig.getDomainName(), true ) );
+        mongoConfig.setReplicaSetName( validateInput( trimmedConfig.getReplicaSetName(), true ) );
         mongoConfig.setRouterPort( trimmedConfig.getRouterPort() );
         mongoConfig.setDataNodePort( trimmedConfig.getDataNodePort() );
         mongoConfig.setCfgSrvPort( trimmedConfig.getCfgSrvPort() );
         mongoConfig.setEnvironmentId( trimmedConfig.getEnvironmentId() );
-        mongoConfig.setClusterName( trimmedConfig.getClusterName() );
+        mongoConfig.setClusterName( validateInput( trimmedConfig.getClusterName(), true ) );
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedConfig.getConfigNodes() ) )
         {
@@ -161,65 +162,67 @@ public class RestServiceImpl implements RestService
         return createResponse( uuid, state );
     }
 
-	@Override
-	public Response startNodes (String clusterName, String lxcHosts)
-	{
-		Preconditions.checkNotNull( clusterName );
-		Preconditions.checkNotNull( lxcHosts );
-		JSONArray arr = new JSONArray (lxcHosts);
-		List <String> names = new ArrayList<>();
-		List <String> types = new ArrayList<>();
-		for (int i = 0; i < arr.length (); ++i)
-		{
-			JSONObject obj = arr.getJSONObject (i);
-			String name = obj.getString ("name");
-			names.add (name);
-			String type = obj.getString ("type");
-			types.add (type);
-		}
 
-		if( names == null || names.isEmpty() )
-		{
-			return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
-		}
+    @Override
+    public Response startNodes( String clusterName, String lxcHosts )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHosts );
+        JSONArray arr = new JSONArray( lxcHosts );
+        List<String> names = new ArrayList<>();
+        List<String> types = new ArrayList<>();
+        for ( int i = 0; i < arr.length(); ++i )
+        {
+            JSONObject obj = arr.getJSONObject( i );
+            String name = obj.getString( "name" );
+            names.add( name );
+            String type = obj.getString( "type" );
+            types.add( type );
+        }
 
-		int errors = 0;
+        if ( names == null || names.isEmpty() )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+        }
 
-		for( int i = 0; i < names.size(); ++i )
-		{
-			NodeType type = null;
-			if ( types.get(i).contains( "config" ) )
-			{
-				type = NodeType.CONFIG_NODE;
-			}
-			else if ( types.get(i).contains( "data" ) )
-			{
-				type = NodeType.DATA_NODE;
-			}
-			else if ( types.get(i).contains( "router" ) )
-			{
-				type = NodeType.ROUTER_NODE;
-			}
-			UUID uuid = mongo.startNode ( clusterName, names.get (i), type );
-			OperationState state = waitUntilOperationFinish( uuid );
-			Response response =createResponse( uuid, state );
+        int errors = 0;
 
-			if( response.getStatus() != 200 )
-			{
-				errors++;
-			}
-		}
+        for ( int i = 0; i < names.size(); ++i )
+        {
+            NodeType type = null;
+            if ( types.get( i ).contains( "config" ) )
+            {
+                type = NodeType.CONFIG_NODE;
+            }
+            else if ( types.get( i ).contains( "data" ) )
+            {
+                type = NodeType.DATA_NODE;
+            }
+            else if ( types.get( i ).contains( "router" ) )
+            {
+                type = NodeType.ROUTER_NODE;
+            }
+            UUID uuid = mongo.startNode( clusterName, names.get( i ), type );
+            OperationState state = waitUntilOperationFinish( uuid );
+            Response response = createResponse( uuid, state );
 
-		if( errors > 0 )
-		{
-			return Response.status( Response.Status.EXPECTATION_FAILED ).entity( errors + " nodes are failed to execute" ).build();
-		}
+            if ( response.getStatus() != 200 )
+            {
+                errors++;
+            }
+        }
 
-		return Response.ok().build();
-	}
+        if ( errors > 0 )
+        {
+            return Response.status( Response.Status.EXPECTATION_FAILED )
+                           .entity( errors + " nodes are failed to execute" ).build();
+        }
+
+        return Response.ok().build();
+    }
 
 
-	@Override
+    @Override
     public Response stopNode( final String clusterName, final String lxcHostname, String nodeType )
     {
         Preconditions.checkNotNull( clusterName );
@@ -247,65 +250,67 @@ public class RestServiceImpl implements RestService
         return createResponse( uuid, state );
     }
 
-	@Override
-	public Response stopNodes (String clusterName, String lxcHosts)
-	{
-		Preconditions.checkNotNull( clusterName );
-		Preconditions.checkNotNull( lxcHosts );
-		JSONArray arr = new JSONArray (lxcHosts);
-		List <String> names = new ArrayList<>();
-		List <String> types = new ArrayList<>();
-		for (int i = 0; i < arr.length (); ++i)
-		{
-			JSONObject obj = arr.getJSONObject (i);
-			String name = obj.getString ("name");
-			names.add (name);
-			String type = obj.getString ("type");
-			types.add (type);
-		}
 
-		if( names == null || names.isEmpty() )
-		{
-			return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
-		}
+    @Override
+    public Response stopNodes( String clusterName, String lxcHosts )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHosts );
+        JSONArray arr = new JSONArray( lxcHosts );
+        List<String> names = new ArrayList<>();
+        List<String> types = new ArrayList<>();
+        for ( int i = 0; i < arr.length(); ++i )
+        {
+            JSONObject obj = arr.getJSONObject( i );
+            String name = obj.getString( "name" );
+            names.add( name );
+            String type = obj.getString( "type" );
+            types.add( type );
+        }
 
-		int errors = 0;
+        if ( names == null || names.isEmpty() )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+        }
 
-		for( int i = 0; i < names.size(); ++i )
-		{
-			NodeType type = null;
-			if ( types.get(i).contains( "config" ) )
-			{
-				type = NodeType.CONFIG_NODE;
-			}
-			else if ( types.get(i).contains( "data" ) )
-			{
-				type = NodeType.DATA_NODE;
-			}
-			else if ( types.get(i).contains( "router" ) )
-			{
-				type = NodeType.ROUTER_NODE;
-			}
-			UUID uuid = mongo.stopNode ( clusterName, names.get (i), type );
-			OperationState state = waitUntilOperationFinish( uuid );
-			Response response =createResponse( uuid, state );
+        int errors = 0;
 
-			if( response.getStatus() != 200 )
-			{
-				errors++;
-			}
-		}
+        for ( int i = 0; i < names.size(); ++i )
+        {
+            NodeType type = null;
+            if ( types.get( i ).contains( "config" ) )
+            {
+                type = NodeType.CONFIG_NODE;
+            }
+            else if ( types.get( i ).contains( "data" ) )
+            {
+                type = NodeType.DATA_NODE;
+            }
+            else if ( types.get( i ).contains( "router" ) )
+            {
+                type = NodeType.ROUTER_NODE;
+            }
+            UUID uuid = mongo.stopNode( clusterName, names.get( i ), type );
+            OperationState state = waitUntilOperationFinish( uuid );
+            Response response = createResponse( uuid, state );
 
-		if( errors > 0 )
-		{
-			return Response.status( Response.Status.EXPECTATION_FAILED ).entity( errors + " nodes are failed to execute" ).build();
-		}
+            if ( response.getStatus() != 200 )
+            {
+                errors++;
+            }
+        }
 
-		return Response.ok().build();
-	}
+        if ( errors > 0 )
+        {
+            return Response.status( Response.Status.EXPECTATION_FAILED )
+                           .entity( errors + " nodes are failed to execute" ).build();
+        }
+
+        return Response.ok().build();
+    }
 
 
-	@Override
+    @Override
     public Response startCluster( final String clusterName )
     {
         Preconditions.checkNotNull( clusterName );
@@ -440,30 +445,34 @@ public class RestServiceImpl implements RestService
 
             // TODO check primary nodes
             // check Primary data, config node
-//            Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
-//            Set<EnvironmentContainerHost> dataNodes = environment.getContainerHostsByIds( config.getDataHosts() );
-//            Set<EnvironmentContainerHost> configServers = environment.getContainerHostsByIds( config.getConfigHosts() );
-//
-//            for ( final EnvironmentContainerHost dataNode : dataNodes )
-//            {
-//                CommandResult result = dataNode.execute( Commands.getCheckIsMaster( config.getDataNodePort() ) );
-//
-//                if ( result.getStdOut().contains( "\"ismaster\" : true" ) )
-//                {
-//                    config.setPrimaryDataNode( dataNode.getId() );
-//                }
-//            }
-//
-//            for ( final EnvironmentContainerHost configServer : configServers )
-//            {
-//                CommandResult result =
-//                        configServer.execute( Commands.getCheckIsMaster( config.getCfgSrvPort() ) );
-//
-//                if ( result.getStdOut().contains( "\"ismaster\" : true" ) )
-//                {
-//                    config.setPrimaryDataNode( configServer.getId() );
-//                }
-//            }
+            //            Environment environment = manager.getEnvironmentManager().loadEnvironment( config
+            // .getEnvironmentId() );
+            //            Set<EnvironmentContainerHost> dataNodes = environment.getContainerHostsByIds( config
+            // .getDataHosts() );
+            //            Set<EnvironmentContainerHost> configServers = environment.getContainerHostsByIds( config
+            // .getConfigHosts() );
+            //
+            //            for ( final EnvironmentContainerHost dataNode : dataNodes )
+            //            {
+            //                CommandResult result = dataNode.execute( Commands.getCheckIsMaster( config
+            // .getDataNodePort() ) );
+            //
+            //                if ( result.getStdOut().contains( "\"ismaster\" : true" ) )
+            //                {
+            //                    config.setPrimaryDataNode( dataNode.getId() );
+            //                }
+            //            }
+            //
+            //            for ( final EnvironmentContainerHost configServer : configServers )
+            //            {
+            //                CommandResult result =
+            //                        configServer.execute( Commands.getCheckIsMaster( config.getCfgSrvPort() ) );
+            //
+            //                if ( result.getStdOut().contains( "\"ismaster\" : true" ) )
+            //                {
+            //                    config.setPrimaryDataNode( configServer.getId() );
+            //                }
+            //            }
 
             String envDataSource = env.toString().contains( "ProxyEnvironment" ) ? "hub" : "subutai";
 
@@ -473,7 +482,7 @@ public class RestServiceImpl implements RestService
             {
                 ContainerHost ch = env.getContainerHostById( uuid );
                 HostInterface hostInterface = ch.getInterfaceByName( "eth0" );
-                UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname (), NodeType.CONFIG_NODE );
+                UUID uuidStatus = mongo.checkNode( config.getClusterName(), ch.getHostname(), NodeType.CONFIG_NODE );
                 configHosts.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp(),
                         checkStatus( tracker, uuidStatus ) ) );
             }
@@ -547,62 +556,65 @@ public class RestServiceImpl implements RestService
         return state;
     }
 
-	@Override
-	public Response autoScaleCluster (String clusterName, boolean scale)
-	{
-		MongoClusterConfig config = mongo.getCluster( clusterName );
-		config.setAutoScaling( scale );
-		try
-		{
-			mongo.saveConfig( config );
-		}
-		catch ( ClusterException e )
-		{
-			e.printStackTrace();
-		}
+
+    @Override
+    public Response autoScaleCluster( String clusterName, boolean scale )
+    {
+        MongoClusterConfig config = mongo.getCluster( clusterName );
+        config.setAutoScaling( scale );
+        try
+        {
+            mongo.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            e.printStackTrace();
+        }
 
 
-		return Response.ok().build();
-	}
+        return Response.ok().build();
+    }
 
-	@Override
-	public Response installCluster (String config)
-	{
-		ClusterConfJson clusterConfJson = JsonUtil.fromJson( config, ClusterConfJson.class );
 
-		MongoClusterConfig clusterConfig = new MongoClusterConfig( );
+    @Override
+    public Response installCluster( String config )
+    {
+        ClusterConfJson clusterConfJson = JsonUtil.fromJson( config, ClusterConfJson.class );
 
-		clusterConfig.setClusterName( clusterConfJson.getName() );
-		clusterConfig.setDomainName( clusterConfJson.getDomainName() );
-		clusterConfig.setReplicaSetName ( clusterConfJson.getRepl () );
-		clusterConfig.setCfgSrvPort ( Integer.parseInt (clusterConfJson.getConfigPort ()) );
-		clusterConfig.setRouterPort ( Integer.parseInt (clusterConfJson.getRoutePort ()) );
-		clusterConfig.setDataNodePort ( Integer.parseInt (clusterConfJson.getDataPort ()) );
-		clusterConfig.setConfigHosts ( clusterConfJson.getConfigNodes () );
-		clusterConfig.setRouterHosts ( clusterConfJson.getRouteNodes () );
-		clusterConfig.setDataHosts ( clusterConfJson.getDataNodes () );
+        MongoClusterConfig clusterConfig = new MongoClusterConfig();
 
-		clusterConfig.setNumberOfConfigServers ( clusterConfJson.getConfigNodes ().size() );
-		clusterConfig.setNumberOfRouters ( clusterConfJson.getRouteNodes ().size() );
-		clusterConfig.setNumberOfDataNodes (clusterConfJson.getDataNodes ().size() );
-		clusterConfig.setEnvironmentId( clusterConfJson.getEnvironmentId() );
+        clusterConfig.setClusterName( clusterConfJson.getName() );
+        clusterConfig.setDomainName( clusterConfJson.getDomainName() );
+        clusterConfig.setReplicaSetName( clusterConfJson.getRepl() );
+        clusterConfig.setCfgSrvPort( Integer.parseInt( clusterConfJson.getConfigPort() ) );
+        clusterConfig.setRouterPort( Integer.parseInt( clusterConfJson.getRoutePort() ) );
+        clusterConfig.setDataNodePort( Integer.parseInt( clusterConfJson.getDataPort() ) );
+        clusterConfig.setConfigHosts( clusterConfJson.getConfigNodes() );
+        clusterConfig.setRouterHosts( clusterConfJson.getRouteNodes() );
+        clusterConfig.setDataHosts( clusterConfJson.getDataNodes() );
+
+        clusterConfig.setNumberOfConfigServers( clusterConfJson.getConfigNodes().size() );
+        clusterConfig.setNumberOfRouters( clusterConfJson.getRouteNodes().size() );
+        clusterConfig.setNumberOfDataNodes( clusterConfJson.getDataNodes().size() );
+        clusterConfig.setEnvironmentId( clusterConfJson.getEnvironmentId() );
 
         UUID uuid = mongo.installCluster( clusterConfig );
         OperationState state = waitUntilOperationFinish( uuid );
         return createResponse( uuid, state );
-	}
+    }
 
 
-	private Response createResponse( UUID uuid, OperationState state )
+    private Response createResponse( UUID uuid, OperationState state )
     {
         TrackerOperationView po = tracker.getTrackerOperation( MongoClusterConfig.PRODUCT_KEY, uuid );
         if ( state == OperationState.FAILED )
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( JsonUtil.toJson (po.getLog()) ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( JsonUtil.toJson( po.getLog() ) )
+                           .build();
         }
         else if ( state == OperationState.SUCCEEDED )
         {
-            return Response.status( Response.Status.OK ).entity( JsonUtil.toJson (po.getLog()) ).build();
+            return Response.status( Response.Status.OK ).entity( JsonUtil.toJson( po.getLog() ) ).build();
         }
         else
         {
@@ -654,61 +666,69 @@ public class RestServiceImpl implements RestService
         this.environmentManager = environmentManager;
     }
 
-	@Override
-	public Response getPluginInfo()
-	{
-		Properties prop = new Properties();
-		VersionPojo pojo = new VersionPojo();
-		InputStream input = null;
-		try
-		{
-			input = getClass().getResourceAsStream("/git.properties");
 
-			prop.load( input );
-			pojo.setGitCommitId( prop.getProperty( "git.commit.id" ) );
-			pojo.setGitCommitTime( prop.getProperty( "git.commit.time" ) );
-			pojo.setGitBranch( prop.getProperty( "git.branch" ) );
-			pojo.setGitCommitUserName( prop.getProperty( "git.commit.user.name" ) );
-			pojo.setGitCommitUserEmail( prop.getProperty( "git.commit.user.email" ) );
-			pojo.setProjectVersion( prop.getProperty( "git.build.version" ) );
+    @Override
+    public Response getPluginInfo()
+    {
+        Properties prop = new Properties();
+        VersionPojo pojo = new VersionPojo();
+        InputStream input = null;
+        try
+        {
+            input = getClass().getResourceAsStream( "/git.properties" );
 
-			pojo.setGitBuildUserName( prop.getProperty( "git.build.user.name" ) );
-			pojo.setGitBuildUserEmail( prop.getProperty( "git.build.user.email" ) );
-			pojo.setGitBuildHost( prop.getProperty( "git.build.host" ) );
-			pojo.setGitBuildTime( prop.getProperty( "git.build.time" ) );
+            prop.load( input );
+            pojo.setGitCommitId( prop.getProperty( "git.commit.id" ) );
+            pojo.setGitCommitTime( prop.getProperty( "git.commit.time" ) );
+            pojo.setGitBranch( prop.getProperty( "git.branch" ) );
+            pojo.setGitCommitUserName( prop.getProperty( "git.commit.user.name" ) );
+            pojo.setGitCommitUserEmail( prop.getProperty( "git.commit.user.email" ) );
+            pojo.setProjectVersion( prop.getProperty( "git.build.version" ) );
 
-			pojo.setGitClosestTagName( prop.getProperty( "git.closest.tag.name" ) );
-			pojo.setGitCommitIdDescribeShort( prop.getProperty( "git.commit.id.describe-short" ) );
-			pojo.setGitClosestTagCommitCount( prop.getProperty( "git.closest.tag.commit.count" ) );
-			pojo.setGitCommitIdDescribe( prop.getProperty( "git.commit.id.describe" ) );
-		}
-		catch ( IOException ex )
-		{
-			ex.printStackTrace();
-		}
-		finally
-		{
-			if ( input != null )
-			{
-				try
-				{
-					input.close();
-				}
-				catch ( IOException e )
-				{
-					e.printStackTrace();
-				}
-			}
-		}
+            pojo.setGitBuildUserName( prop.getProperty( "git.build.user.name" ) );
+            pojo.setGitBuildUserEmail( prop.getProperty( "git.build.user.email" ) );
+            pojo.setGitBuildHost( prop.getProperty( "git.build.host" ) );
+            pojo.setGitBuildTime( prop.getProperty( "git.build.time" ) );
 
-		String projectInfo = JsonUtil.GSON.toJson( pojo );
+            pojo.setGitClosestTagName( prop.getProperty( "git.closest.tag.name" ) );
+            pojo.setGitCommitIdDescribeShort( prop.getProperty( "git.commit.id.describe-short" ) );
+            pojo.setGitClosestTagCommitCount( prop.getProperty( "git.closest.tag.commit.count" ) );
+            pojo.setGitCommitIdDescribe( prop.getProperty( "git.commit.id.describe" ) );
+        }
+        catch ( IOException ex )
+        {
+            ex.printStackTrace();
+        }
+        finally
+        {
+            if ( input != null )
+            {
+                try
+                {
+                    input.close();
+                }
+                catch ( IOException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
 
-		return Response.status( Response.Status.OK ).entity( projectInfo ).build();
-	}
+        String projectInfo = JsonUtil.GSON.toJson( pojo );
+
+        return Response.status( Response.Status.OK ).entity( projectInfo ).build();
+    }
+
 
     @Override
     public Response getAngularConfig()
     {
-        return Response.ok (mongo.getWebModule().getAngularDependecyList()).build();
+        return Response.ok( mongo.getWebModule().getAngularDependecyList() ).build();
+    }
+
+
+    private String validateInput( String inputStr, boolean removeSpaces )
+    {
+        return StringUtil.removeHtmlAndSpecialChars( inputStr, removeSpaces );
     }
 }

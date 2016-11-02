@@ -13,19 +13,18 @@ import java.util.UUID;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.common.util.StringUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.tracker.api.Tracker;
@@ -87,7 +86,7 @@ public class RestServiceImpl implements RestService
         TrimmedHadoopConfig trimmedHadoopConfig = JsonUtil.fromJson( config, TrimmedHadoopConfig.class );
         Set<String> excludedSlaves = new HashSet<>();
         HadoopClusterConfig hadoopConfig = new HadoopClusterConfig();
-        hadoopConfig.setClusterName( trimmedHadoopConfig.getClusterName() );
+        hadoopConfig.setClusterName( validateInput( trimmedHadoopConfig.getClusterName(), true ) );
         hadoopConfig.setDomainName( trimmedHadoopConfig.getDomainName() );
         hadoopConfig.setEnvironmentId( trimmedHadoopConfig.getEnvironmentId() );
         hadoopConfig.setNameNode( trimmedHadoopConfig.getNameNode() );
@@ -426,6 +425,12 @@ public class RestServiceImpl implements RestService
         }
 
         return state;
+    }
+
+
+    private String validateInput( String inputStr, boolean removeSpaces )
+    {
+        return StringUtil.removeHtmlAndSpecialChars( inputStr, removeSpaces );
     }
 
 

@@ -21,6 +21,7 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.common.util.StringUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.tracker.api.Tracker;
@@ -93,8 +94,8 @@ public class RestServiceImpl implements RestService
                 }
 
                 EnvironmentContainerHost containerHost = env.getContainerHostById( node );
-				HostInterface hostInterface = containerHost.getInterfaceByName ("eth0");
-                String ip = hostInterface.getIp ();
+                HostInterface hostInterface = containerHost.getInterfaceByName( "eth0" );
+                String ip = hostInterface.getIp();
 
                 containerDto.setIp( ip );
                 containerDto.setId( node );
@@ -104,7 +105,8 @@ public class RestServiceImpl implements RestService
                 UUID uuid = elasticsearch.checkNode( clusterName, node );
                 OperationState state = waitUntilOperationFinish( uuid );
                 Response response = createResponse( uuid, state );
-                if ( response.getStatus() == 200 && !response.getEntity().toString().contains( "Active: inactive (dead)" ) )
+                if ( response.getStatus() == 200 && !response.getEntity().toString()
+                                                             .contains( "Active: inactive (dead)" ) )
                 {
                     containerDto.setStatus( "RUNNING" );
                 }
@@ -206,7 +208,7 @@ public class RestServiceImpl implements RestService
 
         ElasticsearchClusterConfiguration config = new ElasticsearchClusterConfiguration();
         config.setEnvironmentId( environmentId );
-        config.setClusterName( clusterName );
+        config.setClusterName( validateInput( clusterName, true ) );
 
 
         config.setNodes( ( Set<String> ) JsonUtil.fromJson( nodes, new TypeToken<Set<String>>()
@@ -530,6 +532,12 @@ public class RestServiceImpl implements RestService
     @Override
     public Response getAngularConfig()
     {
-        return Response.ok (elasticsearch.getWebModule().getAngularDependecyList()).build();
+        return Response.ok( elasticsearch.getWebModule().getAngularDependecyList() ).build();
+    }
+
+
+    private String validateInput( String inputStr, boolean removeSpaces )
+    {
+        return StringUtil.removeHtmlAndSpecialChars( inputStr, removeSpaces );
     }
 }
