@@ -169,7 +169,7 @@ public class RestServiceImpl implements RestService
 
         ZookeeperClusterConfig config = new ZookeeperClusterConfig();
         config.setEnvironmentId( environmentId );
-        config.setClusterName( validateInput( clusterName, true ) );
+        config.setClusterName( clusterName );
         config.setSetupType( SetupType.OVER_ENVIRONMENT );
 
         List<String> hosts = JsonUtil.fromJson( nodes, new TypeToken<List<String>>()

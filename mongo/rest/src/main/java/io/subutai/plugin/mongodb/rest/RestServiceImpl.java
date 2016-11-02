@@ -91,13 +91,13 @@ public class RestServiceImpl implements RestService
     {
         TrimmedMongodbConfig trimmedConfig = JsonUtil.fromJson( config, TrimmedMongodbConfig.class );
         MongoClusterConfig mongoConfig = mongo.newMongoClusterConfigInstance();
-        mongoConfig.setDomainName( validateInput( trimmedConfig.getDomainName(), true ) );
-        mongoConfig.setReplicaSetName( validateInput( trimmedConfig.getReplicaSetName(), true ) );
+        mongoConfig.setDomainName( trimmedConfig.getDomainName() );
+        mongoConfig.setReplicaSetName( trimmedConfig.getReplicaSetName() );
         mongoConfig.setRouterPort( trimmedConfig.getRouterPort() );
         mongoConfig.setDataNodePort( trimmedConfig.getDataNodePort() );
         mongoConfig.setCfgSrvPort( trimmedConfig.getCfgSrvPort() );
         mongoConfig.setEnvironmentId( trimmedConfig.getEnvironmentId() );
-        mongoConfig.setClusterName( validateInput( trimmedConfig.getClusterName(), true ) );
+        mongoConfig.setClusterName( trimmedConfig.getClusterName() );
 
         if ( !CollectionUtil.isCollectionEmpty( trimmedConfig.getConfigNodes() ) )
         {

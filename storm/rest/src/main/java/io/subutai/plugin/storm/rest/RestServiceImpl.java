@@ -9,6 +9,7 @@ import javax.ws.rs.core.Response;
 
 import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.Host;
+import io.subutai.common.util.StringUtil;
 import io.subutai.plugin.storm.rest.pojo.VersionPojo;
 
 import org.json.JSONArray;
@@ -630,5 +631,11 @@ public class RestServiceImpl implements RestService
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).build();
         }
+    }
+
+
+    private String validateInput( String inputStr, boolean removeSpaces )
+    {
+        return StringUtil.removeHtmlAndSpecialChars( inputStr, removeSpaces );
     }
 }

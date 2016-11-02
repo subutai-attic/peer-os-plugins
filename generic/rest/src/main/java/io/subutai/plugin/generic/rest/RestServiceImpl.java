@@ -17,6 +17,7 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.common.util.StringUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.plugin.generic.api.GenericPlugin;
 import io.subutai.plugin.generic.api.dao.ConfigDataService;
@@ -324,6 +325,12 @@ public class RestServiceImpl implements RestService
     @Override
     public Response getAngularConfig()
     {
-        return Response.ok (genericPlugin.getWebModule().getAngularDependecyList()).build();
+        return Response.ok( genericPlugin.getWebModule().getAngularDependecyList() ).build();
+    }
+
+
+    private String validateInput( String inputStr, boolean removeSpaces )
+    {
+        return StringUtil.removeHtmlAndSpecialChars( inputStr, removeSpaces );
     }
 }

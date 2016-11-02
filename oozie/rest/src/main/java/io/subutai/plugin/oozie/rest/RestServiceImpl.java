@@ -8,6 +8,7 @@ import java.util.*;
 import javax.ws.rs.core.Response;
 
 import io.subutai.common.host.HostInterface;
+import io.subutai.common.util.StringUtil;
 import io.subutai.plugin.oozie.rest.pojo.VersionPojo;
 
 import org.slf4j.Logger;
@@ -428,5 +429,11 @@ public class RestServiceImpl implements RestService
     public void setEnvironmentManager( final EnvironmentManager environmentManager )
     {
         this.environmentManager = environmentManager;
+    }
+
+
+    private String validateInput( String inputStr, boolean removeSpaces )
+    {
+        return StringUtil.removeHtmlAndSpecialChars( inputStr, removeSpaces );
     }
 }

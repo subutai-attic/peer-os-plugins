@@ -24,6 +24,7 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.common.util.StringUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.flume.api.Flume;
@@ -469,5 +470,11 @@ public class RestServiceImpl implements RestService
     public Response getAngularConfig()
     {
         return Response.ok( flumeManager.getWebModule().getAngularDependecyList() ).build();
+    }
+
+
+    private String validateInput( String inputStr, boolean removeSpaces )
+    {
+        return StringUtil.removeHtmlAndSpecialChars( inputStr, removeSpaces );
     }
 }

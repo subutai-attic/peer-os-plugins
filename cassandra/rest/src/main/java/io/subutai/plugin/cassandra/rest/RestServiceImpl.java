@@ -201,7 +201,7 @@ public class RestServiceImpl implements RestService
 
         CassandraClusterConfig config = new CassandraClusterConfig();
         config.setEnvironmentId( environmentId );
-        config.setClusterName( validateInput( clusterName, true ) );
+        config.setClusterName( clusterName );
         Set<String> allNodes = new HashSet<>();
         Set<String> allSeeds = new HashSet<>();
         String[] configNodes = nodes.replaceAll( "\\s+", "" ).split( "," );

@@ -8,7 +8,9 @@ import java.util.*;
 import javax.ws.rs.core.Response;
 
 import io.subutai.common.host.HostInterface;
+import io.subutai.common.util.StringUtil;
 import io.subutai.plugin.presto.rest.pojo.VersionPojo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,8 +35,10 @@ import io.subutai.plugin.presto.api.Presto;
 import io.subutai.plugin.presto.api.PrestoClusterConfig;
 import io.subutai.plugin.presto.rest.pojo.ContainerPojo;
 import io.subutai.plugin.presto.rest.pojo.PrestoPojo;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 
 public class RestServiceImpl implements RestService
 {
@@ -51,57 +55,57 @@ public class RestServiceImpl implements RestService
     }
 
 
-	@Override
-	public Response getPluginInfo()
-	{
-		Properties prop = new Properties();
-		VersionPojo pojo = new VersionPojo();
-		InputStream input = null;
-		try
-		{
-			input = getClass().getResourceAsStream("/git.properties");
+    @Override
+    public Response getPluginInfo()
+    {
+        Properties prop = new Properties();
+        VersionPojo pojo = new VersionPojo();
+        InputStream input = null;
+        try
+        {
+            input = getClass().getResourceAsStream( "/git.properties" );
 
-			prop.load( input );
-			pojo.setGitCommitId( prop.getProperty( "git.commit.id" ) );
-			pojo.setGitCommitTime( prop.getProperty( "git.commit.time" ) );
-			pojo.setGitBranch( prop.getProperty( "git.branch" ) );
-			pojo.setGitCommitUserName( prop.getProperty( "git.commit.user.name" ) );
-			pojo.setGitCommitUserEmail( prop.getProperty( "git.commit.user.email" ) );
-			pojo.setProjectVersion( prop.getProperty( "git.build.version" ) );
+            prop.load( input );
+            pojo.setGitCommitId( prop.getProperty( "git.commit.id" ) );
+            pojo.setGitCommitTime( prop.getProperty( "git.commit.time" ) );
+            pojo.setGitBranch( prop.getProperty( "git.branch" ) );
+            pojo.setGitCommitUserName( prop.getProperty( "git.commit.user.name" ) );
+            pojo.setGitCommitUserEmail( prop.getProperty( "git.commit.user.email" ) );
+            pojo.setProjectVersion( prop.getProperty( "git.build.version" ) );
 
-			pojo.setGitBuildUserName( prop.getProperty( "git.build.user.name" ) );
-			pojo.setGitBuildUserEmail( prop.getProperty( "git.build.user.email" ) );
-			pojo.setGitBuildHost( prop.getProperty( "git.build.host" ) );
-			pojo.setGitBuildTime( prop.getProperty( "git.build.time" ) );
+            pojo.setGitBuildUserName( prop.getProperty( "git.build.user.name" ) );
+            pojo.setGitBuildUserEmail( prop.getProperty( "git.build.user.email" ) );
+            pojo.setGitBuildHost( prop.getProperty( "git.build.host" ) );
+            pojo.setGitBuildTime( prop.getProperty( "git.build.time" ) );
 
-			pojo.setGitClosestTagName( prop.getProperty( "git.closest.tag.name" ) );
-			pojo.setGitCommitIdDescribeShort( prop.getProperty( "git.commit.id.describe-short" ) );
-			pojo.setGitClosestTagCommitCount( prop.getProperty( "git.closest.tag.commit.count" ) );
-			pojo.setGitCommitIdDescribe( prop.getProperty( "git.commit.id.describe" ) );
-		}
-		catch ( IOException ex )
-		{
-			ex.printStackTrace();
-		}
-		finally
-		{
-			if ( input != null )
-			{
-				try
-				{
-					input.close();
-				}
-				catch ( IOException e )
-				{
-					e.printStackTrace();
-				}
-			}
-		}
+            pojo.setGitClosestTagName( prop.getProperty( "git.closest.tag.name" ) );
+            pojo.setGitCommitIdDescribeShort( prop.getProperty( "git.commit.id.describe-short" ) );
+            pojo.setGitClosestTagCommitCount( prop.getProperty( "git.closest.tag.commit.count" ) );
+            pojo.setGitCommitIdDescribe( prop.getProperty( "git.commit.id.describe" ) );
+        }
+        catch ( IOException ex )
+        {
+            ex.printStackTrace();
+        }
+        finally
+        {
+            if ( input != null )
+            {
+                try
+                {
+                    input.close();
+                }
+                catch ( IOException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
 
-		String projectInfo = JsonUtil.GSON.toJson( pojo );
+        String projectInfo = JsonUtil.GSON.toJson( pojo );
 
-		return Response.status( Response.Status.OK ).entity( projectInfo ).build();
-	}
+        return Response.status( Response.Status.OK ).entity( projectInfo ).build();
+    }
 
 
     @Override
@@ -224,47 +228,47 @@ public class RestServiceImpl implements RestService
     }
 
 
-	@Override
-	public Response startNodes (String clusterName, String lxcHosts)
-	{
-		Preconditions.checkNotNull( clusterName );
-		Preconditions.checkNotNull( lxcHosts );
-		JSONArray arr = new JSONArray (lxcHosts);
-		List <String> names = new ArrayList<> ();
-		for (int i = 0; i < arr.length (); ++i)
-		{
-			JSONObject obj = arr.getJSONObject (i);
-			String name = obj.getString ("name");
-			names.add (name);
-		}
+    @Override
+    public Response startNodes( String clusterName, String lxcHosts )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHosts );
+        JSONArray arr = new JSONArray( lxcHosts );
+        List<String> names = new ArrayList<>();
+        for ( int i = 0; i < arr.length(); ++i )
+        {
+            JSONObject obj = arr.getJSONObject( i );
+            String name = obj.getString( "name" );
+            names.add( name );
+        }
 
-		if( names == null || names.isEmpty() )
-		{
-			return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
-		}
+        if ( names == null || names.isEmpty() )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+        }
 
-		int errors = 0;
+        int errors = 0;
 
-		for( int i = 0; i < names.size(); ++i )
-		{
-			UUID uuid = prestoManager.startNode ( clusterName, names.get (i));
-			OperationState state = waitUntilOperationFinish( uuid );
-			Response response =createResponse( uuid, state );
+        for ( int i = 0; i < names.size(); ++i )
+        {
+            UUID uuid = prestoManager.startNode( clusterName, names.get( i ) );
+            OperationState state = waitUntilOperationFinish( uuid );
+            Response response = createResponse( uuid, state );
 
-			if( response.getStatus() != 200 )
-			{
-				errors++;
-			}
-		}
+            if ( response.getStatus() != 200 )
+            {
+                errors++;
+            }
+        }
 
-		if( errors > 0 )
-		{
-			return Response.status( Response.Status.EXPECTATION_FAILED ).entity( errors + " nodes are failed to execute" ).build();
-		}
+        if ( errors > 0 )
+        {
+            return Response.status( Response.Status.EXPECTATION_FAILED )
+                           .entity( errors + " nodes are failed to execute" ).build();
+        }
 
-		return Response.ok().build();
-	}
-
+        return Response.ok().build();
+    }
 
 
     @Override
@@ -283,48 +287,47 @@ public class RestServiceImpl implements RestService
     }
 
 
-	@Override
-	public Response stopNodes (String clusterName, String lxcHosts)
-	{
-		Preconditions.checkNotNull( clusterName );
-		Preconditions.checkNotNull( lxcHosts );
-		JSONArray arr = new JSONArray (lxcHosts);
-		List <String> names = new ArrayList<>();
-		for (int i = 0; i < arr.length (); ++i)
-		{
-			JSONObject obj = arr.getJSONObject (i);
-			String name = obj.getString ("name");
-			names.add (name);
-		}
+    @Override
+    public Response stopNodes( String clusterName, String lxcHosts )
+    {
+        Preconditions.checkNotNull( clusterName );
+        Preconditions.checkNotNull( lxcHosts );
+        JSONArray arr = new JSONArray( lxcHosts );
+        List<String> names = new ArrayList<>();
+        for ( int i = 0; i < arr.length(); ++i )
+        {
+            JSONObject obj = arr.getJSONObject( i );
+            String name = obj.getString( "name" );
+            names.add( name );
+        }
 
-		if( names == null || names.isEmpty() )
-		{
-			return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
-		}
+        if ( names == null || names.isEmpty() )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).entity( "Error parsing lxc hosts" ).build();
+        }
 
-		int errors = 0;
+        int errors = 0;
 
-		for( int i = 0; i < names.size(); ++i )
-		{
-			UUID uuid = prestoManager.stopNode ( clusterName, names.get (i) );
-			OperationState state = waitUntilOperationFinish( uuid );
-			Response response =createResponse( uuid, state );
+        for ( int i = 0; i < names.size(); ++i )
+        {
+            UUID uuid = prestoManager.stopNode( clusterName, names.get( i ) );
+            OperationState state = waitUntilOperationFinish( uuid );
+            Response response = createResponse( uuid, state );
 
-			if( response.getStatus() != 200 )
-			{
-				errors++;
-			}
-		}
+            if ( response.getStatus() != 200 )
+            {
+                errors++;
+            }
+        }
 
-		if( errors > 0 )
-		{
-			return Response.status( Response.Status.EXPECTATION_FAILED ).entity( errors + " nodes are failed to execute" ).build();
-		}
+        if ( errors > 0 )
+        {
+            return Response.status( Response.Status.EXPECTATION_FAILED )
+                           .entity( errors + " nodes are failed to execute" ).build();
+        }
 
-		return Response.ok().build();
-	}
-
-
+        return Response.ok().build();
+    }
 
 
     @Override
@@ -408,19 +411,19 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getWorkers() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
-				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
+                HostInterface hostInterface = ch.getInterfaceByName( "eth0" );
                 UUID uuidStatus = prestoManager.checkNode( config.getClusterName(), ch.getHostname() );
-                containerPojoSet.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp (),
+                containerPojoSet.add( new ContainerPojo( ch.getHostname(), uuid, hostInterface.getIp(),
                         checkStatus( tracker, uuidStatus ) ) );
             }
 
             pojo.setWorkers( containerPojoSet );
 
             ContainerHost ch = environment.getContainerHostById( config.getCoordinatorNode() );
-			HostInterface hostInterface = ch.getInterfaceByName ("eth0");
+            HostInterface hostInterface = ch.getInterfaceByName( "eth0" );
             UUID uuid = prestoManager.checkNode( config.getClusterName(), ch.getHostname() );
             pojo.setCoordinator(
-                    new ContainerPojo( ch.getHostname(), config.getCoordinatorNode(), hostInterface.getIp (),
+                    new ContainerPojo( ch.getHostname(), config.getCoordinatorNode(), hostInterface.getIp(),
                             checkStatus( tracker, uuid ) ) );
         }
         catch ( EnvironmentNotFoundException | ContainerHostNotFoundException e )
@@ -463,7 +466,7 @@ public class RestServiceImpl implements RestService
         else
         {
             LOG.info( "All nodes in corresponding Hadoop cluster have Nutch installed" );
-//            return Response.status( Response.Status.NOT_FOUND ).build();
+            //            return Response.status( Response.Status.NOT_FOUND ).build();
         }
 
         String hosts = JsonUtil.GSON.toJson( hostsName );
@@ -600,5 +603,11 @@ public class RestServiceImpl implements RestService
     public void setHadoopManager( final Hadoop hadoopManager )
     {
         this.hadoopManager = hadoopManager;
+    }
+
+
+    private String validateInput( String inputStr, boolean removeSpaces )
+    {
+        return StringUtil.removeHtmlAndSpecialChars( inputStr, removeSpaces );
     }
 }

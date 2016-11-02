@@ -16,6 +16,7 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.common.util.StringUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.solr.api.Solr;
@@ -94,8 +95,8 @@ public class RestServiceImpl implements RestService
 
                 Environment environment = environmentManager.loadEnvironment( config.getEnvironmentId() );
                 EnvironmentContainerHost containerHost = environment.getContainerHostById( node );
-				HostInterface hostInterface = containerHost.getInterfaceByName ("eth0");
-                String ip = hostInterface.getIp ();
+                HostInterface hostInterface = containerHost.getInterfaceByName( "eth0" );
+                String ip = hostInterface.getIp();
                 containerDtoJson.setIp( ip );
                 containerDtoJson.setId( node );
                 containerDtoJson.setHostname( containerHost.getHostname() );
@@ -103,7 +104,8 @@ public class RestServiceImpl implements RestService
                 UUID uuid = solrManager.checkNode( clusterName, node );
                 OperationState state = waitUntilOperationFinish( uuid );
                 Response response = createResponse( uuid, state );
-                if ( response.getStatus() == 200 && response.getEntity().toString().contains( "QuorumPeerMain" ) && response.getEntity().toString().contains( "jar" ) )
+                if ( response.getStatus() == 200 && response.getEntity().toString().contains( "QuorumPeerMain" )
+                        && response.getEntity().toString().contains( "jar" ) )
                 {
                     containerDtoJson.setStatus( "RUNNING" );
                 }
@@ -230,19 +232,22 @@ public class RestServiceImpl implements RestService
 
         try
         {
-            hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>() {}.getType() );
+            hosts = JsonUtil.fromJson( lxcHosts, new TypeToken<List<String>>()
+            {
+            }.getType() );
         }
         catch ( Exception e )
         {
-            return Response.status( Response.Status.BAD_REQUEST ).entity( JsonUtil.toJson( "Bad input form" + e ) ).build();
+            return Response.status( Response.Status.BAD_REQUEST ).entity( JsonUtil.toJson( "Bad input form" + e ) )
+                           .build();
         }
 
         int errors = 0;
 
-        for( String host : hosts )
+        for ( String host : hosts )
         {
             UUID uuid;
-            if( startNode )
+            if ( startNode )
             {
                 uuid = solrManager.startNode( clusterName, host );
             }
@@ -292,7 +297,8 @@ public class RestServiceImpl implements RestService
         TrackerOperationView po = tracker.getTrackerOperation( SolrClusterConfig.PRODUCT_KEY, uuid );
         if ( state == OperationState.FAILED )
         {
-            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( JsonUtil.toJson( po.getLog() ) ).build();
+            return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).entity( JsonUtil.toJson( po.getLog() ) )
+                           .build();
         }
         else if ( state == OperationState.SUCCEEDED )
         {
@@ -342,5 +348,11 @@ public class RestServiceImpl implements RestService
         Preconditions.checkNotNull( environmentManager );
 
         this.environmentManager = environmentManager;
+    }
+
+
+    private String validateInput( String inputStr, boolean removeSpaces )
+    {
+        return StringUtil.removeHtmlAndSpecialChars( inputStr, removeSpaces );
     }
 }

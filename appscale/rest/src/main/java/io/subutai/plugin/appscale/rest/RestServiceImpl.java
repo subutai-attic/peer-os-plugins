@@ -102,9 +102,9 @@ public class RestServiceImpl implements RestService
     {
         AppScaleConfig appScaleConfig = new AppScaleConfig();
 
-        appScaleConfig.setClusterName( validateInput( clusterName, true ) );
+        appScaleConfig.setClusterName( clusterName );
         appScaleConfig.setControllerNode( controller );
-        appScaleConfig.setDomain( validateInput( userDomain, true ) );
+        appScaleConfig.setDomain( userDomain );
         if ( !zookeeperName.isEmpty() )
         {
 

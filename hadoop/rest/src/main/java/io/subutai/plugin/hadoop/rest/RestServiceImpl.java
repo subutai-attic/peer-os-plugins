@@ -86,7 +86,7 @@ public class RestServiceImpl implements RestService
         TrimmedHadoopConfig trimmedHadoopConfig = JsonUtil.fromJson( config, TrimmedHadoopConfig.class );
         Set<String> excludedSlaves = new HashSet<>();
         HadoopClusterConfig hadoopConfig = new HadoopClusterConfig();
-        hadoopConfig.setClusterName( validateInput( trimmedHadoopConfig.getClusterName(), true ) );
+        hadoopConfig.setClusterName( trimmedHadoopConfig.getClusterName() );
         hadoopConfig.setDomainName( trimmedHadoopConfig.getDomainName() );
         hadoopConfig.setEnvironmentId( trimmedHadoopConfig.getEnvironmentId() );
         hadoopConfig.setNameNode( trimmedHadoopConfig.getNameNode() );

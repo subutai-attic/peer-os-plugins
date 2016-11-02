@@ -12,6 +12,7 @@ import java.util.UUID;
 import javax.ws.rs.core.Response;
 
 import io.subutai.common.host.HostInterface;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +28,7 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperationView;
 import io.subutai.common.util.JsonUtil;
+import io.subutai.common.util.StringUtil;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
@@ -252,8 +254,8 @@ public class RestServiceImpl implements RestService
             for ( final String uuid : config.getNodes() )
             {
                 ContainerHost ch = environment.getContainerHostById( uuid );
-				HostInterface hostInterface = ch.getInterfaceByName ("eth0");
-                containerPojoSet.add( new ContainerPojo( ch.getHostname(), hostInterface.getIp (), uuid ) );
+                HostInterface hostInterface = ch.getInterfaceByName( "eth0" );
+                containerPojoSet.add( new ContainerPojo( ch.getHostname(), hostInterface.getIp(), uuid ) );
             }
 
             pojo.setNodes( containerPojoSet );
@@ -340,9 +342,16 @@ public class RestServiceImpl implements RestService
         this.environmentManager = environmentManager;
     }
 
+
     @Override
     public Response getAngularConfig()
     {
-        return Response.ok (hipiManager.getWebModule().getAngularDependecyList()).build();
+        return Response.ok( hipiManager.getWebModule().getAngularDependecyList() ).build();
+    }
+
+
+    private String validateInput( String inputStr, boolean removeSpaces )
+    {
+        return StringUtil.removeHtmlAndSpecialChars( inputStr, removeSpaces );
     }
 }
