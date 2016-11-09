@@ -1,11 +1,11 @@
-<features name="cassandra-plugin" version="4.0.6-SNAPSHOT">
-  <feature name="cassandra-plugin" version="4.0.6-SNAPSHOT">
-    <bundle>mvn:io.subutai.plugin/cassandra-plugin-api/4.0.6-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/cassandra-plugin-impl/4.0.6-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/cassandra-plugin-cli/4.0.6-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/cassandra-plugin-rest/4.0.6-SNAPSHOT</bundle>
+<features name="cassandra-plugin" version="4.0.6">
+  <feature name="cassandra-plugin" version="4.0.6">
+    <bundle>mvn:io.subutai.plugin/cassandra-plugin-api/4.0.6</bundle>
+    <bundle>mvn:io.subutai.plugin/cassandra-plugin-impl/4.0.6</bundle>
+    <bundle>mvn:io.subutai.plugin/cassandra-plugin-cli/4.0.6</bundle>
+    <bundle>mvn:io.subutai.plugin/cassandra-plugin-rest/4.0.6</bundle>
   </feature>
-  <feature name="cassandra-plugin-war" version="4.0.6-SNAPSHOT">
-    <bundle> war:mvn:io.subutai.plugin/cassandra-plugin-webui/4.0.6-SNAPSHOT/war?Webapp-Context=cassandra-plugin-war</bundle>
+  <feature name="cassandra-plugin-war" version="4.0.6">
+    <bundle> war:mvn:io.subutai.plugin/cassandra-plugin-webui/4.0.6/war?Webapp-Context=cassandra-plugin-war</bundle>
   </feature>
 </features>
