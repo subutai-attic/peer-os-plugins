@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.subutai.plugin</groupId>
     <artifactId>mahout-plugin-parent</artifactId>
-    <version>4.0.6-SNAPSHOT</version>
+    <version>4.0.6</version>
   </parent>
 
   <artifactId>mahout-plugin-api</artifactId>

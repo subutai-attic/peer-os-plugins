@@ -1,11 +1,11 @@
-<features name="solr-plugin" version="4.0.6-SNAPSHOT">
-  <feature name="solr-plugin" version="4.0.6-SNAPSHOT">
-    <bundle>mvn:io.subutai.plugin/solr-plugin-api/4.0.6-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/solr-plugin-impl/4.0.6-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/solr-plugin-cli/4.0.6-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/solr-plugin-rest/4.0.6-SNAPSHOT</bundle>
+<features name="solr-plugin" version="4.0.6">
+  <feature name="solr-plugin" version="4.0.6">
+    <bundle>mvn:io.subutai.plugin/solr-plugin-api/4.0.6</bundle>
+    <bundle>mvn:io.subutai.plugin/solr-plugin-impl/4.0.6</bundle>
+    <bundle>mvn:io.subutai.plugin/solr-plugin-cli/4.0.6</bundle>
+    <bundle>mvn:io.subutai.plugin/solr-plugin-rest/4.0.6</bundle>
   </feature>
-  <feature name="solr-plugin-war" version="4.0.6-SNAPSHOT">
-	<bundle> war:mvn:io.subutai.plugin/solr-plugin-webui/4.0.6-SNAPSHOT/war?Webapp-Context=solr-plugin-war</bundle>
+  <feature name="solr-plugin-war" version="4.0.6">
+	<bundle> war:mvn:io.subutai.plugin/solr-plugin-webui/4.0.6/war?Webapp-Context=solr-plugin-war</bundle>
   </feature>
 </features>
