@@ -100,11 +100,13 @@ public class RestServiceImpl implements RestService
                                     String cassandraName, String envID, String userDomain, String login,
                                     String password, String controller )
     {
+        // TODO add XSS validation for inputs
+
         AppScaleConfig appScaleConfig = new AppScaleConfig();
 
         appScaleConfig.setClusterName( validateInput( clusterName, true ) );
         appScaleConfig.setControllerNode( controller );
-        appScaleConfig.setDomain( validateInput( userDomain, true ) );
+        appScaleConfig.setDomain( userDomain );
         if ( !zookeeperName.isEmpty() )
         {
 
@@ -119,8 +121,8 @@ public class RestServiceImpl implements RestService
             appScaleConfig.setAppengineNodes( Arrays.asList( appengineName.split( "," ) ) );
         }
 
-        appScaleConfig.setLogin( validateInput( login, true ) );
-        appScaleConfig.setPassword( validateInput( password, true ) );
+        appScaleConfig.setLogin( login );
+        appScaleConfig.setPassword( password );
         appScaleConfig.setEnvironmentId( envID );
 
         UUID uuid = appScaleInterface.installCluster( appScaleConfig );
