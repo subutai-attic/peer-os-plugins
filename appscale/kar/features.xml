@@ -1,12 +1,12 @@
-<features name="appscale-plugin" version="4.0.7-SNAPSHOT">
-  <feature name="appscale-plugin" version="4.0.7-SNAPSHOT">
-    <bundle> mvn:io.subutai/appscale-plugin-api/4.0.7-SNAPSHOT</bundle>
-    <bundle> mvn:io.subutai/appscale-plugin-impl/4.0.7-SNAPSHOT</bundle>
-    <bundle> mvn:io.subutai/appscale-plugin-cli/4.0.7-SNAPSHOT</bundle>
-    <bundle> mvn:io.subutai/appscale-plugin-rest/4.0.7-SNAPSHOT</bundle>
+<features name="appscale-plugin" version="4.0.7">
+  <feature name="appscale-plugin" version="4.0.7">
+    <bundle> mvn:io.subutai/appscale-plugin-api/4.0.7</bundle>
+    <bundle> mvn:io.subutai/appscale-plugin-impl/4.0.7</bundle>
+    <bundle> mvn:io.subutai/appscale-plugin-cli/4.0.7</bundle>
+    <bundle> mvn:io.subutai/appscale-plugin-rest/4.0.7</bundle>
   </feature>
-  <feature name="appscale-plugin-war" version="4.0.7-SNAPSHOT">
-    <bundle> war:mvn:io.subutai/appscale-plugin-webui/4.0.7-SNAPSHOT/war?Webapp-Context=appscale-plugin-war</bundle>
+  <feature name="appscale-plugin-war" version="4.0.7">
+    <bundle> war:mvn:io.subutai/appscale-plugin-webui/4.0.7/war?Webapp-Context=appscale-plugin-war</bundle>
   </feature>
 </features>
 
