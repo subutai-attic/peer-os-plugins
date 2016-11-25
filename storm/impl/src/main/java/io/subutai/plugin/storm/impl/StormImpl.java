@@ -307,6 +307,20 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
     }
 
 
+    @Override
+    public void onContainerStarted( final Environment environment, final String s )
+    {
+
+    }
+
+
+    @Override
+    public void onContainerStopped( final Environment environment, final String s )
+    {
+
+    }
+
+
     public StrategyManager getStrategyManager()
     {
         return strategyManager;

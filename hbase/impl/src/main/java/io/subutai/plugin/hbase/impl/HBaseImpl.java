@@ -281,6 +281,20 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     }
 
 
+    @Override
+    public void onContainerStarted( final Environment environment, final String s )
+    {
+
+    }
+
+
+    @Override
+    public void onContainerStopped( final Environment environment, final String s )
+    {
+
+    }
+
+
     public void init()
     {
         this.commands = new Commands();

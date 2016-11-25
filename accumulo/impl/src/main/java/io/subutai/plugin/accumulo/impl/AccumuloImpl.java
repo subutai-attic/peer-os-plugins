@@ -142,8 +142,9 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
     public UUID checkNode( final String clusterName, final String hostId, final boolean isMaster )
     {
         AccumuloClusterConfig config = getCluster( clusterName );
-        AbstractOperationHandler operationHandler = new NodeOperationHandler( this, config, hostId, OperationType.STATUS,
-                isMaster ? NodeType.MASTER_NODE : NodeType.SLAVE_NODE );
+        AbstractOperationHandler operationHandler =
+                new NodeOperationHandler( this, config, hostId, OperationType.STATUS,
+                        isMaster ? NodeType.MASTER_NODE : NodeType.SLAVE_NODE );
         executor.execute( operationHandler );
         return operationHandler.getTrackerId();
     }
@@ -209,6 +210,20 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
 
     @Override
     public void onContainerDestroyed( final Environment environment, final String s )
+    {
+
+    }
+
+
+    @Override
+    public void onContainerStarted( final Environment environment, final String s )
+    {
+
+    }
+
+
+    @Override
+    public void onContainerStopped( final Environment environment, final String s )
     {
 
     }

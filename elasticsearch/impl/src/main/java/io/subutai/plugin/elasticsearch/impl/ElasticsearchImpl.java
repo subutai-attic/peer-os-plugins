@@ -368,6 +368,20 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     }
 
 
+    @Override
+    public void onContainerStarted( final Environment environment, final String s )
+    {
+
+    }
+
+
+    @Override
+    public void onContainerStopped( final Environment environment, final String s )
+    {
+
+    }
+
+
     public PeerManager getPeerManager()
     {
         return peerManager;
