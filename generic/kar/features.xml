@@ -1,10 +1,10 @@
-<features name="generic-plugin" version="4.0.8-SNAPSHOT">
-  <feature name="generic-plugin" version="4.0.8-SNAPSHOT">
-    <bundle>mvn:io.subutai.plugin/generic-plugin-api/4.0.8-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/generic-plugin-impl/4.0.8-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/generic-plugin-rest/4.0.8-SNAPSHOT</bundle>
+<features name="generic-plugin" version="4.0.8">
+  <feature name="generic-plugin" version="4.0.8">
+    <bundle>mvn:io.subutai.plugin/generic-plugin-api/4.0.8</bundle>
+    <bundle>mvn:io.subutai.plugin/generic-plugin-impl/4.0.8</bundle>
+    <bundle>mvn:io.subutai.plugin/generic-plugin-rest/4.0.8</bundle>
   </feature>
-    <feature name="generic-plugin-war" version="4.0.8-SNAPSHOT">
-        <bundle> war:mvn:io.subutai.plugin/generic-plugin-webui/4.0.8-SNAPSHOT/war?Webapp-Context=generic-plugin-war</bundle>
+    <feature name="generic-plugin-war" version="4.0.8">
+        <bundle> war:mvn:io.subutai.plugin/generic-plugin-webui/4.0.8/war?Webapp-Context=generic-plugin-war</bundle>
     </feature>
 </features>
