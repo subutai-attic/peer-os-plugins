@@ -1,0 +1,107 @@
+<div class="b-workspace-content b-workspace-content_border">
+	<div class="b-main-form">
+
+		<div class="b-main-form__wrapper b-main-form__wrapper_margin-r">
+			<div class="b-form__wrapper b-form__wrapper_margin-bottom">
+				<label class="b-form-label b-form-label_margin_r">Select the cluster</label>
+				<select class="b-form-input b-form-input_fix-size-1 b-form-label_margin_r" 
+					ng-model="galeraCtrl.selectedOption"
+					ng-change="galeraCtrl.getClustersInfo(galeraCtrl.selectedOption)">
+					<option ng-repeat="cluster in galeraCtrl.clusters" value="{{cluster}}">{{cluster}}</option>
+				</select>
+				<a href
+					 class="b-btn b-btn_light-grey b-btn_margin-r"
+					 ng-click="galeraCtrl.addNode()">
+					Add
+					<span class="b-btn-light-grey-icon b-btn-light-grey-icon_green">
+						<i class="fa fa-plus"></i>
+					</span>
+				</a>
+				<a href 
+					class="b-btn b-btn_light-grey b-btn_margin-r" 
+					ng-click="galeraCtrl.deleteCluster()">
+					Remove 
+					<span class="b-btn-light-grey-icon b-btn-light-grey-icon_red">
+						<i class="fa fa-times"></i>
+					</span>
+				</a>
+			</div>
+		</div>
+
+		<div class="b-workspace-content__row">
+			<h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
+				Cluster nodes
+			</h2>
+
+			<div class="b-workspace-content-row-bttns g-right">
+				<!--<a href class="b-btn b-btn_blue">Refresh</a>-->
+				<a href ng-click="galeraCtrl.startNodes()" class="b-btn b-btn_green">Start</a>
+				<a href ng-click="galeraCtrl.stopNodes()" class="b-btn b-btn_red">Stop</a>
+			</div>
+		</div>
+	</div>
+	<div class="b-main-table-border">
+		<table class="b-main-table b-main-table_with-header ez-ssh-table">
+			<tr>
+				<th>
+					<input type="checkbox" onClick="toggle(this, 'galeraChk')" ng-model="galeraCtrl.globalChecker" ng-click="galeraCtrl.pushAll(galeraCtrl.globalChecker)">
+				</th>
+				<th>Status</th>
+				<th>Host</th>
+				<th>IP</th>
+				<th>SSH</th>
+				<th></th>
+			</tr>
+			<td colspan="4" class="b-main-table__empty-item" ng-if="galeraCtrl.currentCluster.containers === undefined || galeraCtrl.currentCluster.containers.length == 0">
+				No data available in table
+			</td>
+			<tr ng-repeat="clusterNode in galeraCtrl.currentCluster.containers">
+				<td class="b-main-table__edit-icon">
+					<input type="checkbox" ng-click="galeraCtrl.pushNode(clusterNode.hostname)" name="galeraChk">
+				</td>
+				<td class="b-main-table__container-status">
+					<div 
+						class="b-status-icon b-status-icon_{{ clusterNode.status }}" 
+						tooltips 
+						tooltip-title="{{ clusterNode.status }}">
+					</div>
+				</td>
+				<td>{{ clusterNode.hostname }}</td>
+				<td>{{ clusterNode.ip }}</td>
+				<td>
+					<div env-id="{{ galeraCtrl.currentCluster.environmentId }}"
+							 container-id="{{ clusterNode.id }}">
+						<button class="b-btn b-btn_blue ez-ssh-btn" disabled>
+							<div class="ssh-key-button_block">
+								<svg class="ssh-key-button" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"  x="0px" y="0px" viewBox="0 0 28 26" enable-background="new 0 0 28 26" xml:space="preserve">
+										<g>
+										<path fill="#FFFFFF" d="M21,23.4H7.4c-1.6,0-3-1.3-3-3v-6.3h2.5v4.4c0,0.3,0.2,0.5,0.5,0.5h1.5c0.3,0,0.5-0.2,0.5-0.5v-4.4h4.4
+											l0.1,0.3c0.7,3.2,3.6,5.4,6.8,5.4c3.9,0,7-3.1,7-7c0-3.9-3.1-7-7-7c-3.2,0-6.1,2.3-6.8,5.4l-0.1,0.3l-12.1,0
+											c-0.6,0-1.1,0.4-1.3,0.9c-0.2,0.8,0.4,1.5,1.2,1.6l0.4,0v6.3c0,3,2.5,5.5,5.5,5.5H21c3,0,5.5-2.5,5.5-5.5v0c0-0.2-0.3-0.4-0.5-0.2
+											c-0.7,0.6-1.5,1-2.3,1.3C23.3,22.7,22.2,23.4,21,23.4z M20.7,8.4c2.5,0,4.5,2,4.5,4.5c0,2.5-2,4.5-4.5,4.5c-2.5,0-4.5-2-4.5-4.5
+											C16.2,10.4,18.2,8.4,20.7,8.4z"/>
+										<path fill="#FFFFFF" d="M26.5,5.6L26.5,5.6c0-3-2.5-5.5-5.5-5.5H7.4c-3,0-5.5,2.5-5.5,5.5V9c0,0.3,0.2,0.5,0.5,0.5h1.5
+											c0.3,0,0.5-0.2,0.5-0.5V5.6c0-1.6,1.3-3,3-3H21c1.2,0,2.2,0.7,2.7,1.8c0,0.1,0.1,0.1,0.1,0.1c0.8,0.3,1.5,0.8,2.2,1.3
+											C26.2,6,26.5,5.8,26.5,5.6z"/>
+										</g>
+									</svg>
+							</div>
+							<div class="ssh-key-button_title">SSH</div>
+						</button>
+							<span class="ssh-info-button">
+								?
+								<div class="ssh-plugin-info-tooltip tooltip">
+									<div
+											style="padding-bottom: 10px">EZ ssh access to your environment container, use it with ease, pz.</div>
+									<a href="https://github.com/subutai-io/browsers/releases/latest" target="_blank">Download</a>
+								</div>
+							</span>
+					</div>
+				</td>
+				<td>
+					<a href ng-click="galeraCtrl.deleteNode(clusterNode.hostname)" class="b-icon b-icon_remove"></a>
+				</td>
+			</tr>
+		</table>
+	</div>
+</div>

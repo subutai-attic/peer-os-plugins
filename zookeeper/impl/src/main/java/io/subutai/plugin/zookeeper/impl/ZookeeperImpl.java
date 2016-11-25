@@ -503,6 +503,20 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
     }
 
 
+    @Override
+    public void onContainerStarted( final Environment environment, final String s )
+    {
+
+    }
+
+
+    @Override
+    public void onContainerStopped( final Environment environment, final String s )
+    {
+
+    }
+
+
     public void setTemplateManager( final TemplateManager templateManager )
     {
         this.templateManager = templateManager;

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
+
+  <!-- *********************************************************************************** -->
+  <reference id="tracker" availability="mandatory"
+             interface="io.subutai.core.tracker.api.Tracker" />
+  <reference id="environmentManager" availability="mandatory"
+             interface="io.subutai.core.environment.api.EnvironmentManager" />
+  <reference id="pluginDAO" interface="io.subutai.core.plugincommon.api.PluginDAO" />
+  <reference id="peerManager" availability="mandatory"
+             interface="io.subutai.core.peer.api.PeerManager" />
+  <reference id="templateManager" availability="mandatory"
+             interface="io.subutai.core.template.api.TemplateManager" />
+  <!-- *********************************************************************************** -->
+
+  <bean id="galera-impl" scope="singleton" class="io.subutai.plugin.galera.impl.GaleraImpl" init-method="init"
+        destroy-method="destroy">
+    <argument ref="pluginDAO" />
+    <property name="tracker" ref="tracker" />
+    <property name="environmentManager" ref="environmentManager" />
+    <property name="peerManager" ref="peerManager" />
+    <property name="templateManager" ref="templateManager" />
+  </bean>
+
+  <!-- *********************************************************************************** -->
+  <service ref="galera-impl" interface="io.subutai.plugin.galera.api.Galera" />
+  <service ref="galera-impl" interface="io.subutai.core.environment.api.EnvironmentEventListener" />
+  <!-- *********************************************************************************** -->
+
+  <service ref="module" interface="io.subutai.webui.api.WebuiModule" />
+
+  <bean id="module" init-method="init" scope="singleton" class="io.subutai.plugin.galera.impl.GaleraWebModule">
+  </bean>
+
+</blueprint>

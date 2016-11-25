@@ -226,5 +226,6 @@
     <module>appscale</module>
     <module>usergrid</module>
     <module>accumulo</module>
+    <module>galera</module>
   </modules>
 </project>
