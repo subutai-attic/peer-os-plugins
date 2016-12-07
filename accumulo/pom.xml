@@ -7,7 +7,7 @@
   <parent>
     <artifactId>subutai-plugins-parent</artifactId>
     <groupId>io.subutai.plugin</groupId>
-    <version>4.0.10-SNAPSHOT</version>
+    <version>4.0.10</version>
   </parent>
 
   <artifactId>accumulo-plugin-parent</artifactId>
