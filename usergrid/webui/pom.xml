@@ -4,7 +4,7 @@
     <parent>
         <artifactId>usergrid-plugin</artifactId>
         <groupId>io.subutai</groupId>
-        <version>4.0.11</version>
+        <version>4.0.12-SNAPSHOT</version>
     </parent>
 
     

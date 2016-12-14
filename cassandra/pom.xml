@@ -6,7 +6,7 @@
   <parent>
     <artifactId>subutai-plugins-parent</artifactId>
     <groupId>io.subutai.plugin</groupId>
-    <version>4.0.11</version>
+    <version>4.0.12-SNAPSHOT</version>
   </parent>
 
   <artifactId>cassandra-plugin-parent</artifactId>
