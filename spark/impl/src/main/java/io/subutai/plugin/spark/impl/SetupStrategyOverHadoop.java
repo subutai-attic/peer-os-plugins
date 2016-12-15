@@ -211,19 +211,6 @@ public class SetupStrategyOverHadoop implements ClusterSetupStrategy
         {
             throw new ClusterSetupException( e );
         }
-
-        po.addLog( "Saving cluster info..." );
-
-        config.setEnvironmentId( environment.getId() );
-
-        try
-        {
-            manager.saveConfig( config );
-        }
-        catch ( ClusterException e )
-        {
-            throw new ClusterSetupException( e );
-        }
     }
 
 

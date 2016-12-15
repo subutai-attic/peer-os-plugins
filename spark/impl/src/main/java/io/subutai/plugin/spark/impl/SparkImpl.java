@@ -9,6 +9,8 @@ import com.google.common.base.Preconditions;
 
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.PeerException;
+import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
@@ -331,12 +333,22 @@ public class SparkImpl extends SparkBase implements Spark, EnvironmentEventListe
                 try
                 {
                     deleteConfig( clusterConfig );
+
+                    CustomProxyConfig proxyConfig =
+                            new CustomProxyConfig( clusterConfig.getVlan(), clusterConfig.getMasterNodeId(),
+                                    clusterConfig.getEnvironmentId() );
+                    peerManager.getPeer( clusterConfig.getPeerId() ).removeCustomProxy( proxyConfig );
+
                     LOG.info( String.format( "Spark environment event: Cluster %s removed",
                             clusterConfig.getClusterName() ) );
                 }
                 catch ( ClusterException e )
                 {
                     LOG.error( "Error deleting cluster config", e );
+                }
+                catch ( PeerException e )
+                {
+                    LOG.error( "Failed to delete cluster information from database" );
                 }
                 break;
             }

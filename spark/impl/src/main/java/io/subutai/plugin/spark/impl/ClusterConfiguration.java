@@ -19,11 +19,15 @@ import io.subutai.common.peer.HostNotFoundException;
 import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.peer.PeerException;
 import io.subutai.common.peer.ResourceHost;
+import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
+import io.subutai.core.plugincommon.api.ClusterException;
+import io.subutai.core.plugincommon.api.ClusterSetupException;
+import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
 
 import com.google.common.collect.Sets;
@@ -54,6 +58,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Spark
         final EnvironmentContainerHost master;
         final Set<EnvironmentContainerHost> slaves;
         final Set<EnvironmentContainerHost> allnodes = new HashSet<>();
+        String vlanString = UUID.randomUUID().toString();
         try
         {
             master = environment.getContainerHostById( config.getMasterNodeId() );
@@ -72,16 +77,27 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Spark
             // set slaves
             executeCommand( master, Commands.getSetSlavesCommand( slaveIPs ) );
 
-            configureReverseProxy( master, master.getHostname().toLowerCase() + ".spark" );
+            configureReverseProxy( master, master.getHostname().toLowerCase() + ".spark", config, vlanString );
 
             startCluster( master, environment, config );
+
+            po.addLog( "Slave(s) successfully registered" );
+
+            po.addLog( "Saving cluster info..." );
+
+            config.setEnvironmentId( environment.getId() );
+            config.setVlan( vlanString );
+            config.setPeerId( master.getPeerId() );
+            manager.saveConfig( config );
         }
         catch ( ContainerHostNotFoundException e )
         {
             throw new ClusterConfigurationException( e );
         }
-
-        po.addLog( "Slave(s) successfully registered" );
+        catch ( ClusterException e )
+        {
+            e.printStackTrace();
+        }
     }
 
 
@@ -139,63 +155,21 @@ public class ClusterConfiguration implements ClusterConfigurationInterface<Spark
     }
 
 
-    private void configureReverseProxy( final EnvironmentContainerHost namenode, final String domainName )
+    private void configureReverseProxy( final EnvironmentContainerHost master, final String domainName,
+                                        final SparkClusterConfig config, final String vlanString )
     {
-        PeerManager peerManager = manager.getPeerManager();
-        LocalPeer localPeer = peerManager.getLocalPeer();
-        String ipAddress = namenode.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp();
-
         try
         {
-            ResourceHost resourceHost = null;
-            try
-            {
-                resourceHost = localPeer.getResourceHostByContainerId( namenode.getContainerId().toString() );
-            }
-            catch ( HostNotFoundException e )
-            {
-                LOG.error( e.toString() );
-                HostId hid = null;
-                try
-                {
-                    hid = peerManager.getPeer( peerManager.getRemotePeerIdByIp( ipAddress ) )
-                                     .getResourceHostIdByContainerId( namenode.getContainerId() );
-                    resourceHost = ( ResourceHost ) hid;
-                }
-                catch ( PeerException ex )
-                {
-                    LOG.error( ex.toString() );
-                    po.addLogFailed( "NO HOST FOUND!!!" );
-                }
-            }
-            finally
-            {
-                if ( resourceHost == null )
-                {
-                    LOG.error( "No ResourceHost connected" );
-                    po.addLogFailed( "No ResourceHost connected" );
-                }
-            }
-
-            LOG.info( "resouceHostID: " + resourceHost );
-
-            //            CommandResult resultStr = resourceHost.execute(
-            //                    new RequestBuilder( String.format( "grep vlan /mnt/lib/lxc/%s/config", namenode
-            // .getHostname() ) ) );
-            //            String stdOut = resultStr.getStdOut();
-            //            String vlanString = stdOut.substring( 11, 14 );
-            String vlanString = UUID.randomUUID().toString();
-            resourceHost.execute( new RequestBuilder( String.format( "subutai proxy del %s -d", vlanString ) ) );
-            resourceHost.execute( new RequestBuilder(
-                    String.format( "subutai proxy add %s -d %s -f /mnt/lib/lxc/%s/rootfs/etc/nginx/ssl.pem", vlanString,
-                            domainName, namenode.getHostname() ) ) );
-            resourceHost.execute(
-                    new RequestBuilder( String.format( "subutai proxy add %s -h %s:8080", vlanString, ipAddress ) ) );
+            CustomProxyConfig proxyConfig =
+                    new CustomProxyConfig( config.getEnvironmentId(), vlanString, domainName, master.getId() );
+            proxyConfig.setPort( 8080 );
+            master.getPeer().addCustomProxy( proxyConfig );
         }
-        catch ( CommandException ex )
+        catch ( PeerException e )
         {
-            LOG.error( ex.toString() );
-            po.addLogFailed( ex.toString() );
+            LOG.error( "Error to set proxy settings: ", e );
+            po.addLogFailed( "Error to set proxy settings." );
+            e.printStackTrace();
         }
     }
 

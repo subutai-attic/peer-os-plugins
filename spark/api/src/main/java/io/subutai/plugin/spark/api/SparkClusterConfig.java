@@ -24,6 +24,8 @@ public class SparkClusterConfig implements ConfigBase
     private String masterNodeId;
     private Set<String> slaveIds = new HashSet<>();
     private String environmentId;
+    private String vlan;
+    private String peerId;
     private boolean autoScaling;
 
 
@@ -155,6 +157,30 @@ public class SparkClusterConfig implements ConfigBase
     public String toString()
     {
         return "Config{" + "clusterName=" + clusterName + ", masterNode=" + masterNodeId + ", slaves=" + slaveIds + '}';
+    }
+
+
+    public String getPeerId()
+    {
+        return peerId;
+    }
+
+
+    public void setPeerId( final String peerId )
+    {
+        this.peerId = peerId;
+    }
+
+
+    public String getVlan()
+    {
+        return vlan;
+    }
+
+
+    public void setVlan( final String vlan )
+    {
+        this.vlan = vlan;
     }
 }
 

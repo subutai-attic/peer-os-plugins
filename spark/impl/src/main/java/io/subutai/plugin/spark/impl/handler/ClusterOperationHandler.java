@@ -13,6 +13,8 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.PeerException;
+import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
@@ -218,12 +220,27 @@ public class ClusterOperationHandler extends AbstractOperationHandler<SparkImpl,
                 throw new ClusterException( "Could not remove cluster info" );
             }
 
+            EnvironmentContainerHost master = environment.getContainerHostById( config.getMasterNodeId() );
+            CustomProxyConfig proxyConfig =
+                    new CustomProxyConfig( config.getVlan(), config.getMasterNodeId(), config.getEnvironmentId() );
+            master.getPeer().removeCustomProxy( proxyConfig );
+
             trackerOperation.addLogDone( "Cluster uninstalled successfully" );
         }
         catch ( ClusterException e )
         {
             LOG.error( "Error in destroyCluster", e );
             trackerOperation.addLogFailed( String.format( "Failed to uninstall cluster: %s", e.getMessage() ) );
+        }
+        catch ( ContainerHostNotFoundException e )
+        {
+            trackerOperation.addLogFailed( "Container not found" );
+            LOG.error( "Container not found" );
+        }
+        catch ( PeerException e )
+        {
+            LOG.error( "Error to delete proxy settings: ", e );
+            trackerOperation.addLogFailed( "Error to delete proxy settings." );
         }
     }
 
