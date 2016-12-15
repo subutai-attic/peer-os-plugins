@@ -141,7 +141,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             ReverseProxyConfig proxyConfig =
                     new ReverseProxyConfig( config.getEnvironmentId(), containerHost.getId(), "*." + config.getDomain(),
                             "/mnt/lib/lxc/" + config.getControllerNode() + "/rootfs/etc/nginx/ssl.pem",
-                            ProxyLoadBalanceStrategy.NONE );
+                            ProxyLoadBalanceStrategy.NONE, 80 );
 
             containerHost.getPeer().addReverseProxy( proxyConfig );
         }

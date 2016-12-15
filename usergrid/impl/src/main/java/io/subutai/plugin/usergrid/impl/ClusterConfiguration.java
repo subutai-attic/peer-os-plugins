@@ -65,7 +65,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         List<String> cassandraNameList = config.getCassandraName();
 
-        cassandraNameList.stream().forEach( ( c ) -> {
+        cassandraNameList.stream().forEach( ( c ) ->
+        {
             try
             {
                 EnvironmentContainerHost cassContainerHost = environment.getContainerHostByHostname( c );
@@ -81,7 +82,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         } );
         List<String> elasticSearchList = config.getElasticSName();
 
-        elasticSearchList.stream().forEach( ( e ) -> {
+        elasticSearchList.stream().forEach( ( e ) ->
+        {
             try
             {
                 EnvironmentContainerHost elContainerHost = environment.getContainerHostByHostname( e );
@@ -195,7 +197,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         {
             ReverseProxyConfig proxyConfig = new ReverseProxyConfig( config.getEnvironmentId(), containerHost.getId(),
                     "*." + config.getUserDomain(), "/mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem",
-                    ProxyLoadBalanceStrategy.NONE );
+                    ProxyLoadBalanceStrategy.NONE, 80 );
 
             containerHost.getPeer().addReverseProxy( proxyConfig );
         }
@@ -223,7 +225,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         List<String> ipList = new ArrayList();
 
-        v.stream().forEach( ( cont ) -> {
+        v.stream().forEach( ( cont ) ->
+        {
             try
             {
                 ipList.add( environment.getContainerHostByHostname( cont ).getInterfaceByName( "eth0" ).getIp() );
