@@ -27,6 +27,8 @@ public class HBaseConfig implements ConfigBase
     private String domainName = Common.DEFAULT_DOMAIN_NAME;
     private Set<String> hadoopNodes = new HashSet<>();
     private String environmentId;
+    private String vlan;
+    private String peerId;
     private String hadoopClusterName;
     private String hadoopNameNode;
     private boolean autoScaling;
@@ -204,5 +206,29 @@ public class HBaseConfig implements ConfigBase
             nodeRoles.add( NodeType.HREGIONSERVER );
         }
         return nodeRoles;
+    }
+
+
+    public String getVlan()
+    {
+        return vlan;
+    }
+
+
+    public void setVlan( final String vlan )
+    {
+        this.vlan = vlan;
+    }
+
+
+    public String getPeerId()
+    {
+        return peerId;
+    }
+
+
+    public void setPeerId( final String peerId )
+    {
+        this.peerId = peerId;
     }
 }

@@ -18,6 +18,8 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Host;
+import io.subutai.common.peer.PeerException;
+import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
@@ -102,7 +104,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
         {
             EnvironmentContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
             CommandResult result = hmaster.execute( Commands.getStopCommand() );
-            Set<EnvironmentContainerHost> regionServers = environment.getContainerHostsByIds( config.getRegionServers() );
+            Set<EnvironmentContainerHost> regionServers =
+                    environment.getContainerHostsByIds( config.getRegionServers() );
 
             for ( final EnvironmentContainerHost regionServer : regionServers )
             {
@@ -138,8 +141,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
         {
             EnvironmentContainerHost hmaster = environment.getContainerHostById( config.getHbaseMaster() );
             // start hadoop before starting hbase cluster
-//            manager.getHadoopManager()
-//                   .startNameNode( manager.getHadoopManager().getCluster( config.getHadoopClusterName() ) );
+            //            manager.getHadoopManager()
+            //                   .startNameNode( manager.getHadoopManager().getCluster( config.getHadoopClusterName()
+            // ) );
             CommandResult result = hmaster.execute( Commands.getStartCommand() );
             if ( result.hasSucceeded() )
             {
@@ -212,13 +216,14 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
             master.execute( Commands.getStopCommand() );
 
             Set<Host> hostSet = HBaseSetupStrategy.getHosts( config, environment );
-            CommandUtil.HostCommandResults results = commandUtil.execute( Commands.getUninstallCommand(),
-                    HBaseSetupStrategy.getHosts( config, environment ), environment.getId() );
-            Set <CommandUtil.HostCommandResult> resultSet = results.getCommandResults();
+            CommandUtil.HostCommandResults results = commandUtil
+                    .execute( Commands.getUninstallCommand(), HBaseSetupStrategy.getHosts( config, environment ),
+                            environment.getId() );
+            Set<CommandUtil.HostCommandResult> resultSet = results.getCommandResults();
             Map<Host, CommandResult> resultMap = Maps.newConcurrentMap();
-            for ( CommandUtil.HostCommandResult result : resultSet)
+            for ( CommandUtil.HostCommandResult result : resultSet )
             {
-                resultMap.put (result.getHost(), result.getCommandResult());
+                resultMap.put( result.getHost(), result.getCommandResult() );
             }
             if ( isAllSuccessful( resultMap, hostSet ) )
             {
@@ -229,6 +234,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
             {
                 throw new ClusterException( "Could not remove cluster info" );
             }
+
+            EnvironmentContainerHost hbaseMaster = environment.getContainerHostById( config.getHbaseMaster() );
+            CustomProxyConfig proxyConfig =
+                    new CustomProxyConfig( config.getVlan(), config.getHbaseMaster(), config.getEnvironmentId() );
+            hbaseMaster.getPeer().removeCustomProxy( proxyConfig );
 
             trackerOperation.addLogDone( "HBase uninstalled successfully" );
         }
@@ -245,6 +255,11 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HBaseImpl,
         catch ( CommandException e )
         {
             e.printStackTrace();
+        }
+        catch ( PeerException e )
+        {
+            LOG.error( "Error to delete proxy settings: ", e );
+            trackerOperation.addLogFailed( "Error to delete proxy settings." );
         }
     }
 

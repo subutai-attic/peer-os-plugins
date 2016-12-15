@@ -27,6 +27,8 @@ public class HadoopClusterConfig implements ConfigBase
     private Set<String> excludedSlaves;
     private String replicationFactor;
     private String environmentId;
+    private String vlan;
+    private String peerId;
     private boolean autoScaling;
 
 
@@ -224,5 +226,29 @@ public class HadoopClusterConfig implements ConfigBase
     public void setExcludedSlaves( final Set<String> excludedSlaves )
     {
         this.excludedSlaves = excludedSlaves;
+    }
+
+
+    public String getVlan()
+    {
+        return vlan;
+    }
+
+
+    public void setVlan( final String vlan )
+    {
+        this.vlan = vlan;
+    }
+
+
+    public String getPeerId()
+    {
+        return peerId;
+    }
+
+
+    public void setPeerId( final String peerId )
+    {
+        this.peerId = peerId;
     }
 }

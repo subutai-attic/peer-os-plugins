@@ -21,6 +21,7 @@ import io.subutai.common.peer.HostNotFoundException;
 import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.peer.PeerException;
 import io.subutai.common.peer.ResourceHost;
+import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.metric.api.MonitorException;
@@ -52,6 +53,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     public void configureCluster( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
         HBaseConfig config = ( HBaseConfig ) configBase;
+        String vlanString = UUID.randomUUID().toString();
 
         po.addLog( "Configuring Hbase cluster... !" );
         EnvironmentContainerHost hmasterContainerHost;
@@ -84,11 +86,13 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
 
         po.addLog( "Configuring reverse proxy for web console" );
-        configureReverseProxy( hmasterContainerHost, hmasterContainerHost.getHostname().toLowerCase() + ".hbase" );
+        configureReverseProxy( hmasterContainerHost, hmasterContainerHost.getHostname().toLowerCase() + ".hbase", config, vlanString );
 
         po.addLog( "Configuration is finished !" );
 
         config.setEnvironmentId( environment.getId() );
+        config.setVlan( vlanString );
+        config.setPeerId( hmasterContainerHost.getPeerId() );
         hBase.getPluginDAO().saveInfo( HBaseConfig.PRODUCT_KEY, configBase.getClusterName(), configBase );
         po.addLogDone( "HBase cluster data saved into database" );
 
@@ -203,58 +207,21 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    private void configureReverseProxy( final EnvironmentContainerHost hbaseMaster, final String domainName )
+    private void configureReverseProxy( final EnvironmentContainerHost hbaseMaster, final String domainName,
+                                        final HBaseConfig config, final String vlanString )
     {
-        PeerManager peerManager = hBase.getPeerManager();
-        LocalPeer localPeer = peerManager.getLocalPeer();
-        String ipAddress = hbaseMaster.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp();
-
         try
         {
-            ResourceHost resourceHost = null;
-            try
-            {
-                resourceHost = localPeer.getResourceHostByContainerId( hbaseMaster.getContainerId().toString() );
-            }
-            catch ( HostNotFoundException e )
-            {
-                LOG.error( e.toString() );
-                HostId hid = null;
-                try
-                {
-                    hid = peerManager.getPeer( peerManager.getRemotePeerIdByIp( ipAddress ) )
-                                     .getResourceHostIdByContainerId( hbaseMaster.getContainerId() );
-                    resourceHost = ( ResourceHost ) hid;
-                }
-                catch ( PeerException ex )
-                {
-                    LOG.error( ex.toString() );
-                    po.addLogFailed( "NO HOST FOUND!!!" );
-                }
-            }
-            finally
-            {
-                if ( resourceHost == null )
-                {
-                    LOG.error( "No ResourceHost connected" );
-                    po.addLogFailed( "No ResourceHost connected" );
-                }
-            }
-
-            LOG.info( "resouceHostID: " + resourceHost );
-
-            String vlanString = UUID.randomUUID().toString();
-            resourceHost.execute( new RequestBuilder( String.format( "subutai proxy del %s -d", vlanString ) ) );
-            resourceHost.execute( new RequestBuilder(
-                    String.format( "subutai proxy add %s -d %s -f /mnt/lib/lxc/%s/rootfs/etc/nginx/ssl.pem", vlanString,
-                            domainName, hbaseMaster.getHostname() ) ) );
-            resourceHost.execute(
-                    new RequestBuilder( String.format( "subutai proxy add %s -h %s:16010", vlanString, ipAddress ) ) );
+            CustomProxyConfig proxyConfig =
+                    new CustomProxyConfig( config.getEnvironmentId(), vlanString, domainName, hbaseMaster.getId() );
+            proxyConfig.setPort( 16010 );
+            hbaseMaster.getPeer().addCustomProxy( proxyConfig );
         }
-        catch ( CommandException ex )
+        catch ( PeerException e )
         {
-            LOG.error( ex.toString() );
-            po.addLogFailed( ex.toString() );
+            LOG.error( "Error to set proxy settings: ", e );
+            po.addLogFailed( "Error to set proxy settings." );
+            e.printStackTrace();
         }
     }
 }

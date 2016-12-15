@@ -19,6 +19,8 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Host;
+import io.subutai.common.peer.PeerException;
+import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
@@ -143,8 +145,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                     switch ( nodeType )
                     {
                         case NAMENODE:
-//                            result = namenode.execute(
-//                                    new RequestBuilder( Commands.getStartNameNodeCommand() ).daemon() );
+                            //                            result = namenode.execute(
+                            //                                    new RequestBuilder( Commands
+                            // .getStartNameNodeCommand() ).daemon() );
                             break;
                         //                        case JOBTRACKER:
                         //                            result = jobtracker
@@ -166,7 +169,8 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
                     switch ( nodeType )
                     {
                         case NAMENODE:
-//                            result = namenode.execute( new RequestBuilder( Commands.getStopNameNodeCommand() ) );
+                            //                            result = namenode.execute( new RequestBuilder( Commands
+                            // .getStopNameNodeCommand() ) );
                             break;
                         //                        case JOBTRACKER:
                         //                            result = jobtracker.execute( new RequestBuilder( Commands
@@ -331,18 +335,32 @@ public class ClusterOperationHandler extends AbstractOperationHandler<HadoopImpl
             if ( manager.getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, config.getClusterName() ) )
             {
                 trackerOperation.addLogDone( "Cluster information deleted from database" );
+
+                EnvironmentContainerHost namenode = environment.getContainerHostById( config.getNameNode() );
+                CustomProxyConfig proxyConfig =
+                        new CustomProxyConfig( config.getVlan(), config.getNameNode(), config.getEnvironmentId() );
+                namenode.getPeer().removeCustomProxy( proxyConfig );
             }
             else
             {
                 trackerOperation.addLogFailed( "Failed to delete cluster information from database" );
+                LOG.error( "Failed to delete cluster information from database" );
             }
         }
         catch ( EnvironmentNotFoundException e )
         {
             trackerOperation.addLogFailed( "Environment not found" );
+            LOG.error( "Environment not found" );
         }
         catch ( ContainerHostNotFoundException e )
         {
+            trackerOperation.addLogFailed( "Container not found" );
+            LOG.error( "Container not found" );
+        }
+        catch ( PeerException e )
+        {
+            LOG.error( "Error to delete proxy settings: ", e );
+            trackerOperation.addLogFailed( "Error to delete proxy settings." );
             e.printStackTrace();
         }
     }

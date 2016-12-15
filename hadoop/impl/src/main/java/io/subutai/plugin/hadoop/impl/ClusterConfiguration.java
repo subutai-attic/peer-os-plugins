@@ -19,6 +19,7 @@ import io.subutai.common.peer.HostNotFoundException;
 import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.peer.PeerException;
 import io.subutai.common.peer.ResourceHost;
+import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.peer.api.PeerManager;
@@ -46,6 +47,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     public void configureCluster( ConfigBase configBase, Environment environment ) throws ClusterConfigurationException
     {
         HadoopClusterConfig config = ( HadoopClusterConfig ) configBase;
+        String vlanString = UUID.randomUUID().toString();
 
         EnvironmentContainerHost namenode;
         try
@@ -103,7 +105,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
             po.addLog( "Configuring reverse proxy for web console" );
 
-            configureReverseProxy( namenode, namenode.getHostname().toLowerCase() + ".hadoop" );
+            configureReverseProxy( namenode, namenode.getHostname().toLowerCase() + ".hadoop", config, vlanString );
         }
         catch ( ContainerHostNotFoundException e )
         {
@@ -116,69 +118,29 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         po.addLog( "Configuration is finished !" );
 
         config.setEnvironmentId( environment.getId() );
+        config.setVlan( vlanString );
+        config.setPeerId( namenode.getPeerId() );
         hadoopManager.getPluginDAO()
                      .saveInfo( HadoopClusterConfig.PRODUCT_KEY, configBase.getClusterName(), configBase );
         po.addLogDone( "Hadoop cluster data saved into database" );
     }
 
 
-    private void configureReverseProxy( final EnvironmentContainerHost namenode, final String domainName )
+    private void configureReverseProxy( final EnvironmentContainerHost namenode, final String domainName,
+                                        final HadoopClusterConfig config, final String vlanString )
     {
-        PeerManager peerManager = hadoopManager.getPeerManager();
-        LocalPeer localPeer = peerManager.getLocalPeer();
-        String ipAddress = namenode.getInterfaceByName( Common.DEFAULT_CONTAINER_INTERFACE ).getIp();
-
         try
         {
-            ResourceHost resourceHost = null;
-            try
-            {
-                resourceHost = localPeer.getResourceHostByContainerId( namenode.getContainerId().toString() );
-            }
-            catch ( HostNotFoundException e )
-            {
-                LOG.error( e.toString() );
-                HostId hid = null;
-                try
-                {
-                    hid = peerManager.getPeer( peerManager.getRemotePeerIdByIp( ipAddress ) )
-                                     .getResourceHostIdByContainerId( namenode.getContainerId() );
-                    resourceHost = ( ResourceHost ) hid;
-                }
-                catch ( PeerException ex )
-                {
-                    LOG.error( ex.toString() );
-                    po.addLogFailed( "NO HOST FOUND!!!" );
-                }
-            }
-            finally
-            {
-                if ( resourceHost == null )
-                {
-                    LOG.error( "No ResourceHost connected" );
-                    po.addLogFailed( "No ResourceHost connected" );
-                }
-            }
-
-            LOG.info( "resouceHostID: " + resourceHost );
-
-            //            CommandResult resultStr = resourceHost.execute(
-            //                    new RequestBuilder( String.format( "grep vlan /mnt/lib/lxc/%s/config", namenode
-            // .getHostname() ) ) );
-            //            String stdOut = resultStr.getStdOut();
-            //            String vlanString = stdOut.substring( 11, 14 );
-            String vlanString = UUID.randomUUID().toString();
-            resourceHost.execute( new RequestBuilder( String.format( "subutai proxy del %s -d", vlanString ) ) );
-            resourceHost.execute( new RequestBuilder(
-                    String.format( "subutai proxy add %s -d %s -f /mnt/lib/lxc/%s/rootfs/etc/nginx/ssl.pem", vlanString,
-                            domainName, namenode.getHostname() ) ) );
-            resourceHost.execute(
-                    new RequestBuilder( String.format( "subutai proxy add %s -h %s:50070", vlanString, ipAddress ) ) );
+            CustomProxyConfig proxyConfig =
+                    new CustomProxyConfig( config.getEnvironmentId(), vlanString, domainName, namenode.getId() );
+            proxyConfig.setPort( 50070 );
+            namenode.getPeer().addCustomProxy( proxyConfig );
         }
-        catch ( CommandException ex )
+        catch ( PeerException e )
         {
-            LOG.error( ex.toString() );
-            po.addLogFailed( ex.toString() );
+            LOG.error( "Error to set proxy settings: ", e );
+            po.addLogFailed( "Error to set proxy settings." );
+            e.printStackTrace();
         }
     }
 

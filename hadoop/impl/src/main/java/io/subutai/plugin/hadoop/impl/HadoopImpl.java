@@ -16,11 +16,14 @@ import com.google.common.base.Strings;
 
 import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.Node;
 import io.subutai.common.environment.NodeSchema;
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.PeerException;
+import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.common.util.UUIDUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -491,6 +494,18 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
                         String.format( "Hadoop cluster: %s destroyed in environment %s", clusterConfig.getClusterName(),
                                 envId ) );
                 getPluginDAO().deleteInfo( HadoopClusterConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
+
+                try
+                {
+                    CustomProxyConfig proxyConfig =
+                            new CustomProxyConfig( clusterConfig.getVlan(), clusterConfig.getNameNode(),
+                                    clusterConfig.getEnvironmentId() );
+                    peerManager.getPeer( clusterConfig.getPeerId() ).removeCustomProxy( proxyConfig );
+                }
+                catch ( PeerException e )
+                {
+                    LOG.error( "Failed to delete cluster information from database" );
+                }
             }
         }
     }
