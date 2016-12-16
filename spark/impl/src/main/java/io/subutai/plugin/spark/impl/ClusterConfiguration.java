@@ -13,24 +13,15 @@ import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.host.HostId;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.common.peer.HostNotFoundException;
-import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.peer.PeerException;
-import io.subutai.common.peer.ResourceHost;
 import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
 import io.subutai.core.plugincommon.api.ClusterException;
-import io.subutai.core.plugincommon.api.ClusterSetupException;
-import io.subutai.plugin.spark.api.Spark;
 import io.subutai.plugin.spark.api.SparkClusterConfig;
-
-import com.google.common.collect.Sets;
 
 
 /**

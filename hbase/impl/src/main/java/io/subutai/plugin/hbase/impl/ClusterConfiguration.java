@@ -1,7 +1,6 @@
 package io.subutai.plugin.hbase.impl;
 
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -9,23 +8,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.subutai.common.command.CommandException;
-import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.host.HostId;
 import io.subutai.common.peer.ContainerHost;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.common.peer.Host;
-import io.subutai.common.peer.HostNotFoundException;
-import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.peer.PeerException;
-import io.subutai.common.peer.ResourceHost;
 import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.metric.api.MonitorException;
-import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterConfigurationInterface;
 import io.subutai.core.plugincommon.api.ConfigBase;
@@ -86,7 +78,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         }
 
         po.addLog( "Configuring reverse proxy for web console" );
-        configureReverseProxy( hmasterContainerHost, hmasterContainerHost.getHostname().toLowerCase() + ".hbase", config, vlanString );
+        configureReverseProxy( hmasterContainerHost, hmasterContainerHost.getHostname().toLowerCase() + ".hbase",
+                config, vlanString );
 
         po.addLog( "Configuration is finished !" );
 
