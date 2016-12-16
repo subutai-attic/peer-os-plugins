@@ -16,6 +16,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
+import io.subutai.common.peer.PeerException;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
@@ -76,7 +77,7 @@ public class HadoopImplTest
 
 
     @Before
-    public void setUp()
+    public void setUp() throws PeerException
     {
         //when(dataSource.getConnection()).thenReturn(connection);
         //when(connection.prepareStatement(any(String.class))).thenReturn(preparedStatement);
@@ -87,6 +88,7 @@ public class HadoopImplTest
 
         when( localPeer.getId() ).thenReturn( LOCAL_PEER_ID );
         when( peerManager.getLocalPeer() ).thenReturn( localPeer );
+        when( peerManager.getPeer(anyString()) ).thenReturn( localPeer );
         hadoopImpl = new HadoopImpl( strategyManager, monitor, pluginDAO, webModule );
         //        hadoopImpl.init();
         hadoopImpl.setPeerManager( peerManager );
