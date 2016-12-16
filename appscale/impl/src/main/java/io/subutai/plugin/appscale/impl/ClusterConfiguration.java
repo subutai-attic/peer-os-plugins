@@ -7,6 +7,7 @@ package io.subutai.plugin.appscale.impl;
 
 
 import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,8 @@ import io.subutai.common.network.ProxyLoadBalanceStrategy;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.LocalPeer;
+import io.subutai.common.peer.PeerException;
+import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.common.protocol.ReverseProxyConfig;
 import io.subutai.common.settings.Common;
 import io.subutai.common.tracker.TrackerOperation;
@@ -65,6 +68,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     private void installCluster( ConfigBase configBase, Environment environment )
     {
         AppScaleConfig config = ( AppScaleConfig ) configBase;
+        String vlanString = UUID.randomUUID().toString();
         String domain = config.getDomain();
 
         if ( domain == null )
@@ -103,22 +107,12 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         this.runAfterInitCommands( containerHost, config );
         LOG.info( "Configuring proxy on RH" );
         // configure proxy on rh
-        this.configureRH( containerHost, config );
+        this.configureRH( containerHost, config, vlanString );
 
-/*        try
-        {
-            appscaleManager.getEnvironmentManager()
-                           .startMonitoring( AppscaleAlertHandler.HANDLER_ID, AlertHandlerPriority.NORMAL,
-                                   environment.getId() );
-            po.addLog( "Alert handler added successfully." );
-        }
-        catch ( EnvironmentManagerException e )
-        {
-            LOG.error( e.getMessage(), e );
-            po.addLogFailed( "Could not add alert handler to monitor this environment." );
-        }*/
         LOG.info( "Appscale installation done" );
 
+        config.setVlan( vlanString );
+        config.setPeerId( containerHost.getPeerId() );
         boolean saveInfo = appscaleManager.getPluginDAO()
                                           .saveInfo( AppScaleConfig.PRODUCT_KEY, configBase.getClusterName(),
                                                   configBase );
@@ -134,20 +128,21 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     }
 
 
-    private void configureRH( EnvironmentContainerHost containerHost, AppScaleConfig config )
+    private void configureRH( EnvironmentContainerHost containerHost, AppScaleConfig config, final String vlanString )
     {
         try
         {
-            ReverseProxyConfig proxyConfig =
-                    new ReverseProxyConfig( config.getEnvironmentId(), containerHost.getId(), "*." + config.getDomain(),
-                            "/mnt/lib/lxc/" + config.getControllerNode() + "/rootfs/etc/nginx/ssl.pem",
-                            ProxyLoadBalanceStrategy.NONE, 80 );
-
-            containerHost.getPeer().addReverseProxy( proxyConfig );
+            CustomProxyConfig proxyConfig =
+                    new CustomProxyConfig( config.getEnvironmentId(), vlanString, config.getDomain(),
+                            containerHost.getId() );
+            proxyConfig.setPort( 80 );
+            containerHost.getPeer().addCustomProxy( proxyConfig );
         }
-        catch ( Exception e )
+        catch ( PeerException e )
         {
             LOG.error( "Error to set proxy settings: ", e );
+            po.addLogFailed( "Error to set proxy settings." );
+            e.printStackTrace();
         }
     }
 

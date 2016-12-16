@@ -28,6 +28,8 @@ public class UsergridConfig implements ConfigBase
     private String domainName = "intra.lan";
     private List<String> nodes;
     private String environmentId;
+    private String vlan;
+    private String peerId;
     private String tracker;
     private String userDomain;
     private String permanentToken;
@@ -189,5 +191,27 @@ public class UsergridConfig implements ConfigBase
     }
 
 
+    public String getVlan()
+    {
+        return vlan;
+    }
+
+
+    public void setVlan( final String vlan )
+    {
+        this.vlan = vlan;
+    }
+
+
+    public String getPeerId()
+    {
+        return peerId;
+    }
+
+
+    public void setPeerId( final String peerId )
+    {
+        this.peerId = peerId;
+    }
 }
 

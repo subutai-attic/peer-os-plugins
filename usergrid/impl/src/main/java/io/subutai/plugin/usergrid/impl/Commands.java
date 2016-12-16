@@ -75,7 +75,7 @@ public class Commands
 
     public static String getRestartCassandra ()
     {
-        return "/opt/cassandra-2.0.9/bin/cassandra start";
+        return "/etc/init.d/cassandra start";
     }
 
 

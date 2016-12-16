@@ -25,6 +25,8 @@ public class AppScaleConfig implements ConfigBase
 
     private List<String> nodes;
     private String environmentId;
+    private String vlan;
+    private String peerId;
     private String domain;
 
     private String login;
@@ -202,6 +204,30 @@ public class AppScaleConfig implements ConfigBase
     public void setControllerNode( final String controllerNode )
     {
         this.controllerNode = controllerNode;
+    }
+
+
+    public String getVlan()
+    {
+        return vlan;
+    }
+
+
+    public void setVlan( final String vlan )
+    {
+        this.vlan = vlan;
+    }
+
+
+    public String getPeerId()
+    {
+        return peerId;
+    }
+
+
+    public void setPeerId( final String peerId )
+    {
+        this.peerId = peerId;
     }
 }
 

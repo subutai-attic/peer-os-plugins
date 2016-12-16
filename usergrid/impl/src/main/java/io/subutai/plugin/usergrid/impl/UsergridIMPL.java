@@ -43,6 +43,8 @@ import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.EnvironmentId;
+import io.subutai.common.peer.PeerException;
+import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.common.security.crypto.ssl.NaiveTrustManager;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
@@ -462,6 +464,19 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
                         clusterConfig.getClusterName() ) );
 
                 getPluginDAO().deleteInfo( UsergridConfig.PRODUCT_KEY, clusterConfig.getClusterName() );
+
+                try
+                {
+                    CustomProxyConfig proxyConfig =
+                            new CustomProxyConfig( clusterConfig.getVlan(), clusterConfig.getClusterName(),
+                                    clusterConfig.getEnvironmentId() );
+                    peerManager.getPeer( clusterConfig.getPeerId() ).removeCustomProxy( proxyConfig );
+                }
+                catch ( PeerException e )
+                {
+                    LOG.error( "Failed to delete cluster information from database" );
+                }
+
                 LOG.info( String.format( "Usergrid environment event: Cluster %s removed",
                         clusterConfig.getClusterName() ) );
                 break;

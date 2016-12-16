@@ -8,6 +8,7 @@ package io.subutai.plugin.usergrid.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -20,6 +21,8 @@ import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.network.ProxyLoadBalanceStrategy;
 import io.subutai.common.peer.EnvironmentContainerHost;
+import io.subutai.common.peer.PeerException;
+import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.common.protocol.ReverseProxyConfig;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
@@ -52,6 +55,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info( "configureCluster: " );
 
         UsergridConfig config = ( UsergridConfig ) configBase;
+        String vlanString = UUID.randomUUID().toString();
         String tomcatName = config.getClusterName();
         EnvironmentContainerHost tomcatContainerHost = null;
         try
@@ -130,7 +134,9 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
         LOG.info( "End of creating properties file" );
         this.commandExecute( tomcatContainerHost,
                 "sudo cp /root/usergrid-deployment.properties " + catalinaHome + "/lib" );
-        this.configureReversProxy( tomcatContainerHost, config, tomcatName );
+
+        this.configureReversProxy( tomcatContainerHost, config, tomcatName, vlanString );
+
         this.commandExecute( tomcatContainerHost, Commands.getRemoveROOTFolder() );
         this.commandExecute( tomcatContainerHost, Commands.getCopyRootWAR() );
         this.commandExecute( tomcatContainerHost, Commands.getUntarPortal() );
@@ -165,6 +171,8 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             this.commandExecute( tomcatContainerHost, comm );
         }
 
+        config.setVlan( vlanString );
+        config.setPeerId( tomcatContainerHost.getPeerId() );
 
         if ( !usergridImplManager.getPluginDAO()
                                  .saveInfo( UsergridConfig.PRODUCT_NAME, configBase.getClusterName(), configBase ) )
@@ -181,7 +189,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
 
     private void configureReversProxy( EnvironmentContainerHost containerHost, UsergridConfig config,
-                                       String clusterName )
+                                       String clusterName, final String vlanString )
     {
         this.commandExecute( containerHost,
                 "sed -i 's/127.0.0.1 localhost/127.0.0.1 localhost " + config.getUserDomain() + "/g' " + "/etc/hosts" );
@@ -195,15 +203,17 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         try
         {
-            ReverseProxyConfig proxyConfig = new ReverseProxyConfig( config.getEnvironmentId(), containerHost.getId(),
-                    "*." + config.getUserDomain(), "/mnt/lib/lxc/" + clusterName + "/rootfs/etc/nginx/ssl.pem",
-                    ProxyLoadBalanceStrategy.NONE, 80 );
-
-            containerHost.getPeer().addReverseProxy( proxyConfig );
+            CustomProxyConfig proxyConfig =
+                    new CustomProxyConfig( config.getEnvironmentId(), vlanString, config.getUserDomain(),
+                            containerHost.getId() );
+            proxyConfig.setPort( 80 );
+            containerHost.getPeer().addCustomProxy( proxyConfig );
         }
-        catch ( Exception e )
+        catch ( PeerException e )
         {
             LOG.error( "Error to set proxy settings: ", e );
+            po.addLogFailed( "Error to set proxy settings." );
+            e.printStackTrace();
         }
     }
 
