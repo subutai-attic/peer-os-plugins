@@ -1,11 +1,11 @@
-<features name="accumulo-plugin" version="4.0.12-SNAPSHOT">
-  <feature name="accumulo-plugin" version="4.0.12-SNAPSHOT">
-    <bundle>mvn:io.subutai.plugin/accumulo-plugin-api/4.0.12-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/accumulo-plugin-impl/4.0.12-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/accumulo-plugin-cli/4.0.12-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/accumulo-plugin-rest/4.0.12-SNAPSHOT</bundle>
+<features name="accumulo-plugin" version="4.0.12">
+  <feature name="accumulo-plugin" version="4.0.12">
+    <bundle>mvn:io.subutai.plugin/accumulo-plugin-api/4.0.12</bundle>
+    <bundle>mvn:io.subutai.plugin/accumulo-plugin-impl/4.0.12</bundle>
+    <bundle>mvn:io.subutai.plugin/accumulo-plugin-cli/4.0.12</bundle>
+    <bundle>mvn:io.subutai.plugin/accumulo-plugin-rest/4.0.12</bundle>
   </feature>
-    <feature name="accumulo-plugin-war" version="4.0.12-SNAPSHOT">
-        <bundle> war:mvn:io.subutai.plugin/accumulo-plugin-webui/4.0.12-SNAPSHOT/war?Webapp-Context=accumulo-plugin-war</bundle>
+    <feature name="accumulo-plugin-war" version="4.0.12">
+        <bundle> war:mvn:io.subutai.plugin/accumulo-plugin-webui/4.0.12/war?Webapp-Context=accumulo-plugin-war</bundle>
     </feature>
 </features>
