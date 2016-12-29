@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.subutai.plugin</groupId>
     <artifactId>hipi-plugin-parent</artifactId>
-    <version>4.0.13</version>
+    <version>4.0.14-SNAPSHOT</version>
   </parent>
 
   <artifactId>hipi-plugin-cli</artifactId>
