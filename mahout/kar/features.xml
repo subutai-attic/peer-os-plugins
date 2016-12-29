@@ -1,11 +1,11 @@
-<features name="mahout-plugin" version="4.0.13-SNAPSHOT">
-  <feature name="mahout-plugin" version="4.0.13-SNAPSHOT">
-    <bundle>mvn:io.subutai.plugin/mahout-plugin-api/4.0.13-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/mahout-plugin-impl/4.0.13-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/mahout-plugin-cli/4.0.13-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/mahout-plugin-rest/4.0.13-SNAPSHOT</bundle>
+<features name="mahout-plugin" version="4.0.13">
+  <feature name="mahout-plugin" version="4.0.13">
+    <bundle>mvn:io.subutai.plugin/mahout-plugin-api/4.0.13</bundle>
+    <bundle>mvn:io.subutai.plugin/mahout-plugin-impl/4.0.13</bundle>
+    <bundle>mvn:io.subutai.plugin/mahout-plugin-cli/4.0.13</bundle>
+    <bundle>mvn:io.subutai.plugin/mahout-plugin-rest/4.0.13</bundle>
   </feature>
-    <feature name="mahout-plugin-war" version="4.0.13-SNAPSHOT">
-        <bundle> war:mvn:io.subutai.plugin/mahout-plugin-webui/4.0.13-SNAPSHOT/war?Webapp-Context=mahout-plugin-war</bundle>
+    <feature name="mahout-plugin-war" version="4.0.13">
+        <bundle> war:mvn:io.subutai.plugin/mahout-plugin-webui/4.0.13/war?Webapp-Context=mahout-plugin-war</bundle>
     </feature>
 </features>
