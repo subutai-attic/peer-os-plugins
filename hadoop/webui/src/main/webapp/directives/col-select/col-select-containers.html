@@ -3,8 +3,8 @@
   <ul class="b-form-list b-form-list_table">
     <li class="b-form-list-table__link"
         ng-repeat="container in hadoopCtrl.otherNodes"
-        ng-if="hadoopCtrl.hadoopInstall.slaves.indexOf(container.id) == -1"
-        ng-click="hadoopCtrl.addContainer(container.id)">
+        ng-if="hadoopCtrl.hadoopInstall.slaves.indexOf(container.uuid) == -1"
+        ng-click="hadoopCtrl.addContainer(container.uuid)">
       {{ container.hostname }}
     </li>
   </ul>
@@ -27,8 +27,8 @@
   <ul class="b-form-list b-form-list_table">
     <li class="b-form-list-table__link"
         ng-repeat="container in hadoopCtrl.otherNodes"
-        ng-if="hadoopCtrl.hadoopInstall.slaves.indexOf(container.id) > -1"
-        ng-click="hadoopCtrl.addContainer(container.id)">
+        ng-if="hadoopCtrl.hadoopInstall.slaves.indexOf(container.uuid) > -1"
+        ng-click="hadoopCtrl.addContainer(container.uuid)">
       {{ container.hostname }}
     </li>
   </ul>

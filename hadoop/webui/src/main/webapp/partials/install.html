@@ -53,7 +53,7 @@
                   class="b-form-input b-form-input_full"
                   ng-model="hadoopCtrl.hadoopInstall.nameNode"
                   ng-change="hadoopCtrl.changeDirective(hadoopCtrl.hadoopInstall.nameNode)">
-                <option ng-repeat="container in hadoopCtrl.containers" value="{{ container.id }}">
+                <option ng-repeat="container in hadoopCtrl.containers" value="{{ container.uuid }}">
                   {{ container.hostname }}
                 </option>
               </select>

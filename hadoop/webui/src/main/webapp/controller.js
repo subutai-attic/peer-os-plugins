@@ -199,16 +199,21 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
     function showContainers(environmentId) {
         vm.containers = [];
         vm.seeds = [];
-        for (var i in vm.environments) {
-            if (environmentId == vm.environments[i].id) {
-                for (var j = 0; j < vm.environments[i].containers.length; j++) {
-                    if (vm.environments[i].containers[j].templateName == 'hadoop') {
-                        vm.containers.push(vm.environments[i].containers[j]);
-                    }
-                }
-                break;
-            }
-        }
+
+        hadoopSrv.getContainers(environmentId).success(function (data) {
+            vm.containers = data;
+        });
+
+        // for (var i in vm.environments) {
+        //     if (environmentId == vm.environments[i].id) {
+        //         for (var j = 0; j < vm.environments[i].containers.length; j++) {
+        //             if (vm.environments[i].containers[j].templateName == 'hadoop') {
+        //                 vm.containers.push(vm.environments[i].containers[j]);
+        //             }
+        //         }
+        //         break;
+        //     }
+        // }
     }
 
     function addContainer(containerId) {
@@ -224,14 +229,14 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
     function addAllContainers() {
         vm.hadoopInstall.slaves = [];
         for (var i = 0; i < vm.containers.length; i++) {
-            vm.hadoopInstall.slaves.push(vm.containers[i].id);
+            vm.hadoopInstall.slaves.push(vm.containers[i].uuid);
         }
     }
 
     function changeDirective(server) {
         vm.otherNodes = [];
         for (var i = 0; i < vm.containers.length; ++i) {
-            if (vm.containers[i].id !== server) {
+            if (vm.containers[i].uuid !== server) {
                 vm.otherNodes.push(vm.containers[i]);
             }
         }
