@@ -13,6 +13,9 @@ import java.util.UUID;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Preconditions;
@@ -44,6 +47,7 @@ import io.subutai.plugin.hadoop.rest.pojo.VersionPojo;
 
 public class RestServiceImpl implements RestService
 {
+    private static final Logger LOG = LoggerFactory.getLogger( RestServiceImpl.class );
 
     private Hadoop hadoopManager;
     private Tracker tracker;
@@ -83,11 +87,11 @@ public class RestServiceImpl implements RestService
         }
         catch ( EnvironmentNotFoundException e )
         {
-            e.printStackTrace();
+            LOG.error( "Environment not found" );
         }
         catch ( CommandException e )
         {
-            e.printStackTrace();
+            LOG.error( "Error in executing command" );
         }
 
         String containerInfo = JsonUtil.GSON.toJson( containers );
