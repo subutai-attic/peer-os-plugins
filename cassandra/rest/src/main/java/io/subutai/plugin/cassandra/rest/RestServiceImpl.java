@@ -18,9 +18,14 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.base.Preconditions;
 import com.google.gson.reflect.TypeToken;
 
+import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.peer.EnvironmentContainerHost;
@@ -40,9 +45,49 @@ import io.subutai.plugin.cassandra.rest.pojo.VersionPojo;
 
 public class RestServiceImpl implements RestService
 {
+    private static final Logger LOG = LoggerFactory.getLogger( RestServiceImpl.class );
+
     private Cassandra cassandraManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
+
+
+    @Override
+    public Response getContainers( final String envId )
+    {
+        Set<ContainerDto> containers = new HashSet<>();
+        try
+        {
+            Environment environment = environmentManager.loadEnvironment( envId );
+
+            for ( final EnvironmentContainerHost containerHost : environment.getContainerHosts() )
+            {
+                CommandResult result =
+                        containerHost.execute( new RequestBuilder( "dpkg -l | grep '^ii' | grep cassandra" ) );
+
+                if ( StringUtils.containsIgnoreCase( result.getStdOut(), "cassandra" ) )
+                {
+                    ContainerDto pojo = new ContainerDto();
+                    pojo.setId( containerHost.getId() );
+                    pojo.setIp( containerHost.getIp() );
+                    pojo.setHostname( containerHost.getHostname() );
+
+                    containers.add( pojo );
+                }
+            }
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Environment not found" );
+        }
+        catch ( CommandException e )
+        {
+            LOG.error( "Error in executing command" );
+        }
+
+        String containerInfo = JsonUtil.GSON.toJson( containers );
+        return Response.status( Response.Status.OK ).entity( containerInfo ).build();
+    }
 
 
     @Override

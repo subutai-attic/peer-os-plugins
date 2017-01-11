@@ -251,16 +251,11 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
     function showContainers(environmentId) {
         vm.containers = [];
         vm.seeds = [];
-        for (var i in vm.environments) {
-            if (environmentId == vm.environments[i].id) {
-                for (var j = 0; j < vm.environments[i].containers.length; j++) {
-                    if (vm.environments[i].containers[j].templateName == 'cassandra' || vm.environments[i].containers[j].templateName == 'taskapp') {
-                        vm.containers.push(vm.environments[i].containers[j]);
-                    }
-                }
-                break;
-            }
-        }
+
+        cassandraSrv.getContainers(environmentId).success(function (data) {
+            vm.containers = data;
+        });
+
     }
 
     function addContainer(containerId) {
