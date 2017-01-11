@@ -255,7 +255,6 @@ function CassandraCtrl(cassandraSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBu
         cassandraSrv.getContainers(environmentId).success(function (data) {
             vm.containers = data;
         });
-
     }
 
     function addContainer(containerId) {
