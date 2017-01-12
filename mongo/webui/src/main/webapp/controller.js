@@ -136,19 +136,6 @@ function MongoCtrl(mongoSrv, SweetAlert) {
             vm.routeNodes = data;
             vm.dataNodes = data;
         });
-
-        // for (var i in vm.environments) {
-        //     if (environmentId == vm.environments[i].id) {
-        //         for (var j = 0; j < vm.environments[i].containers.length; j++) {
-        //             if (vm.environments[i].containers[j].templateName == 'mongo') {
-        //                 vm.configNodes.push(vm.environments[i].containers[j]);
-        //                 vm.routeNodes.push(vm.environments[i].containers[j]);
-        //                 vm.dataNodes.push(vm.environments[i].containers[j]);
-        //             }
-        //         }
-        //         break;
-        //     }
-        // }
     }
 
     // Manage

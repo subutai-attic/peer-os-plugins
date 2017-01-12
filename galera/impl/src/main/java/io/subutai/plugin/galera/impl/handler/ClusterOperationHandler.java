@@ -98,16 +98,28 @@ public class ClusterOperationHandler extends AbstractOperationHandler<GaleraImpl
     @Override
     public void destroyCluster()
     {
-        GaleraClusterConfig config = manager.getCluster( clusterName );
-        if ( config == null )
+        try
         {
-            trackerOperation.addLogFailed(
-                    String.format( "Cluster with name %s does not exist. Operation aborted", clusterName ) );
-            return;
-        }
+            Environment environment = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
+            ClusterConfiguration configuration = new ClusterConfiguration( manager, trackerOperation );
+            configuration.deleteConfiguration( config, environment );
 
-        manager.getPluginDAO().deleteInfo( GaleraClusterConfig.PRODUCT_KEY, config.getClusterName() );
-        trackerOperation.addLogDone( "Cluster removed from database" );
+            manager.getPluginDAO().deleteInfo( GaleraClusterConfig.PRODUCT_KEY, config.getClusterName() );
+            trackerOperation.addLogDone( "Cluster removed from database" );
+
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            String msg = String.format( "Can not find environment: %s", e.getMessage() );
+            trackerOperation.addLogFailed( msg );
+            LOG.error( msg );
+        }
+        catch ( ClusterConfigurationException e )
+        {
+            String msg = String.format( "Failed to setup cluster %s : %s", clusterName, e.getMessage() );
+            trackerOperation.addLogFailed( msg );
+            LOG.error( msg );
+        }
     }
 
 
@@ -122,6 +134,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<GaleraImpl
                 break;
             case UNINSTALL:
                 destroyCluster();
+                break;
             case ADD:
                 addNode();
                 break;
