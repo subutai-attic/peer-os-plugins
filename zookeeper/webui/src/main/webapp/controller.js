@@ -107,16 +107,9 @@ function ZookeeperCtrl($scope, zookeeperSrv, SweetAlert, DTOptionsBuilder, DTCol
 
     function getEnvironmentNodes(selectedCluster) {
         vm.currentClusterNodes = [];
-        for (var i in vm.environments) {
-            if (selectedCluster == vm.environments[i].id) {
-                for (var j = 0; j < vm.environments[i].containers.length; j++) {
-                    if (vm.environments[i].containers[j].templateName == 'zookeeper') {
-                        vm.currentClusterNodes.push(vm.environments[i].containers[j]);
-                    }
-                }
-                break;
-            }
-        }
+        zookeeperSrv.getContainers(selectedCluster).success(function (data) {
+            vm.currentClusterNodes = data;
+        });
     }
 
     function getHadoopClusterNodes(selectedCluster) {
