@@ -11,8 +11,9 @@ function mongoSrv($http, environmentService) {
     var CLUSTER_URL = BASE_URL + 'clusters/';
 
     var mongoSrv = {
-    	getPluginInfo: getPluginInfo,
+        getPluginInfo: getPluginInfo,
         listClusters: listClusters,
+        getContainers: getContainers,
         configureCluster: configureCluster,
         destroyCluster: destroyCluster,
         startNode: startNode,
@@ -42,6 +43,13 @@ function mongoSrv($http, environmentService) {
             withCredentials: true,
             headers: {'Content-Type': 'application/json'}
         });
+    }
+
+    function getContainers(envId) {
+        return $http.get(
+            BASE_URL + 'containers/' + envId,
+            {withCredentials: true, headers: {'Content-Type': 'application/json'}}
+        );
     }
 
 
@@ -133,6 +141,6 @@ function mongoSrv($http, environmentService) {
     }
 
     function getPluginInfo() {
-        return $http.get (BASE_URL + "about", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
+        return $http.get(BASE_URL + "about", {withCredentials: true, headers: {'Content-Type': 'application/json'}});
     }
 }
