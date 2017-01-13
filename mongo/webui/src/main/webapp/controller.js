@@ -129,18 +129,13 @@ function MongoCtrl(mongoSrv, SweetAlert) {
 
     function showContainers(environmentId) {
         vm.containers = [];
-        for (var i in vm.environments) {
-            if (environmentId == vm.environments[i].id) {
-                for (var j = 0; j < vm.environments[i].containers.length; j++) {
-                    if (vm.environments[i].containers[j].templateName == 'mongo') {
-                        vm.configNodes.push(vm.environments[i].containers[j]);
-                        vm.routeNodes.push(vm.environments[i].containers[j]);
-                        vm.dataNodes.push(vm.environments[i].containers[j]);
-                    }
-                }
-                break;
-            }
-        }
+
+        mongoSrv.getContainers(environmentId).success(function (data) {
+            // vm.containers = data;
+            vm.configNodes = data;
+            vm.routeNodes = data;
+            vm.dataNodes = data;
+        });
     }
 
     // Manage

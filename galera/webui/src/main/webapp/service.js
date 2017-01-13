@@ -12,6 +12,7 @@ function galeraSrv($http, environmentService) {
 
     var galeraSrv = {
         getClusters: getClusters,
+        getContainers: getContainers,
         createGalera: createGalera,
         changeClusterScaling: changeClusterScaling,
         deleteCluster: deleteCluster,
@@ -77,6 +78,14 @@ function galeraSrv($http, environmentService) {
             {withCredentials: true, headers: {'Content-Type': 'application/json'}}
         );
     }
+
+    function getContainers(envId) {
+        return $http.get(
+            BASE_URL + 'containers/' + envId,
+            {withCredentials: true, headers: {'Content-Type': 'application/json'}}
+        );
+    }
+
 
     function createGalera(galeraJson) {
 

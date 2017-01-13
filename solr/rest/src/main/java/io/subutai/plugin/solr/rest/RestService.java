@@ -16,66 +16,73 @@ import javax.ws.rs.core.Response;
 
 public interface RestService
 {
+    // get container list
+    @GET
+    @Path( "containers/{envId}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    Response getContainers( @PathParam( "envId" ) String envId );
+
 
     //list clusters
     @GET
-    @Path("clusters")
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Path( "clusters" )
+    @Produces( { MediaType.APPLICATION_JSON } )
     public Response listClusters();
+
 
     //install cluster
     @POST
-    @Path("clusters/install")
-    @Produces({ MediaType.APPLICATION_JSON })
-        public Response createCluster( @FormParam("clusterName") String clusterName,
-                                       @FormParam("environmentId") String environmentId,
-                                       @FormParam("nodes") String nodes );
+    @Path( "clusters/install" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response createCluster( @FormParam( "clusterName" ) String clusterName,
+                                   @FormParam( "environmentId" ) String environmentId,
+                                   @FormParam( "nodes" ) String nodes );
 
     //destroy cluster
     @DELETE
-    @Path("clusters/destroy/{clusterName}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response destroyCluster( @PathParam("clusterName") String clusterName );
+    @Path( "clusters/destroy/{clusterName}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response destroyCluster( @PathParam( "clusterName" ) String clusterName );
 
     //view cluster info
     @GET
-    @Path("clusters/{clustername}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response getCluster( @PathParam("clustername") String clustername );
+    @Path( "clusters/{clustername}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response getCluster( @PathParam( "clustername" ) String clustername );
 
     //check node status
     @GET
-    @Path("clusters/{clusterName}/check/node/{lxcHostname}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response checkNode( @PathParam("clusterName") String clusterName,
-                               @PathParam("lxcHostname") String lxcHostname );
+    @Path( "clusters/{clusterName}/check/node/{lxcHostname}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response checkNode( @PathParam( "clusterName" ) String clusterName,
+                               @PathParam( "lxcHostname" ) String lxcHostname );
 
     //start node
     @PUT
-    @Path("clusters/{clusterName}/start/node/{lxcHostname}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response startNode( @PathParam("clusterName") String clusterName,
-                               @PathParam("lxcHostname") String lxcHostname );
+    @Path( "clusters/{clusterName}/start/node/{lxcHostname}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response startNode( @PathParam( "clusterName" ) String clusterName,
+                               @PathParam( "lxcHostname" ) String lxcHostname );
 
     //stop node
     @PUT
-    @Path("clusters/{clusterName}/stop/node/{lxcHostname}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response stopNode( @PathParam("clusterName") String clusterName,
-                              @PathParam("lxcHostname") String lxcHostname );
+    @Path( "clusters/{clusterName}/stop/node/{lxcHostname}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response stopNode( @PathParam( "clusterName" ) String clusterName,
+                              @PathParam( "lxcHostname" ) String lxcHostname );
 
 
     //start nodes
     @POST
-    @Path("clusters/nodes/start")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response startNodes( @FormParam("clusterName") String clusterName,
-                               @FormParam("lxcHosts") String lxcHosts );
+    @Path( "clusters/nodes/start" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response startNodes( @FormParam( "clusterName" ) String clusterName,
+                                @FormParam( "lxcHosts" ) String lxcHosts );
 
     //stop nodes
     @POST
-    @Path("clusters/nodes/stop")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response stopNodes( @FormParam("clusterName") String clusterName,
-                              @FormParam("lxcHosts") String lxcHosts );
+    @Path( "clusters/nodes/stop" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Response stopNodes( @FormParam( "clusterName" ) String clusterName,
+                               @FormParam( "lxcHosts" ) String lxcHosts );
 }

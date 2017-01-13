@@ -7,7 +7,11 @@ import java.util.*;
 
 import javax.ws.rs.core.Response;
 
+import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.host.HostInterface;
+import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Host;
 import io.subutai.common.util.StringUtil;
 import io.subutai.plugin.storm.rest.pojo.VersionPojo;
@@ -17,6 +21,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -135,6 +141,41 @@ public class RestServiceImpl implements RestService
         String projectInfo = JsonUtil.GSON.toJson( pojo );
 
         return Response.status( Response.Status.OK ).entity( projectInfo ).build();
+    }
+
+
+    @Override
+    public Response getContainers( final String envId )
+    {
+        Set<ContainerPojo> containers = new HashSet<>();
+        try
+        {
+            Environment environment = environmentManager.loadEnvironment( envId );
+
+            for ( final EnvironmentContainerHost containerHost : environment.getContainerHosts() )
+            {
+                CommandResult result =
+                        containerHost.execute( new RequestBuilder( "dpkg -l | grep '^ii' | grep storm" ) );
+
+                if ( StringUtils.containsIgnoreCase( result.getStdOut(), "storm" ) )
+                {
+                    ContainerPojo pojo = new ContainerPojo( containerHost.getHostname(), containerHost.getId(),
+                            containerHost.getIp(), null );
+                    containers.add( pojo );
+                }
+            }
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOGGER.error( "Environment not found" );
+        }
+        catch ( CommandException e )
+        {
+            LOGGER.error( "Error in executing command" );
+        }
+
+        String containerInfo = JsonUtil.GSON.toJson( containers );
+        return Response.status( Response.Status.OK ).entity( containerInfo ).build();
     }
 
 

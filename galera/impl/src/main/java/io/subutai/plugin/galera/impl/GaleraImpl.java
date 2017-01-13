@@ -87,7 +87,6 @@ public class GaleraImpl implements Galera, EnvironmentEventListener
     @Override
     public UUID uninstallCluster( final String clusterName )
     {
-        Preconditions.checkArgument( !Strings.isNullOrEmpty( clusterName ), "Cluster name is null or empty" );
         GaleraClusterConfig config = getCluster( clusterName );
         AbstractOperationHandler operationHandler =
                 new ClusterOperationHandler( this, config, ClusterOperationType.UNINSTALL );

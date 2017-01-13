@@ -102,13 +102,14 @@ public class ClusterConfiguration
     }
 
 
-    public void deleteConfiguration( final GaleraClusterConfig solrClusterConfig, final Environment environment )
+    public void deleteConfiguration( final GaleraClusterConfig config, final Environment environment )
             throws ClusterConfigurationException
     {
         Set<EnvironmentContainerHost> containerHosts;
         try
         {
-            containerHosts = environment.getContainerHostsByIds( solrClusterConfig.getNodes() );
+            containerHosts = environment.getContainerHostsByIds( config.getNodes() );
+            cleanupConfiguration( containerHosts );
         }
         catch ( ContainerHostNotFoundException e )
         {
