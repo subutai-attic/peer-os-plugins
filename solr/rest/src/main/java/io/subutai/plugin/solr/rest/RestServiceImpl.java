@@ -101,7 +101,6 @@ public class RestServiceImpl implements RestService
 
         String containerInfo = JsonUtil.GSON.toJson( containers );
         return Response.status( Response.Status.OK ).entity( containerInfo ).build();
-
     }
 
 
