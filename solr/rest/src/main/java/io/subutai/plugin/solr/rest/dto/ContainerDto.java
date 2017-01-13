@@ -9,13 +9,17 @@ public class ContainerDto
     private String id;
 
 
-    public ContainerDto() {}
+    public ContainerDto()
+    {
+    }
 
-    public ContainerDto( final String hostname, final String ip, final String status )
+
+    public ContainerDto( final String hostname, final String ip, final String status, final String id )
     {
         this.hostname = hostname;
         this.ip = ip;
         this.status = status;
+        this.id = id;
     }
 
 

@@ -1,90 +1,99 @@
 'use strict';
 
-angular.module('subutai.plugins.solr.service',[])
-	.factory('solrSrv', solrSrv);
+angular.module('subutai.plugins.solr.service', [])
+    .factory('solrSrv', solrSrv);
 
 solrSrv.$inject = ['$http', 'environmentService'];
 
 function solrSrv($http, environmentService) {
 
-	var BASE_URL = SERVER_URL + 'rest/solr/';
-	var CLUSTER_URL = BASE_URL + 'clusters/';
+    var BASE_URL = SERVER_URL + 'rest/solr/';
+    var CLUSTER_URL = BASE_URL + 'clusters/';
 
-	var solrSrv = {
-		getClusters: getClusters,
-		createSolr: createSolr,
-		changeClusterScaling: changeClusterScaling,
-		deleteCluster: deleteCluster,
-		addNode: addNode,
-		deleteNode: deleteNode,
-		startNodes: startNodes,
-		stopNodes: stopNodes,
-		getEnvironments: getEnvironments
-	};
+    var solrSrv = {
+        getClusters: getClusters,
+        getContainers: getContainers,
+        createSolr: createSolr,
+        changeClusterScaling: changeClusterScaling,
+        deleteCluster: deleteCluster,
+        addNode: addNode,
+        deleteNode: deleteNode,
+        startNodes: startNodes,
+        stopNodes: stopNodes,
+        getEnvironments: getEnvironments
+    };
 
-	return solrSrv;
+    return solrSrv;
 
-	function addNode(clusterName) {
-		return $http.post(CLUSTER_URL + clusterName + '/add');
-	}
+    function addNode(clusterName) {
+        return $http.post(CLUSTER_URL + clusterName + '/add');
+    }
 
-	function startNodes(clusterName, nodesArray) {
-		var postData = 'clusterName=' + clusterName + '&lxcHosts=' + nodesArray;
-		var url = CLUSTER_URL +  'nodes/start';
-		
-		return $http.post(
-			url,
-			postData, 
-			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
-		);
-		/*
-		return $http.get(
-			url,
-			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
-		);
-		*/
-	}
+    function startNodes(clusterName, nodesArray) {
+        var postData = 'clusterName=' + clusterName + '&lxcHosts=' + nodesArray;
+        var url = CLUSTER_URL + 'nodes/start';
 
-	function stopNodes(clusterName, nodesArray) {
-		var postData = 'clusterName=' + clusterName + '&lxcHosts=' + nodesArray;
-		return $http.post(
-			CLUSTER_URL + 'nodes/stop',
-			postData, 
-			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
-		);
-	}
+        return $http.post(
+            url,
+            postData,
+            {withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
+        );
+        /*
+         return $http.get(
+         url,
+         {withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
+         );
+         */
+    }
 
-	function changeClusterScaling(clusterName, scale) {
-		return $http.post(CLUSTER_URL + clusterName + '/auto_scale/' + scale);
-	}
+    function stopNodes(clusterName, nodesArray) {
+        var postData = 'clusterName=' + clusterName + '&lxcHosts=' + nodesArray;
+        return $http.post(
+            CLUSTER_URL + 'nodes/stop',
+            postData,
+            {withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
+        );
+    }
 
-	function deleteCluster(clusterName) {
-		return $http.delete(CLUSTER_URL + "destroy/" + clusterName);
-	}
+    function changeClusterScaling(clusterName, scale) {
+        return $http.post(CLUSTER_URL + clusterName + '/auto_scale/' + scale);
+    }
 
-	function deleteNode(clusterName, nodeId) {
-		return $http.delete(CLUSTER_URL + clusterName + '/node/' + nodeId);
-	}
+    function deleteCluster(clusterName) {
+        return $http.delete(CLUSTER_URL + "destroy/" + clusterName);
+    }
 
-	function getEnvironments() {
-		return environmentService.getEnvironments();
-	}
+    function deleteNode(clusterName, nodeId) {
+        return $http.delete(CLUSTER_URL + clusterName + '/node/' + nodeId);
+    }
 
-	function getClusters(clusterName) {
-		if(clusterName === undefined || clusterName === null) clusterName = '';
-		return $http.get(
-			CLUSTER_URL + clusterName,
-			{withCredentials: true, headers: {'Content-Type': 'application/json'}}
-		);
-	}
+    function getEnvironments() {
+        return environmentService.getEnvironments();
+    }
 
-	function createSolr(solrJson) {
-	
-		var postData = 'clusterName=' + solrJson.clusterName + '&environmentId=' + solrJson.environmentId + '&nodes=' + solrJson.containers.join();
-		return $http.post(
-			CLUSTER_URL + 'install',
-			postData, 
-			{withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
-		);
-	}
+    function getContainers(envId) {
+        return $http.get(
+            BASE_URL + 'containers/' + envId,
+            {withCredentials: true, headers: {'Content-Type': 'application/json'}}
+        );
+    }
+
+
+    function getClusters(clusterName) {
+        if (clusterName === undefined || clusterName === null) clusterName = '';
+        return $http.get(
+            CLUSTER_URL + clusterName,
+            {withCredentials: true, headers: {'Content-Type': 'application/json'}}
+        );
+    }
+
+    function createSolr(solrJson) {
+
+        var postData = 'clusterName=' + solrJson.clusterName + '&environmentId=' + solrJson.environmentId + '&nodes=' + solrJson.containers.join();
+        return $http.post(
+            CLUSTER_URL + 'install',
+            postData,
+            {withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
+        );
+    }
 }

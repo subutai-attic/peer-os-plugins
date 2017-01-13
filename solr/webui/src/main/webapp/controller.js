@@ -212,18 +212,11 @@ function SolrCtrl(solrSrv, SweetAlert) {
     }
 
     function showContainers(environmentId) {
-
         vm.containers = [];
-        for (var i in vm.environments) {
-            if (environmentId == vm.environments[i].id) {
-                for (var j = 0; j < vm.environments[i].containers.length; j++) {
-                    if (vm.environments[i].containers[j].templateName == 'solr') {
-                        vm.containers.push(vm.environments[i].containers[j]);
-                    }
-                }
-                break;
-            }
-        }
+
+        solrSrv.getContainers(environmentId).success(function (data) {
+            vm.containers = data;
+        });
     }
 
     function addContainer(containerId) {
