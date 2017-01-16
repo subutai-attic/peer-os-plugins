@@ -1,89 +1,88 @@
 <div class="b-workspace-content b-workspace-content_border">
-	<div class="b-main-form">
+  <div class="b-main-form">
 
-		<div class="b-main-form__wrapper b-main-form__wrapper_margin-r">
-			<div class="b-form__wrapper b-form__wrapper_margin-bottom">
-				<label class="b-form-label b-form-label_margin_r">Select the cluster</label>
-				<select class="b-form-input b-form-input_fix-size-1 b-form-label_margin_r"
-								ng-model="selectedCluster"
-								ng-change="stormCtrl.getClustersInfo(selectedCluster)"
-								ng-options="cluster for cluster in stormCtrl.clusters">
-				</select>
-				<a href
-					 class="b-btn b-btn_light-grey b-btn_margin-r"
-					 ng-click="stormCtrl.addNode()">
-					Add
+    <div class="b-main-form__wrapper b-main-form__wrapper_margin-r">
+      <div class="b-form__wrapper b-form__wrapper_margin-bottom">
+        <label class="b-form-label b-form-label_margin_r">Select the cluster</label>
+        <select class="b-form-input b-form-input_fix-size-1 b-form-label_margin_r"
+                ng-model="selectedCluster"
+                ng-change="stormCtrl.getClustersInfo(selectedCluster)"
+                ng-options="cluster for cluster in stormCtrl.clusters">
+        </select>
+        <a href
+           class="b-btn b-btn_light-grey b-btn_margin-r"
+           ng-click="stormCtrl.addNode()">
+          Add
 					<span class="b-btn-light-grey-icon b-btn-light-grey-icon_green">
 						<i class="fa fa-plus"></i>
 					</span>
-				</a>
-				<a href
-					 class="b-btn b-btn_light-grey b-btn_margin-r"
-					 ng-click="stormCtrl.deleteCluster()">
-					Remove
+        </a>
+        <a href
+           class="b-btn b-btn_light-grey b-btn_margin-r"
+           ng-click="stormCtrl.deleteCluster()">
+          Remove
 					<span class="b-btn-light-grey-icon b-btn-light-grey-icon_red">
 						<i class="fa fa-times"></i>
 					</span>
-				</a>
+        </a>
 
-				<a href="http://{{stormCtrl.currentCluster.nimbus.hostname}}.storm"
-					 target="_blank" class="b-btn b-btn_blue b-btn_margin-r">
-					Console
-				</a>
+        <a href="http://{{stormCtrl.currentCluster.nimbus.hostname}}.storm"
+           target="_blank" class="b-btn b-btn_blue b-btn_margin-r">
+          Console
+        </a>
 
-			</div>
-		</div>
-	</div>
-	<div class="b-workspace-content__row">
-		<h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
-			Nimbus node
-		</h2>
+      </div>
+    </div>
+  </div>
+  <div class="b-workspace-content__row">
+    <h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
+      Nimbus node
+    </h2>
 
-		<div class="b-main-table-border">
-			<table class="b-main-table b-main-table_with-header ez-ssh-table">
-				<tr>
-					<th>Host</th>
-					<th>IP List</th>
-					<th>Status</th>
-					<th></th>
-					<th>SSH</th>
-				</tr>
-				<td colspan="4" class="b-main-table__empty-item" ng-if="stormCtrl.currentCluster.nimbus === undefined">
-					No data available in table
-				</td>
-				<tr ng-if="stormCtrl.currentCluster.nimbus">
-					<td>{{ stormCtrl.currentCluster.nimbus.hostname }}</td>
-					<td>{{ stormCtrl.currentCluster.nimbus.ip }}</td>
-					<td class="b-main-table__container-status">
-						<div
-								tooltips
-								tooltip-title="{{ stormCtrl.currentCluster.nimbus.status }}"
-								class="b-status-icon b-status-icon_{{ stormCtrl.currentCluster.nimbus.status }}"
-						>
-						</div>
-					</td>
-					<td class="b-main-table__empty-item">
-						<button ng-show="stormCtrl.currentCluster.nimbus.status == 'RUNNING'"
-										class="b-btn b-btn_red subt_button__container-stop"
-										ng-click="stormCtrl.stopNimbus()">
-							Stop
-						</button>
-						<button ng-show="stormCtrl.currentCluster.nimbus.status == 'STOPPED'"
-										class="b-btn b-btn_green subt_button__container-start"
-										ng-click="stormCtrl.startNimbus()">
-							Start
-						</button>
+    <div class="b-main-table-border">
+      <table class="b-main-table b-main-table_with-header ez-ssh-table">
+        <tr>
+          <th>Host</th>
+          <th>IP List</th>
+          <th>Status</th>
+          <th></th>
+          <th>SSH</th>
+        </tr>
+        <td colspan="4" class="b-main-table__empty-item" ng-if="stormCtrl.currentCluster.nimbus === undefined">
+          No data available in table
+        </td>
+        <tr ng-if="stormCtrl.currentCluster.nimbus">
+          <td>{{ stormCtrl.currentCluster.nimbus.hostname }}</td>
+          <td>{{ stormCtrl.currentCluster.nimbus.ip }}</td>
+          <td>
+            <div class="b-status-icon b-status-icon_{{ stormCtrl.currentCluster.nimbus.status }}"
+                 tooltips
+                 tooltip-template="{{ stormCtrl.currentCluster.nimbus.status }}"
+                 tooltip-side="right">
+            </div>
+          </td>
+          <td class="b-main-table__empty-item">
+            <button ng-show="stormCtrl.currentCluster.nimbus.status == 'RUNNING'"
+                    class="b-btn b-btn_red subt_button__container-stop"
+                    ng-click="stormCtrl.stopNimbus()">
+              Stop
+            </button>
+            <button ng-show="stormCtrl.currentCluster.nimbus.status == 'STOPPED'"
+                    class="b-btn b-btn_green subt_button__container-start"
+                    ng-click="stormCtrl.startNimbus()">
+              Start
+            </button>
 						<span class="b-load-icon" title="{{ stormCtrl.currentCluster.nameNode.state }}"
-									ng-show="stormCtrl.currentCluster.nimbus.status != 'STOPPED' && stormCtrl.currentCluster.nimbus.status != 'RUNNING'">
+                  ng-show="stormCtrl.currentCluster.nimbus.status != 'STOPPED' && stormCtrl.currentCluster.nimbus.status != 'RUNNING'">
 						</span>
-					</td>
-					<td>
-						<div env-id="{{ stormCtrl.currentCluster.environmentId }}"
-								 container-id="{{ stormCtrl.currentCluster.nimbus.id }}">
-							<!--<div ng-if="container.dataSource === 'hub'">-->
-							<button class="b-btn b-btn_blue ez-ssh-btn" disabled>
-								<div class="ssh-key-button_block">
-									<svg class="ssh-key-button" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"  x="0px" y="0px" viewBox="0 0 28 26" enable-background="new 0 0 28 26" xml:space="preserve">
+          </td>
+          <td>
+            <div env-id="{{ stormCtrl.currentCluster.environmentId }}"
+                 container-id="{{ stormCtrl.currentCluster.nimbus.id }}">
+              <!--<div ng-if="container.dataSource === 'hub'">-->
+              <button class="b-btn b-btn_blue ez-ssh-btn" disabled>
+                <div class="ssh-key-button_block">
+                  <svg class="ssh-key-button" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"  x="0px" y="0px" viewBox="0 0 28 26" enable-background="new 0 0 28 26" xml:space="preserve">
 										<g>
 										<path fill="#FFFFFF" d="M21,23.4H7.4c-1.6,0-3-1.3-3-3v-6.3h2.5v4.4c0,0.3,0.2,0.5,0.5,0.5h1.5c0.3,0,0.5-0.2,0.5-0.5v-4.4h4.4
 											l0.1,0.3c0.7,3.2,3.6,5.4,6.8,5.4c3.9,0,7-3.1,7-7c0-3.9-3.1-7-7-7c-3.2,0-6.1,2.3-6.8,5.4l-0.1,0.3l-12.1,0
@@ -95,75 +94,74 @@
 											C26.2,6,26.5,5.8,26.5,5.6z"/>
 										</g>
 									</svg>
-								</div>
-								<div class="ssh-key-button_title">SSH</div>
-							</button>
+                </div>
+                <div class="ssh-key-button_title">SSH</div>
+              </button>
 							<span class="ssh-info-button">
 								?
 								<div class="ssh-plugin-info-tooltip tooltip">
 									<div
-											style="padding-bottom: 10px">EZ ssh access to your environment container, use it with ease, pz.</div>
+                      style="padding-bottom: 10px">EZ ssh access to your environment container, use it with ease, pz.</div>
 									<a href="https://github.com/subutai-io/browsers/releases/latest" target="_blank">Download</a>
 								</div>
 							</span>
-						</div>
-					</td>
-				</tr>
-			</table>
-		</div>
-	</div>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
 
-	<div class="b-workspace-content__row">
-		<div>
-			<h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
-				Supervisor nodes
-			</h2>
+  <div class="b-workspace-content__row">
+    <div>
+      <h2 class="b-workspace-content-row-h2 b-workspace-content-row-h2_inline">
+        Supervisor nodes
+      </h2>
 
-			<div class="b-workspace-content-row-bttns g-right">
-				<!--<a href class="b-btn b-btn_blue">Refresh</a>-->
-				<a href ng-click="stormCtrl.startNodes()" class="b-btn b-btn_green">Start</a>
-				<a href ng-click="stormCtrl.stopNodes()" class="b-btn b-btn_red">Stop</a>
-			</div>
-		</div>
+      <div class="b-workspace-content-row-bttns g-right">
+        <!--<a href class="b-btn b-btn_blue">Refresh</a>-->
+        <a href ng-click="stormCtrl.startNodes()" class="b-btn b-btn_green">Start</a>
+        <a href ng-click="stormCtrl.stopNodes()" class="b-btn b-btn_red">Stop</a>
+      </div>
+    </div>
 
-		<div class="b-data-table">
-			<table datatable="ng"
-						 dt-options="stormCtrl.dtOptions"
-						 dt-column-defs="stormCtrl.dtColumnDefs"
-						 class="row-border hover ez-ssh-table">
-				<thead>
-				<tr>
-					<th><input type="checkbox" ng-model="stormCtrl.sparkAll" ng-click="stormCtrl.pushAll()"></th>
-					<th>Host</th>
-					<th>IP List</th>
-					<th>Status</th>
-					<th>SSH</th>
-					<th></th>
-				</tr>
-				</thead>
-				<tbody>
-				<tr ng-repeat="clusterNode in stormCtrl.currentCluster.supervisors">
-					<td class="b-main-table__edit-icon">
-						<input type="checkbox" ng-model="clusterNode.checkbox" ng-click="stormCtrl.pushNode(clusterNode.id)"
-									 name="sparkChk">
-					</td>
-					<td>{{ clusterNode.hostname }}</td>
-					<td>{{ clusterNode.ip }}</td>
-					<td class="b-main-table__container-status">
-						<div
-								tooltips
-								tooltip-title="{{ clusterNode.status }}"
-								class="b-status-icon b-status-icon_{{ clusterNode.status }}"
-								title="{{ clusterNode.status }}">
-						</div>
-					</td>
-					<td>
-						<div env-id="{{ stormCtrl.currentCluster.environmentId }}"
-								 container-id="{{ clusterNode.id }}">
-							<!--<div ng-if="container.dataSource === 'hub'">-->
-							<button class="b-btn b-btn_blue ez-ssh-btn" disabled>
-								<div class="ssh-key-button_block">
-									<svg class="ssh-key-button" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"  x="0px" y="0px" viewBox="0 0 28 26" enable-background="new 0 0 28 26" xml:space="preserve">
+    <div class="b-data-table">
+      <table datatable="ng"
+             dt-options="stormCtrl.dtOptions"
+             dt-column-defs="stormCtrl.dtColumnDefs"
+             class="row-border hover ez-ssh-table">
+        <thead>
+        <tr>
+          <th><input type="checkbox" ng-model="stormCtrl.sparkAll" ng-click="stormCtrl.pushAll()"></th>
+          <th>Host</th>
+          <th>IP List</th>
+          <th>Status</th>
+          <th>SSH</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="clusterNode in stormCtrl.currentCluster.supervisors">
+          <td class="b-main-table__edit-icon">
+            <input type="checkbox" ng-model="clusterNode.checkbox" ng-click="stormCtrl.pushNode(clusterNode.id)"
+                   name="sparkChk">
+          </td>
+          <td>{{ clusterNode.hostname }}</td>
+          <td>{{ clusterNode.ip }}</td>
+          <td>
+            <div class="b-status-icon b-status-icon_{{ clusterNode.status }}"
+                 tooltips
+                 tooltip-template="{{ clusterNode.status }}"
+                 tooltip-side="right">
+            </div>
+          </td>
+          <td>
+            <div env-id="{{ stormCtrl.currentCluster.environmentId }}"
+                 container-id="{{ clusterNode.id }}">
+              <!--<div ng-if="container.dataSource === 'hub'">-->
+              <button class="b-btn b-btn_blue ez-ssh-btn" disabled>
+                <div class="ssh-key-button_block">
+                  <svg class="ssh-key-button" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"  x="0px" y="0px" viewBox="0 0 28 26" enable-background="new 0 0 28 26" xml:space="preserve">
 										<g>
 										<path fill="#FFFFFF" d="M21,23.4H7.4c-1.6,0-3-1.3-3-3v-6.3h2.5v4.4c0,0.3,0.2,0.5,0.5,0.5h1.5c0.3,0,0.5-0.2,0.5-0.5v-4.4h4.4
 											l0.1,0.3c0.7,3.2,3.6,5.4,6.8,5.4c3.9,0,7-3.1,7-7c0-3.9-3.1-7-7-7c-3.2,0-6.1,2.3-6.8,5.4l-0.1,0.3l-12.1,0
@@ -175,25 +173,25 @@
 											C26.2,6,26.5,5.8,26.5,5.6z"/>
 										</g>
 									</svg>
-								</div>
-								<div class="ssh-key-button_title">SSH</div>
-							</button>
+                </div>
+                <div class="ssh-key-button_title">SSH</div>
+              </button>
 							<span class="ssh-info-button">
 								?
 								<div class="ssh-plugin-info-tooltip tooltip">
 									<div
-											style="padding-bottom: 10px">EZ ssh access to your environment container, use it with ease, pz.</div>
+                      style="padding-bottom: 10px">EZ ssh access to your environment container, use it with ease, pz.</div>
 									<a href="https://github.com/subutai-io/browsers/releases/latest" target="_blank">Download</a>
 								</div>
 							</span>
-						</div>
-					</td>
-					<td>
-						<a href ng-click="stormCtrl.deleteNode (clusterNode.id)" class="b-icon b-icon_remove"></a>
-					</td>
-				</tr>
-				</tbody>
-			</table>
-		</div>
-	</div>
+            </div>
+          </td>
+          <td>
+            <a href ng-click="stormCtrl.deleteNode (clusterNode.id)" class="b-icon b-icon_remove"></a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
