@@ -66,10 +66,12 @@
         </td>
         <td>{{ clusterNode }}</td>
         <td>{{ cassandraCtrl.currentCluster.containersStatuses[clusterNode].ip }}</td>
-        <td class="b-main-table__container-status">
+        <td>
           <div
               class="b-status-icon b-status-icon_{{ cassandraCtrl.currentCluster.containersStatuses[clusterNode].status }}"
-              title="{{ cassandraCtrl.currentCluster.containersStatuses[clusterNode].status }}">
+              tooltips
+              tooltip-template="{{ cassandraCtrl.currentCluster.containersStatuses[clusterNode].status }}"
+              tooltip-side="right">
           </div>
         </td>
         <td>
@@ -96,10 +98,11 @@
               </div>
               <div class="ssh-key-button_title">SSH</div>
             </button>
-							<span class="ssh-info-button" >
+							<span class="ssh-info-button">
 								?
-								<div class="ssh-plugin-info-tooltip tooltip" >
-									<div style="padding-bottom: 10px">EZ ssh access to your environment container, use it with ease, pz.</div>
+								<div class="ssh-plugin-info-tooltip tooltip">
+									<div
+                      style="padding-bottom: 10px">EZ ssh access to your environment container, use it with ease, pz.</div>
 									<a href="https://github.com/subutai-io/browsers/releases/latest" target="_blank">Download</a>
 								</div>
 							</span>
