@@ -3,12 +3,9 @@ package io.subutai.plugin.cassandra.api;
 
 import java.util.Set;
 
-import com.google.common.collect.Sets;
-
-import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.settings.Common;
-import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.plugincommon.api.ConfigBase;
+import io.subutai.hub.share.quota.ContainerSize;
 
 
 public class CassandraClusterConfig implements ConfigBase

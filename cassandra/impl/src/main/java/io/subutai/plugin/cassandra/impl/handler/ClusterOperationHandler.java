@@ -24,7 +24,6 @@ import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeSchema;
 import io.subutai.common.environment.Topology;
-import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.PeerException;
 import io.subutai.common.tracker.OperationState;
@@ -40,6 +39,7 @@ import io.subutai.core.strategy.api.RoundRobinStrategy;
 import io.subutai.core.strategy.api.StrategyException;
 import io.subutai.core.template.api.TemplateManager;
 import io.subutai.hub.share.quota.ContainerQuota;
+import io.subutai.hub.share.quota.ContainerSize;
 import io.subutai.hub.share.resource.PeerGroupResources;
 import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 import io.subutai.plugin.cassandra.impl.CassandraImpl;
@@ -121,9 +121,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             }
             catch ( EnvironmentNotFoundException | ContainerHostNotFoundException | CommandException e )
             {
-                trackerOperation.addLogFailed( "Failed to %s " +
-                        ( type == ClusterOperationType.START_ALL ? "start" : "stop" ) + config.getClusterName()
-                        + " cluster" );
+                trackerOperation.addLogFailed(
+                        "Failed to %s " + ( type == ClusterOperationType.START_ALL ? "start" : "stop" ) + config
+                                .getClusterName() + " cluster" );
                 e.printStackTrace();
             }
         }
@@ -152,9 +152,9 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             try
             {
                 String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
-                NodeSchema node =
-                        new NodeSchema( containerName, ContainerSize.MEDIUM, CassandraClusterConfig.TEMPLATE_NAME,
-                                templateManager.getTemplateByName( CassandraClusterConfig.TEMPLATE_NAME ).getId() );
+                NodeSchema node = new NodeSchema( containerName, new ContainerQuota( ContainerSize.MEDIUM ),
+                        CassandraClusterConfig.TEMPLATE_NAME,
+                        templateManager.getTemplateByName( CassandraClusterConfig.TEMPLATE_NAME ).getId() );
                 List<NodeSchema> nodes = new ArrayList<>();
                 nodes.add( node );
 

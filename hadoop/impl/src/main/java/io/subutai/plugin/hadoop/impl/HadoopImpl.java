@@ -2,7 +2,6 @@ package io.subutai.plugin.hadoop.impl;
 
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -16,11 +15,8 @@ import com.google.common.base.Strings;
 
 import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.environment.Node;
 import io.subutai.common.environment.NodeSchema;
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.PeerException;
 import io.subutai.common.protocol.CustomProxyConfig;

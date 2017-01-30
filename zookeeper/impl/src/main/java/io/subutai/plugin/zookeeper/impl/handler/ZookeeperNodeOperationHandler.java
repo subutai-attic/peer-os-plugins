@@ -23,12 +23,13 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.Node;
 import io.subutai.common.environment.Topology;
 import io.subutai.common.peer.ContainerHost;
-import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.core.template.api.TemplateManager;
+import io.subutai.hub.share.quota.ContainerQuota;
+import io.subutai.hub.share.quota.ContainerSize;
 import io.subutai.plugin.zookeeper.api.SetupType;
 import io.subutai.plugin.zookeeper.api.ZookeeperClusterConfig;
 import io.subutai.plugin.zookeeper.impl.ClusterConfiguration;
@@ -187,7 +188,7 @@ public class ZookeeperNodeOperationHandler extends AbstractPluginOperationHandle
                 if ( envContainerHosts.isEmpty() )
                 {
                     Node nodeGroup = new Node( UUID.randomUUID().toString(), ZookeeperClusterConfig.PRODUCT_NAME,
-                            ContainerSize.TINY, null, null,
+                            new ContainerQuota( ContainerSize.TINY ), null, null,
                             templateManager.getTemplateByName( ZookeeperClusterConfig.TEMPLATE_NAME ).getId() );
                     Topology topology = new Topology( environment.getName() );
                     /*Blueprint blueprint =
