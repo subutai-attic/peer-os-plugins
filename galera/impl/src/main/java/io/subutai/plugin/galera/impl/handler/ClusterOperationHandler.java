@@ -18,7 +18,6 @@ import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.Node;
 import io.subutai.common.environment.Topology;
-import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Peer;
 import io.subutai.common.peer.PeerException;
@@ -32,6 +31,8 @@ import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
 import io.subutai.core.plugincommon.api.ClusterSetupException;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
+import io.subutai.hub.share.quota.ContainerQuota;
+import io.subutai.hub.share.quota.ContainerSize;
 import io.subutai.hub.share.resource.PeerGroupResources;
 import io.subutai.plugin.galera.api.GaleraClusterConfig;
 import io.subutai.plugin.galera.impl.ClusterConfiguration;
@@ -106,7 +107,6 @@ public class ClusterOperationHandler extends AbstractOperationHandler<GaleraImpl
 
             manager.getPluginDAO().deleteInfo( GaleraClusterConfig.PRODUCT_KEY, config.getClusterName() );
             trackerOperation.addLogDone( "Cluster removed from database" );
-
         }
         catch ( EnvironmentNotFoundException e )
         {
@@ -202,11 +202,10 @@ public class ClusterOperationHandler extends AbstractOperationHandler<GaleraImpl
                     ResourceHost resourceHost =
                             manager.getPeerManager().getLocalPeer().getResourceHosts().iterator().next();
 
-                    Node nodeGroup =
-                            new Node( containerName, containerName, ContainerSize.LARGE, resourceHost.getPeerId(),
-                                    resourceHost.getId(),
-                                    manager.getTemplateManager().getTemplateByName( GaleraClusterConfig.TEMPLATE_NAME )
-                                           .getId() );
+                    Node nodeGroup = new Node( containerName, containerName, new ContainerQuota( ContainerSize.LARGE ),
+                            resourceHost.getPeerId(), resourceHost.getId(),
+                            manager.getTemplateManager().getTemplateByName( GaleraClusterConfig.TEMPLATE_NAME )
+                                   .getId() );
 
                     nodeGroups.add( nodeGroup );
                 }

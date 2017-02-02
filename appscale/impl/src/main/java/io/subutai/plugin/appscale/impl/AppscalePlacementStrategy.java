@@ -14,11 +14,11 @@ import com.google.common.collect.Iterators;
 import io.subutai.common.environment.Node;
 import io.subutai.common.environment.NodeSchema;
 import io.subutai.common.environment.Topology;
-import io.subutai.common.peer.ContainerSize;
 import io.subutai.core.plugincommon.api.PluginDAO;
 import io.subutai.core.strategy.api.ContainerPlacementStrategy;
 import io.subutai.core.strategy.api.StrategyException;
 import io.subutai.hub.share.quota.ContainerQuota;
+import io.subutai.hub.share.quota.ContainerSize;
 import io.subutai.hub.share.resource.PeerGroupResources;
 import io.subutai.hub.share.resource.PeerResources;
 
@@ -106,9 +106,9 @@ public class AppscalePlacementStrategy implements ContainerPlacementStrategy
             while ( counter < allocators.size() )
             {
                 final Allocator resourceAllocator = iterator.next();
-                allocated = resourceAllocator
-                        .allocate( containerName, nodeSchema.getTemplateName(), nodeSchema.getSize(),
-                                quotas.get( nodeSchema.getSize() ) );
+                allocated = resourceAllocator.allocate( containerName, nodeSchema.getTemplateName(),
+                        nodeSchema.getQuota().getContainerSize(),
+                        quotas.get( nodeSchema.getQuota().getContainerSize() ) );
                 if ( allocated )
                 {
                     break;

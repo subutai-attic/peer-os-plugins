@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,26 +13,25 @@ import com.google.common.collect.Lists;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.RequestBuilder;
-import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.Node;
 import io.subutai.common.environment.Topology;
-import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.Peer;
 import io.subutai.common.peer.PeerException;
 import io.subutai.common.peer.PeerId;
 import io.subutai.common.peer.ResourceHost;
-import io.subutai.hub.share.resource.PeerGroupResources;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.template.api.TemplateManager;
+import io.subutai.hub.share.quota.ContainerQuota;
+import io.subutai.hub.share.quota.ContainerSize;
+import io.subutai.hub.share.resource.PeerGroupResources;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.hadoop.impl.ClusterConfiguration;
-import io.subutai.plugin.hadoop.impl.Commands;
 import io.subutai.plugin.hadoop.impl.HadoopImpl;
 
 
@@ -125,10 +123,9 @@ public class AddOperationHandler extends AbstractOperationHandler<HadoopImpl, Ha
                     ResourceHost resourceHost =
                             manager.getPeerManager().getLocalPeer().getResourceHosts().iterator().next();
 
-                    Node nodeGroup =
-                            new Node( containerName, containerName, ContainerSize.LARGE, resourceHost.getPeerId(),
-                                    resourceHost.getId(),
-                                    templateManager.getTemplateByName( HadoopClusterConfig.TEMPLATE_NAME ).getId() );
+                    Node nodeGroup = new Node( containerName, containerName, new ContainerQuota( ContainerSize.LARGE ),
+                            resourceHost.getPeerId(), resourceHost.getId(),
+                            templateManager.getTemplateByName( HadoopClusterConfig.TEMPLATE_NAME ).getId() );
 
                     nodeGroups.add( nodeGroup );
                 }
