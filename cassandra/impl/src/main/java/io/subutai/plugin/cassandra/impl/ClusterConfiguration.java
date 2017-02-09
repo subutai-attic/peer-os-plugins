@@ -91,7 +91,6 @@ public class ClusterConfiguration
 
         try
         {
-            cassandraManager.saveConfig( config );
 
             while ( iterator.hasNext() )
             {
@@ -99,9 +98,11 @@ public class ClusterConfiguration
 
                 if ( !seedNodes.contains( node.getHostname() ) )
                 {
+                    config.addSeedNode( node.getHostname() );
                     addNode( config, environment, node );
                 }
             }
+            cassandraManager.saveConfig( config );
         }
         catch ( ClusterException e )
         {
