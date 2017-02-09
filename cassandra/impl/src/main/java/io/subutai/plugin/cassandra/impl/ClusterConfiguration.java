@@ -62,24 +62,45 @@ public class ClusterConfiguration
             return;
         }
 
-        Iterator<EnvironmentContainerHost> iterator = allNodes.iterator();
-        EnvironmentContainerHost seedNode = iterator.next();
+        // copy seed nodes to list
+        List<String> seedNodes = new ArrayList<>();
+        seedNodes.addAll( config.getSeedNodes() );
 
-        String seedIp = seedNode.getInterfaceByName( NET_INTERFACE ).getIp();
+        // clear seed nodes from configuration
         config.setSeedNodes( new HashSet<String>() );
-        config.addSeedNode( seedIp );
+
+        // up seed nodes
+        for ( String nodeName : seedNodes )
+        {
+            try
+            {
+                EnvironmentContainerHost node = environment.getContainerHostByHostname( nodeName );
+                config.addSeedNode( nodeName );
+                addNode( config, environment, node );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( e.getMessage(), e );
+                po.addLogFailed( e.getMessage() );
+                throw new ClusterConfigurationException( e );
+            }
+        }
+        Iterator<EnvironmentContainerHost> iterator = allNodes.iterator();
+
         config.setEnvironmentId( environment.getId() );
 
         try
         {
             cassandraManager.saveConfig( config );
-            addNode( config, environment, seedNode );
 
             while ( iterator.hasNext() )
             {
                 EnvironmentContainerHost node = iterator.next();
 
-                addNode( config, environment, node );
+                if ( !seedNodes.contains( node.getHostname() ) )
+                {
+                    addNode( config, environment, node );
+                }
             }
         }
         catch ( ClusterException e )
@@ -99,7 +120,7 @@ public class ClusterConfiguration
     {
         LOG.debug( "Trying to configure Cassandra on {}.", node.getId() );
 
-        final String[] commands = getCommands( config.getClusterName(), node, config );
+        final String[] commands = getCommands( node, config );
         po.addLog( String.format( "Trying to configure Cassandra on %s}.", node.getId() ) );
         try
         {
@@ -137,6 +158,18 @@ public class ClusterConfiguration
             {
                 LOG.debug( "Could not set heap size of node {} to {}Mb.", node.getId(), heapSize );
             }
+
+            // Create directories
+            CommandResult commandResult =
+                    node.execute( new RequestBuilder( String.format( "mkdir -p %s", config.getDataDirectory() ) ) );
+            po.addLog( commandResult.getStdOut() );
+            commandResult = node.execute(
+                    new RequestBuilder( String.format( "mkdir -p %s", config.getCommitLogDirectory() ) ) );
+            po.addLog( commandResult.getStdOut() );
+            commandResult = node.execute(
+                    new RequestBuilder( String.format( "mkdir -p %s", config.getSavedCachesDirectory() ) ) );
+
+            po.addLog( commandResult.getStdOut() );
 
             execute( node, NODE_WAIT_TIMEOUT, commands );
 
@@ -236,8 +269,7 @@ public class ClusterConfiguration
     }
 
 
-    private String[] getCommands( final String clusterName, final EnvironmentContainerHost node,
-                                  final CassandraClusterConfig config )
+    private String[] getCommands( final EnvironmentContainerHost node, final CassandraClusterConfig config )
     {
         String ipAddress = node.getInterfaceByName( "eth0" ).getIp();
         String seedNodes = StringUtils.join( config.getSeedNodes(), "," );
@@ -247,7 +279,7 @@ public class ClusterConfiguration
         String savedCacheDirParam = "saved_cache_dir " + config.getSavedCachesDirectory();
 
         return new String[] {
-                Commands.getClusterNameCommand( clusterName ), Commands.getSeedsCommand( seedNodes ),
+                Commands.getReplacePropertyCommand( clusterNameParam ), Commands.getSeedsCommand( seedNodes ),
                 Commands.getListenAddressCommand( ipAddress ), Commands.getRpcAddressCommand( ipAddress ),
                 Commands.getEndpointSnitchCommand(), Commands.getReplacePropertyCommand( dataDirParam ),
                 Commands.getReplacePropertyCommand( commitLogDirParam ),
