@@ -152,7 +152,7 @@ public class ClusterOperationHandler extends AbstractOperationHandler<CassandraI
             try
             {
                 String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
-                NodeSchema node = new NodeSchema( containerName, new ContainerQuota( ContainerSize.MEDIUM ),
+                NodeSchema node = new NodeSchema( containerName, new ContainerQuota( ContainerSize.HUGE ),
                         CassandraClusterConfig.TEMPLATE_NAME,
                         templateManager.getTemplateByName( CassandraClusterConfig.TEMPLATE_NAME ).getId() );
                 List<NodeSchema> nodes = new ArrayList<>();
