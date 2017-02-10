@@ -16,8 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
@@ -26,24 +24,21 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
-import io.subutai.core.strategy.api.StrategyManager;
-import io.subutai.core.template.api.TemplateManager;
-import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.core.plugincommon.api.PluginDAO;
+import io.subutai.core.strategy.api.StrategyManager;
+import io.subutai.core.template.api.TemplateManager;
+import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.mongodb.api.Mongo;
 import io.subutai.plugin.mongodb.api.MongoClusterConfig;
 import io.subutai.plugin.mongodb.api.NodeType;
-import io.subutai.plugin.mongodb.impl.alert.MongoAlertListener;
 import io.subutai.plugin.mongodb.impl.common.Commands;
 import io.subutai.plugin.mongodb.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.mongodb.impl.handler.NodeOperationHandler;
@@ -65,8 +60,6 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     private PluginDAO pluginDAO;
     private PeerManager peerManager;
     private StrategyManager strategyManager;
-    private QuotaManager quotaManager;
-    private Gson GSON = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
     private Monitor monitor;
     private MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
     private MongoWebModule webModule;
@@ -536,18 +529,6 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     public void setStrategyManager( final StrategyManager strategyManager )
     {
         this.strategyManager = strategyManager;
-    }
-
-
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
-    }
-
-
-    public void setQuotaManager( final QuotaManager quotaManager )
-    {
-        this.quotaManager = quotaManager;
     }
 
 

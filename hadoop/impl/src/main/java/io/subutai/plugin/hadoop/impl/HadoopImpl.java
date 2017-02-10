@@ -23,7 +23,6 @@ import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.common.util.UUIDUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.network.api.NetworkManager;
@@ -55,7 +54,6 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     private EnvironmentManager environmentManager;
     private PluginDAO pluginDAO;
     private Monitor monitor;
-    private QuotaManager quotaManager;
     private PeerManager peerManager;
     private NetworkManager networkManager;
     private StrategyManager strategyManager;
@@ -120,18 +118,6 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     public void setNetworkManager( final NetworkManager networkManager )
     {
         this.networkManager = networkManager;
-    }
-
-
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
-    }
-
-
-    public void setQuotaManager( final QuotaManager quotaManager )
-    {
-        this.quotaManager = quotaManager;
     }
 
 

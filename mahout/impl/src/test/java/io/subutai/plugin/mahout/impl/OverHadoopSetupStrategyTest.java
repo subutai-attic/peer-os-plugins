@@ -25,7 +25,6 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
-//import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.ClusterSetupException;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
@@ -85,8 +84,6 @@ public class OverHadoopSetupStrategyTest
     ResultSet resultSet;
     @Mock
     ResultSetMetaData resultSetMetaData;
-//    @Mock
-//    QuotaManager quotaManager;
 
 
     @Before

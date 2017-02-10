@@ -6,7 +6,6 @@
   <reference id="environmentManager" interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="peerManager" availability="mandatory" interface="io.subutai.core.peer.api.PeerManager" />
   <reference id="strategyManager" availability="mandatory" interface="io.subutai.core.strategy.api.StrategyManager" />
-  <reference id="quotaManager" availability="mandatory" interface="io.subutai.core.lxc.quota.api.QuotaManager" />
   <reference id="monitor" availability="mandatory" interface="io.subutai.core.metric.api.Monitor" />
   <reference id="pluginDAO" interface="io.subutai.core.plugincommon.api.PluginDAO" />
   <reference id="templateManager" availability="mandatory"
@@ -21,8 +20,6 @@
     <property name="environmentManager" ref="environmentManager" />
     <property name="peerManager" ref="peerManager" />
     <property name="strategyManager" ref="strategyManager" />
-    <property name="templateManager" ref="templateManager" />
-    <property name="quotaManager" ref="quotaManager" />
     <property name="templateManager" ref="templateManager" />
   </bean>
 

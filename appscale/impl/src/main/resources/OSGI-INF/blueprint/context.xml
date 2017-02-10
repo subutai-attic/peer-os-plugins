@@ -9,8 +9,6 @@
     <property name="networkManager" ref="networkManager" />
     <property name="environmentManager" ref="environmentManager" />
     <property name="peerManager" ref="peerManager" />
-    <property name="quotaManager" ref="quotaManager" />
-    
   </bean>
 
   <reference id="tracker" availability="mandatory"
@@ -21,8 +19,6 @@
              interface="io.subutai.core.environment.api.EnvironmentManager" />
   <reference id="peerManager" availability="mandatory"
              interface="io.subutai.core.peer.api.PeerManager" />
-  <reference id="quotaManager" availability="mandatory"
-             interface="io.subutai.core.lxc.quota.api.QuotaManager" />
   <reference id="identityManager" availability="mandatory"
              interface="io.subutai.core.identity.api.IdentityManager" />
   <reference id="monitor" availability="mandatory"
