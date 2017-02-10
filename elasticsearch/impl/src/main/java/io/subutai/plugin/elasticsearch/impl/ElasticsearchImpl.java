@@ -18,18 +18,17 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
-import io.subutai.core.strategy.api.StrategyManager;
-import io.subutai.core.template.api.TemplateManager;
-import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
 import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.core.plugincommon.api.PluginDAO;
+import io.subutai.core.strategy.api.StrategyManager;
+import io.subutai.core.template.api.TemplateManager;
+import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.elasticsearch.api.Elasticsearch;
 import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import io.subutai.plugin.elasticsearch.impl.handler.ClusterOperationHandler;
@@ -48,7 +47,6 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     private Monitor monitor;
     private PeerManager peerManager;
     private StrategyManager strategyManager;
-    private QuotaManager quotaManager;
     private ElasticSearchWebModule webModule;
     private TemplateManager templateManager;
 
@@ -417,18 +415,6 @@ public class ElasticsearchImpl implements Elasticsearch, EnvironmentEventListene
     public void setStrategyManager( final StrategyManager strategyManager )
     {
         this.strategyManager = strategyManager;
-    }
-
-
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
-    }
-
-
-    public void setQuotaManager( final QuotaManager quotaManager )
-    {
-        this.quotaManager = quotaManager;
     }
 
 

@@ -131,7 +131,6 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
             lock ( environment.getId () );
 
             final PeerGroupResources peerGroupResources = appScale.getPeerManager ().getPeerGroupResources ();
-            final Map<ContainerSize, ContainerQuota> quotas = appScale.getQuotaManager ().getDefaultQuotas ();
 
             final List<PeerResources> resources = new ArrayList<> ();
             final List<String> preferredPeerList = getPreferredPeers ( environment, peerGroupResources );

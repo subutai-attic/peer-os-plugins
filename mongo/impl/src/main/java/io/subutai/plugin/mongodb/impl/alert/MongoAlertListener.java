@@ -175,7 +175,6 @@ public class MongoAlertListener extends ExceededQuotaAlertHandler
                     ContainerQuota containerQuota = sourceHost.getQuota();
                     double ramQuota = containerQuota.get( ContainerResourceType.RAM ).getAsRamResource().getResource()
                                                     .getValue( ByteUnit.MB ).doubleValue();
-                    //                    int ramQuota = mongo.getQuotaManager().getRamQuota( sourceHost.getId() );
                     if ( ramQuota < MAX_RAM_QUOTA_MB )
                     {
                         double newRamQuota = ramQuota * ( 100 + RAM_QUOTA_INCREMENT_MB ) / 100;

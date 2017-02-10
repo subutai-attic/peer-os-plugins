@@ -19,18 +19,17 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
-import io.subutai.core.template.api.TemplateManager;
-import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.core.plugincommon.api.PluginDAO;
+import io.subutai.core.template.api.TemplateManager;
+import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.zookeeper.api.CommandType;
 import io.subutai.plugin.zookeeper.api.SetupType;
@@ -58,7 +57,6 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
     private PeerManager peerManager;
 
     private PluginDAO pluginDAO;
-    private QuotaManager quotaManager;
     private TemplateManager templateManager;
 
 
@@ -439,18 +437,6 @@ public class ZookeeperImpl implements Zookeeper, EnvironmentEventListener
                 return Commands.getStatusCommand();
         }
         return null;
-    }
-
-
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
-    }
-
-
-    public void setQuotaManager( final QuotaManager quotaManager )
-    {
-        this.quotaManager = quotaManager;
     }
 
 

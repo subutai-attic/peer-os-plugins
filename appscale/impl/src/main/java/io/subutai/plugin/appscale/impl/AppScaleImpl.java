@@ -30,7 +30,6 @@ import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.PeerManager;
@@ -54,7 +53,6 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     private Tracker tracker;
     private EnvironmentManager environmentManager;
     private NetworkManager networkManager;
-    private QuotaManager quotaManager;
     private PeerManager peerManager;
     private Environment environment;
     private AppScaleConfig appScaleConfig;
@@ -118,7 +116,8 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     {
         List<String> c = new ArrayList();
         Set<EnvironmentContainerHost> containerHosts = name.getContainerHosts();
-        containerHosts.stream().forEach( ( ech ) -> {
+        containerHosts.stream().forEach( ( ech ) ->
+        {
             c.add( ech.toString() );
         } );
         return c;
@@ -300,18 +299,6 @@ public class AppScaleImpl implements AppScaleInterface, EnvironmentEventListener
     public void setNetworkManager( NetworkManager networkManager )
     {
         this.networkManager = networkManager;
-    }
-
-
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
-    }
-
-
-    public void setQuotaManager( QuotaManager quotaManager )
-    {
-        this.quotaManager = quotaManager;
     }
 
 

@@ -16,24 +16,20 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
-import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
-import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
-import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.core.plugincommon.api.PluginDAO;
+import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.oozie.api.Oozie;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
-import io.subutai.plugin.oozie.impl.alert.OozieAlertListener;
 import io.subutai.plugin.oozie.impl.handler.ClusterOperationHandler;
 import io.subutai.plugin.oozie.impl.handler.NodeOperationHandler;
 
@@ -45,7 +41,6 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
     private final MonitoringSettings alertSettings = new MonitoringSettings().withIntervalBetweenAlertsInMin( 45 );
 
     private Monitor monitor;
-    private QuotaManager quotaManager;
 
     private Tracker tracker;
     private PluginDAO pluginDao;
@@ -268,34 +263,22 @@ public class OozieImpl implements Oozie, EnvironmentEventListener
     }
 
 
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
-    }
-
-
-    public void setQuotaManager( final QuotaManager quotaManager )
-    {
-        this.quotaManager = quotaManager;
-    }
-
-
-//    public void subscribeToAlerts( Environment environment ) throws MonitorException
-//    {
-//        getMonitor().startMonitoring( OozieAlertListener.OOZIE_ALERT_LISTENER, environment, alertSettings );
-//    }
-//
-//
-//    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
-//    {
-//        getMonitor().activateMonitoring( host, alertSettings );
-//    }
-//
-//
-//    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
-//    {
-//        getMonitor().stopMonitoring( OozieAlertListener.OOZIE_ALERT_LISTENER, environment );
-//    }
+    //    public void subscribeToAlerts( Environment environment ) throws MonitorException
+    //    {
+    //        getMonitor().startMonitoring( OozieAlertListener.OOZIE_ALERT_LISTENER, environment, alertSettings );
+    //    }
+    //
+    //
+    //    public void subscribeToAlerts( EnvironmentContainerHost host ) throws MonitorException
+    //    {
+    //        getMonitor().activateMonitoring( host, alertSettings );
+    //    }
+    //
+    //
+    //    public void unsubscribeFromAlerts( final Environment environment ) throws MonitorException
+    //    {
+    //        getMonitor().stopMonitoring( OozieAlertListener.OOZIE_ALERT_LISTENER, environment );
+    //    }
 
 
     @Override

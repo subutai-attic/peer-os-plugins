@@ -19,18 +19,17 @@ import io.subutai.common.peer.PeerException;
 import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitorException;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
-import io.subutai.core.plugincommon.api.NodeType;
-import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
 import io.subutai.core.plugincommon.api.NodeOperationType;
+import io.subutai.core.plugincommon.api.NodeType;
 import io.subutai.core.plugincommon.api.PluginDAO;
+import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hbase.api.HBase;
 import io.subutai.plugin.hbase.api.HBaseConfig;
@@ -51,7 +50,6 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     private PluginDAO pluginDAO;
     private Commands commands;
     private Monitor monitor;
-    private QuotaManager quotaManager;
     private HBaseWebModule webModule;
     private PeerManager peerManager;
 
@@ -338,12 +336,6 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     public void setTracker( Tracker tracker )
     {
         this.tracker = tracker;
-    }
-
-
-    public void setQuotaManager( final QuotaManager quotaManager )
-    {
-        this.quotaManager = quotaManager;
     }
 
 

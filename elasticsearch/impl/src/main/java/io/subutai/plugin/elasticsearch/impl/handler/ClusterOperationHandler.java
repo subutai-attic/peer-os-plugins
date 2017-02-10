@@ -243,7 +243,7 @@ public class ClusterOperationHandler
                     ContainerPlacementStrategy strategy =
                             manager.getStrategyManager().findStrategyById( RoundRobinStrategy.ID );
                     PeerGroupResources peerGroupResources = manager.getPeerManager().getPeerGroupResources();
-                    Map<ContainerSize, ContainerQuota> quotas = manager.getQuotaManager().getDefaultQuotas();
+                    Map<ContainerSize, ContainerQuota> quotas = ContainerSize.getDefaultQuotas();
 
                     Topology topology =
                             strategy.distribute( blueprint.getName(), blueprint.getNodes(), peerGroupResources,
