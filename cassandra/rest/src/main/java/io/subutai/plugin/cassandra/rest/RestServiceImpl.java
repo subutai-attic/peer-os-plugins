@@ -140,7 +140,7 @@ public class RestServiceImpl implements RestService
                 containerDto.setId( containerHost.getId() );
 
                 UUID uuid = cassandraManager.checkNode( clusterName, node );
-                OperationState state = waitUntilOperationFinish( uuid );
+                OperationState state = waitUntilOperationFinish( uuid, 90 );
                 Response response = createResponse( uuid, state );
                 if ( response.getStatus() == 200 && !response.getEntity().toString()
                                                              .contains( "Active: active (running)" ) )
@@ -186,14 +186,14 @@ public class RestServiceImpl implements RestService
     @Override
     public Response destroyCluster( final String clusterName )
     {
-        if ( cassandraManager.getCluster( clusterName ) == null )
+        CassandraClusterConfig cassandraClusterConfig = cassandraManager.getCluster( clusterName );
+        if ( cassandraClusterConfig == null )
         {
             return Response.status( Response.Status.INTERNAL_SERVER_ERROR ).
                     entity( clusterName + " cluster not found." ).build();
         }
         UUID uuid = cassandraManager.uninstallCluster( clusterName );
-        waitUntilOperationFinish( uuid );
-        OperationState state = waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid, cassandraClusterConfig.getNumberOfSeeds() * 60 );
         return createResponse( uuid, state );
     }
 
@@ -208,8 +208,7 @@ public class RestServiceImpl implements RestService
                     entity( clusterName + " cluster not found." ).build();
         }
         UUID uuid = cassandraManager.removeCluster( clusterName );
-        waitUntilOperationFinish( uuid );
-        OperationState state = waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid, 180 );
         return createResponse( uuid, state );
     }
 
@@ -257,8 +256,7 @@ public class RestServiceImpl implements RestService
 
 
         UUID uuid = cassandraManager.installCluster( config );
-        waitUntilOperationFinish( uuid );
-        OperationState state = waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid, 300 );
         return createResponse( uuid, state );
     }
 
@@ -273,8 +271,7 @@ public class RestServiceImpl implements RestService
                     entity( clusterName + " cluster not found." ).build();
         }
         UUID uuid = cassandraManager.startCluster( clusterName );
-        waitUntilOperationFinish( uuid );
-        OperationState state = waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid, 180 );
         return createResponse( uuid, state );
     }
 
@@ -289,8 +286,7 @@ public class RestServiceImpl implements RestService
                     entity( clusterName + " cluster not found." ).build();
         }
         UUID uuid = cassandraManager.stopCluster( clusterName );
-        waitUntilOperationFinish( uuid );
-        OperationState state = waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid, 180 );
         return createResponse( uuid, state );
     }
 
@@ -305,8 +301,7 @@ public class RestServiceImpl implements RestService
                     entity( clusterName + " cluster not found." ).build();
         }
         UUID uuid = cassandraManager.checkCluster( clusterName );
-        waitUntilOperationFinish( uuid );
-        OperationState state = waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid, 180 );
         return createResponse( uuid, state );
     }
 
@@ -340,7 +335,7 @@ public class RestServiceImpl implements RestService
                     entity( clusterName + " cluster not found." ).build();
         }
         UUID uuid = cassandraManager.addNode( clusterName );
-        OperationState state = waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid, 180 );
         return createResponse( uuid, state );
     }
 
@@ -356,7 +351,7 @@ public class RestServiceImpl implements RestService
                     entity( clusterName + " cluster not found." ).build();
         }
         UUID uuid = cassandraManager.destroyNode( clusterName, hostId );
-        OperationState state = waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid, 90 );
         return createResponse( uuid, state );
     }
 
@@ -372,7 +367,7 @@ public class RestServiceImpl implements RestService
                     entity( clusterName + " cluster not found." ).build();
         }
         UUID uuid = cassandraManager.checkNode( clusterName, hostId );
-        OperationState state = waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid, 90 );
         return createResponse( uuid, state );
     }
 
@@ -388,7 +383,7 @@ public class RestServiceImpl implements RestService
                     entity( clusterName + " cluster not found" ).build();
         }
         UUID uuid = cassandraManager.startService( clusterName, lxchostId );
-        OperationState state = waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid, 90 );
         return createResponse( uuid, state );
     }
 
@@ -413,7 +408,7 @@ public class RestServiceImpl implements RestService
         for ( String host : hosts )
         {
             UUID uuid = cassandraManager.startService( clusterName, host );
-            OperationState state = waitUntilOperationFinish( uuid );
+            OperationState state = waitUntilOperationFinish( uuid, 90 );
             Response response = createResponse( uuid, state );
 
             if ( response.getStatus() != 200 )
@@ -455,7 +450,7 @@ public class RestServiceImpl implements RestService
         for ( String host : hosts )
         {
             UUID uuid = cassandraManager.stopService( clusterName, host );
-            OperationState state = waitUntilOperationFinish( uuid );
+            OperationState state = waitUntilOperationFinish( uuid, 90 );
             Response response = createResponse( uuid, state );
 
             if ( response.getStatus() != 200 )
@@ -485,7 +480,7 @@ public class RestServiceImpl implements RestService
                     entity( clusterName + " cluster not found" ).build();
         }
         UUID uuid = cassandraManager.stopService( clusterName, lxchostId );
-        OperationState state = waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid, 90 );
         return createResponse( uuid, state );
     }
 
@@ -573,7 +568,7 @@ public class RestServiceImpl implements RestService
     }
 
 
-    private OperationState waitUntilOperationFinish( UUID uuid )
+    private OperationState waitUntilOperationFinish( UUID uuid, int seconds )
     {
         OperationState state = null;
         long start = System.currentTimeMillis();
@@ -596,7 +591,7 @@ public class RestServiceImpl implements RestService
             {
                 break;
             }
-            if ( System.currentTimeMillis() - start > ( 90 * 1000 ) )
+            if ( System.currentTimeMillis() - start > ( seconds * 1000 ) )
             {
                 break;
             }
@@ -665,8 +660,7 @@ public class RestServiceImpl implements RestService
         }
 
         UUID uuid = cassandraManager.installCluster( clusterConfig );
-        waitUntilOperationFinish( uuid );
-        OperationState state = waitUntilOperationFinish( uuid );
+        OperationState state = waitUntilOperationFinish( uuid, clusterConfig.getNumberOfSeeds() * 90 );
         return createResponse( uuid, state );
     }
 
