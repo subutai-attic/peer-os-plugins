@@ -513,8 +513,18 @@ public class ClusterConfiguration
 
         try
         {
-            // Setting cluster name
             CommandResult commandResult =
+                    host.execute( new RequestBuilder( Commands.NODETOOL_DECOMMISSION ).withTimeout( 360 ) );
+            po.addLog( commandResult.getStdOut() );
+            if ( !commandResult.hasSucceeded() )
+            {
+                throw new IllegalStateException(
+                        "Node decommission failed. Please see logs and try again OR another way of removing of "
+                                + "Cassandra node." );
+            }
+
+            // Setting cluster name
+            commandResult =
                     host.execute( new RequestBuilder( String.format( Commands.SCRIPT, Commands.CLUSTER_NAME_PARAM ) ) );
             po.addLog( commandResult.getStdOut() );
 
@@ -567,7 +577,7 @@ public class ClusterConfiguration
             commandResult = host.execute( new RequestBuilder( Commands.RESTART_COMMAND ) );
             po.addLog( commandResult.getStdOut() );
         }
-        catch ( CommandException e )
+        catch ( Exception e )
         {
             po.addLogFailed( "Installation failed" );
             throw new ClusterConfigurationException( e.getMessage() );
