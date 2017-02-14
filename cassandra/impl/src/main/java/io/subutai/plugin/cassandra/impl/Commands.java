@@ -58,6 +58,8 @@ public class Commands
 
     private static final String NODETOOL_STATUS = "nodetool status";
 
+    public static final String NODETOOL_DECOMMISSION = "nodetool decommission";
+
     private static final String HS_ERRORS = "cat /var/lib/cassandra/hs_err*.log";
 
     private static final String AVAILABLE_RAM =
@@ -141,6 +143,12 @@ public class Commands
     public static String getNodetoolStatus()
     {
         return NODETOOL_STATUS;
+    }
+
+
+    public static String getNodetoolDecommission()
+    {
+        return NODETOOL_DECOMMISSION;
     }
 
 

@@ -139,7 +139,6 @@ public class NodeOperationHandler extends AbstractOperationHandler<CassandraImpl
                 try
                 {
                     configurator.removeNode( host );
-                    configurator.configureCluster( config, environment );
                 }
                 catch ( ClusterConfigurationException e )
                 {
