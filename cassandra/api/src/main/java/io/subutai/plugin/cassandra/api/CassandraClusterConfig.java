@@ -1,14 +1,12 @@
 package io.subutai.plugin.cassandra.api;
 
 
+import java.util.HashSet;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
-
-import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.settings.Common;
-import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.plugincommon.api.ConfigBase;
+import io.subutai.hub.share.quota.ContainerSize;
 
 
 public class CassandraClusterConfig implements ConfigBase
@@ -22,7 +20,7 @@ public class CassandraClusterConfig implements ConfigBase
     private String clusterName = "";
     private String domainName = Common.DEFAULT_DOMAIN_NAME;
     private int numberOfSeeds;
-    private Set<String> seedNodes;
+    private Set<String> seedNodes = new HashSet<>();
     private String dataDirectory = "/var/lib/cassandra/data";
     private String commitLogDirectory = "/var/lib/cassandra/commitlog";
     private String savedCachesDirectory = "/var/lib/cassandra/saved_caches";
@@ -159,6 +157,16 @@ public class CassandraClusterConfig implements ConfigBase
     }
 
 
+    public void addSeedNode( final String seedIp )
+    {
+        if ( this.seedNodes == null )
+        {
+            this.seedNodes = new HashSet<>();
+        }
+        this.seedNodes.add( seedIp );
+    }
+
+
     public String getDomainName()
     {
         return domainName;
@@ -174,13 +182,9 @@ public class CassandraClusterConfig implements ConfigBase
     @Override
     public String toString()
     {
-        return "Config{" +
-                "clusterName='" + clusterName + '\'' +
-                ", domainName='" + domainName + '\'' +
-                ", numberOfSeeds=" + numberOfSeeds +
-                ", dataDirectory='" + dataDirectory + '\'' +
-                ", commitLogDirectory='" + commitLogDirectory + '\'' +
-                ", savedCachesDirectory='" + savedCachesDirectory + '\'' +
-                '}';
+        return "Config{" + "clusterName='" + clusterName + '\'' + ", domainName='" + domainName + '\''
+                + ", numberOfSeeds=" + numberOfSeeds + ", dataDirectory='" + dataDirectory + '\''
+                + ", commitLogDirectory='" + commitLogDirectory + '\'' + ", savedCachesDirectory='"
+                + savedCachesDirectory + '\'' + '}';
     }
 }

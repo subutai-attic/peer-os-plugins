@@ -58,11 +58,11 @@
           data available in table
         </td>
         <tr ng-if="hadoopCtrl.currentCluster.nameNode !== undefined">
-          <td class="b-main-table__container-status">
-            <div
-                class="b-status-icon b-status-icon_{{ hadoopCtrl.currentCluster.nameNode.status }}"
-                tooltips
-                tooltip-title="{{ hadoopCtrl.currentCluster.nameNode.status }}">
+          <td>
+            <div class="b-status-icon b-status-icon_{{ hadoopCtrl.currentCluster.nameNode.status }}"
+                 tooltips
+                 tooltip-template="{{ hadoopCtrl.currentCluster.nameNode.status }}"
+                 tooltip-side="right">
             </div>
           </td>
           <td>Name Node</td>
@@ -140,11 +140,11 @@
         </thead>
         <tbody>
         <tr ng-repeat="(key, slave) in hadoopCtrl.currentCluster.slaves">
-          <td class="b-main-table__container-status">
-            <div
-                class="b-status-icon b-status-icon_{{ slave.status }}"
-                tooltips
-                tooltip-title="{{ slave.status }}">
+          <td>
+            <div class="b-status-icon b-status-icon_{{ slave.status }}"
+                 tooltips
+                 tooltip-template="{{ slave.status }}"
+                 tooltip-side="right">
             </div>
           </td>
           <td>{{ slave.hostname }}</td>

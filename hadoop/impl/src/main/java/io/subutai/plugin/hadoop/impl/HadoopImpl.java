@@ -2,7 +2,6 @@ package io.subutai.plugin.hadoop.impl;
 
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -16,18 +15,14 @@ import com.google.common.base.Strings;
 
 import io.subutai.common.environment.Blueprint;
 import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.EnvironmentNotFoundException;
-import io.subutai.common.environment.Node;
 import io.subutai.common.environment.NodeSchema;
 import io.subutai.common.mdc.SubutaiExecutors;
-import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.PeerException;
 import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.common.util.UUIDUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.network.api.NetworkManager;
@@ -59,7 +54,6 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     private EnvironmentManager environmentManager;
     private PluginDAO pluginDAO;
     private Monitor monitor;
-    private QuotaManager quotaManager;
     private PeerManager peerManager;
     private NetworkManager networkManager;
     private StrategyManager strategyManager;
@@ -124,18 +118,6 @@ public class HadoopImpl implements Hadoop, EnvironmentEventListener
     public void setNetworkManager( final NetworkManager networkManager )
     {
         this.networkManager = networkManager;
-    }
-
-
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
-    }
-
-
-    public void setQuotaManager( final QuotaManager quotaManager )
-    {
-        this.quotaManager = quotaManager;
     }
 
 

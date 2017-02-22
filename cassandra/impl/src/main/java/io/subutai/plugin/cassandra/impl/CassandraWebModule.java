@@ -16,7 +16,7 @@ public class CassandraWebModule implements WebuiModule
 {
     private static String NAME = "Cassandra";
     private static String IMG = "plugins/cassandra/cassandra.png";
-    private static final String SIZE = "MEDIUM";
+    private static final String SIZE = "HUGE";
 
     private static final Map<String, Integer> TEMPLATES_REQUIREMENT;
 

@@ -16,7 +16,6 @@ import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
-import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
@@ -37,7 +36,6 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
     private static final Logger LOG = LoggerFactory.getLogger( StormImpl.class.getName() );
 
     private StrategyManager strategyManager;
-    private QuotaManager quotaManager;
     private TemplateManager templateManager;
 
 
@@ -330,18 +328,6 @@ public class StormImpl extends StormBase implements EnvironmentEventListener
     public void setStrategyManager( final StrategyManager strategyManager )
     {
         this.strategyManager = strategyManager;
-    }
-
-
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
-    }
-
-
-    public void setQuotaManager( final QuotaManager quotaManager )
-    {
-        this.quotaManager = quotaManager;
     }
 
 

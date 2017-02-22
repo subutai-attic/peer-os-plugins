@@ -19,7 +19,6 @@ import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.lxc.quota.api.QuotaManager;
 import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.metric.api.MonitoringSettings;
 import io.subutai.core.peer.api.PeerManager;
@@ -47,7 +46,6 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     private EnvironmentManager environmentManager;
     private PluginDAO pluginDAO;
     private PeerManager peerManager;
-    private QuotaManager quotaManager;
     private StrategyManager strategyManager;
     private Monitor monitor;
     private TemplateManager templateManager;
@@ -434,18 +432,6 @@ public class CassandraImpl implements Cassandra, EnvironmentEventListener
     public void setStrategyManager( final StrategyManager strategyManager )
     {
         this.strategyManager = strategyManager;
-    }
-
-
-    public QuotaManager getQuotaManager()
-    {
-        return quotaManager;
-    }
-
-
-    public void setQuotaManager( final QuotaManager quotaManager )
-    {
-        this.quotaManager = quotaManager;
     }
 
 

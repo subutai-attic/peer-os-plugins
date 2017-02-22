@@ -26,11 +26,10 @@ import io.subutai.common.environment.Environment;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.lxc.quota.api.QuotaManager;
-import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.core.plugincommon.api.PluginDAO;
+import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hadoop.api.HadoopClusterConfig;
 import io.subutai.plugin.oozie.api.OozieClusterConfig;
@@ -87,8 +86,6 @@ public class OozieImplTest
     ResultSet resultSet;
     @Mock
     ResultSetMetaData resultSetMetaData;
-    @Mock
-    QuotaManager quotaManager;
 
 
     @Before
@@ -114,7 +111,6 @@ public class OozieImplTest
         oozieImpl.setPluginDao( pluginDAO );
         oozieImpl.setEnvironmentManager( environmentManager );
         oozieImpl.setHadoopManager( hadoop );
-        oozieImpl.setQuotaManager( quotaManager );
     }
 
 
@@ -299,13 +295,6 @@ public class OozieImplTest
 
         // assertions
         assertNotNull( oozieImpl.destroyNode( "test", "test" ) );
-    }
-
-
-    @Test
-    public void testGetQuotaManager() throws Exception
-    {
-        oozieImpl.getQuotaManager();
     }
 
 

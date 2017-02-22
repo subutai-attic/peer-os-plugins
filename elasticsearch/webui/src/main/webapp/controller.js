@@ -46,16 +46,10 @@ function ElasticSearchCtrl($scope, elasticSearchSrv, SweetAlert, DTOptionsBuilde
     function showContainers(environmentId) {
         vm.containers = [];
         vm.seeds = [];
-        for (var i in vm.environments) {
-            if (environmentId == vm.environments[i].id) {
-                for (var j = 0; j < vm.environments[i].containers.length; j++) {
-                    if (vm.environments[i].containers[j].templateName == 'elasticsearch') {
-                        vm.containers.push(vm.environments[i].containers[j]);
-                    }
-                }
-                break;
-            }
-        }
+
+        elasticSearchSrv.getContainers(environmentId).success(function (data) {
+            vm.containers = data;
+        });
     }
 
     function getClusters() {

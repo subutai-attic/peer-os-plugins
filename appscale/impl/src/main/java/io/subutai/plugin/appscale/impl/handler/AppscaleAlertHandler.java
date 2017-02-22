@@ -2,40 +2,30 @@ package io.subutai.plugin.appscale.impl.handler;
 
 
 import java.math.BigDecimal;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
-
-import javax.security.auth.Subject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.subutai.common.environment.Environment;
-import io.subutai.common.environment.NodeSchema;
-import io.subutai.common.environment.Topology;
 import io.subutai.common.metric.ExceededQuota;
 import io.subutai.common.metric.QuotaAlertValue;
 import io.subutai.common.peer.AlertHandlerException;
-import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.ExceededQuotaAlertHandler;
 import io.subutai.hub.share.quota.ContainerOptResource;
-import io.subutai.hub.share.quota.ContainerQuota;
 import io.subutai.hub.share.resource.ByteValueResource;
 import io.subutai.hub.share.resource.ContainerResourceType;
 import io.subutai.hub.share.resource.PeerGroupResources;
 import io.subutai.hub.share.resource.PeerResources;
-import io.subutai.core.identity.api.model.Session;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.impl.AppScaleImpl;
-import io.subutai.plugin.appscale.impl.AppscalePlacementStrategy;
 
 
 /**
@@ -141,7 +131,6 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
             lock ( environment.getId () );
 
             final PeerGroupResources peerGroupResources = appScale.getPeerManager ().getPeerGroupResources ();
-            final Map<ContainerSize, ContainerQuota> quotas = appScale.getQuotaManager ().getDefaultQuotas ();
 
             final List<PeerResources> resources = new ArrayList<> ();
             final List<String> preferredPeerList = getPreferredPeers ( environment, peerGroupResources );

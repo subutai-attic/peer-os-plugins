@@ -14,6 +14,7 @@ function hadoopSrv($http, environmentService) {
         getPluginInfo: getPluginInfo,
         createHadoop: createHadoop,
         getClusters: getClusters,
+        getContainers: getContainers,
         changeClusterScaling: changeClusterScaling,
         deleteCluster: deleteCluster,
         deleteNode: deleteNode,
@@ -62,6 +63,14 @@ function hadoopSrv($http, environmentService) {
     function getEnvironments() {
         return environmentService.getEnvironments();
     }
+
+    function getContainers(envId) {
+        return $http.get(
+            BASE_URL + 'containers/' + envId,
+            {withCredentials: true, headers: {'Content-Type': 'application/json'}}
+        );
+    }
+
 
     function deleteCluster(clusterName) {
         return $http.delete(CLUSTER_URL + clusterName);

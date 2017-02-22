@@ -4,6 +4,7 @@ package io.subutai.plugin.mongodb.rest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -13,11 +14,17 @@ import javax.ws.rs.core.Response;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
+import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.ContainerHostNotFoundException;
 import io.subutai.common.environment.Environment;
 import io.subutai.common.environment.EnvironmentNotFoundException;
@@ -46,6 +53,7 @@ import io.subutai.plugin.mongodb.rest.pojo.VersionPojo;
 
 public class RestServiceImpl implements RestService
 {
+    private static final Logger LOG = LoggerFactory.getLogger( RestServiceImpl.class );
 
     private Mongo mongo;
     private Tracker tracker;
@@ -55,6 +63,41 @@ public class RestServiceImpl implements RestService
     public RestServiceImpl( final Mongo mongo )
     {
         this.mongo = mongo;
+    }
+
+
+    @Override
+    public Response getContainers( final String envId )
+    {
+        Set<ContainerPojo> containers = new HashSet<>();
+        try
+        {
+            Environment environment = environmentManager.loadEnvironment( envId );
+
+            for ( final EnvironmentContainerHost containerHost : environment.getContainerHosts() )
+            {
+                CommandResult result =
+                        containerHost.execute( new RequestBuilder( "dpkg -l | grep '^ii' | grep mongo" ) );
+
+                if ( StringUtils.containsIgnoreCase( result.getStdOut(), "mongodb" ) )
+                {
+                    ContainerPojo pojo = new ContainerPojo( containerHost.getHostname(), containerHost.getId(),
+                            containerHost.getIp(), null );
+                    containers.add( pojo );
+                }
+            }
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Environment not found" );
+        }
+        catch ( CommandException e )
+        {
+            LOG.error( "Error in executing command" );
+        }
+
+        String containerInfo = JsonUtil.GSON.toJson( containers );
+        return Response.status( Response.Status.OK ).entity( containerInfo ).build();
     }
 
 

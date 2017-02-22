@@ -9,7 +9,10 @@ public class ContainerDto
     private String id;
 
 
-    public ContainerDto() {}
+    public ContainerDto()
+    {
+    }
+
 
     public ContainerDto( final String hostname, final String ip, final String status )
     {
@@ -58,5 +61,11 @@ public class ContainerDto
     public void setId( final String id )
     {
         this.id = id;
+    }
+
+
+    public String getId()
+    {
+        return id;
     }
 }

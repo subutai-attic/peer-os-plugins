@@ -8,6 +8,12 @@ import javax.ws.rs.core.Response;
 
 public interface RestService
 {
+    // get container list
+    @GET
+    @Path( "containers/{envId}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    Response getContainers( @PathParam( "envId" ) String envId );
+
 
     //list clusters
     @GET

@@ -15,6 +15,13 @@ import javax.ws.rs.core.Response;
 
 public interface RestService
 {
+    // get container list
+    @GET
+    @Path( "containers/{envId}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    Response getContainers( @PathParam( "envId" ) String envId );
+
+
     // list clusters
     @GET
     @Path( "clusters" )
@@ -46,22 +53,19 @@ public interface RestService
     @GET
     @Path( "clusters/{clusterName}/check/node/{nodeId}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response statusCheck( @PathParam( "clusterName" ) String clusterName,
-                                 @PathParam( "nodeId" ) String nodeId );
+    public Response statusCheck( @PathParam( "clusterName" ) String clusterName, @PathParam( "nodeId" ) String nodeId );
 
     // start node
     @PUT
     @Path( "clusters/{clusterName}/start/node/{nodeId}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response startNode( @PathParam( "clusterName" ) String clusterName,
-                               @PathParam( "nodeId" ) String nodeId );
+    public Response startNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "nodeId" ) String nodeId );
 
     // stop node
     @PUT
     @Path( "clusters/{clusterName}/stop/node/{nodeId}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response stopNode( @PathParam( "clusterName" ) String clusterName,
-                              @PathParam( "nodeId" ) String nodeId );
+    public Response stopNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "nodeId" ) String nodeId );
 
     //start nodes
     @POST
@@ -87,8 +91,7 @@ public interface RestService
     @DELETE
     @Path( "clusters/{clusterName}/destroy/node/{nodeId}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Response destroyNode( @PathParam( "clusterName" ) String clusterName,
-                                 @PathParam( "nodeId" ) String nodeId );
+    public Response destroyNode( @PathParam( "clusterName" ) String clusterName, @PathParam( "nodeId" ) String nodeId );
 
     //check cluster
     @GET
@@ -118,8 +121,8 @@ public interface RestService
                                       @PathParam( "scale" ) boolean scale );
 
 
-	@GET
-	@Path( "about" )
-	@Produces( { MediaType.TEXT_PLAIN } )
-	public Response getPluginInfo();
+    @GET
+    @Path( "about" )
+    @Produces( { MediaType.TEXT_PLAIN } )
+    public Response getPluginInfo();
 }

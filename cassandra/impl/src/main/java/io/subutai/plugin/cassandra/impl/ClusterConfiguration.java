@@ -1,8 +1,21 @@
 package io.subutai.plugin.cassandra.impl;
 
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.apache.commons.digester.plugins.PluginConfigurationException;
+import org.apache.commons.lang3.StringUtils;
 
 import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
@@ -19,6 +32,12 @@ import io.subutai.plugin.cassandra.api.CassandraClusterConfig;
 
 public class ClusterConfiguration
 {
+    private static final Logger LOG = LoggerFactory.getLogger( ClusterConfiguration.class );
+    private static final long MB = 1024 * 1024;
+    private static final long GB = MB * 1024;
+    private static final String CHAIN_AND_OPERATOR = " && ";
+    public static final String NET_INTERFACE = "eth0";
+    private static final int NODE_WAIT_TIMEOUT = 65;
 
     private TrackerOperation po;
     private CassandraImpl cassandraManager;
@@ -31,8 +50,249 @@ public class ClusterConfiguration
     }
 
 
-    //TODO use host.getInterfaces instead of Agents
     public void configureCluster( CassandraClusterConfig config, Environment environment )
+            throws ClusterConfigurationException
+    {
+        po.addLog( String.format( "Configuring cluster: %s", config.getClusterName() ) );
+
+        Set<EnvironmentContainerHost> allNodes = environment.getContainerHosts();
+
+        if ( allNodes.size() <= 1 )
+        {
+            return;
+        }
+
+        // copy seed nodes to list
+        List<String> seedNodes = new ArrayList<>();
+        seedNodes.addAll( config.getSeedNodes() );
+
+        // clear seed nodes from configuration
+        config.setSeedNodes( new HashSet<String>() );
+
+        // up seed nodes
+        for ( String nodeName : seedNodes )
+        {
+            try
+            {
+                EnvironmentContainerHost node = environment.getContainerHostByHostname( nodeName );
+                config.addSeedNode( nodeName );
+                addNode( config, environment, node );
+            }
+            catch ( ContainerHostNotFoundException e )
+            {
+                LOG.error( e.getMessage(), e );
+                po.addLogFailed( e.getMessage() );
+                throw new ClusterConfigurationException( e );
+            }
+        }
+        Iterator<EnvironmentContainerHost> iterator = allNodes.iterator();
+
+        config.setEnvironmentId( environment.getId() );
+
+        try
+        {
+
+            while ( iterator.hasNext() )
+            {
+                EnvironmentContainerHost node = iterator.next();
+
+                if ( !seedNodes.contains( node.getHostname() ) )
+                {
+                    config.addSeedNode( node.getHostname() );
+                    addNode( config, environment, node );
+                }
+            }
+            cassandraManager.saveConfig( config );
+        }
+        catch ( ClusterException e )
+        {
+            LOG.error( e.getMessage(), e );
+            po.addLogFailed( e.getMessage() );
+            throw new ClusterConfigurationException( e );
+        }
+
+
+        po.addLogDone( "Cassandra cluster data saved into database" );
+    }
+
+
+    public void addNode( final CassandraClusterConfig config, final Environment environment,
+                         final EnvironmentContainerHost node ) throws ClusterConfigurationException
+    {
+        LOG.debug( "Trying to configure Cassandra on {}.", node.getId() );
+
+        final String[] commands = getCommands( node, config );
+        po.addLog( String.format( "Trying to configure Cassandra on %s}.", node.getId() ) );
+        try
+        {
+            CommandResult response = execute( node, NODE_WAIT_TIMEOUT, Commands.getAvailableRam() );
+            String ramLimitStr = response.getStdOut().trim();
+            LOG.debug( "RAM limit on {}: {}.", node.getId(), ramLimitStr );
+
+            Long ramLimit = Long.valueOf( ramLimitStr );
+
+            //            max(min(1/2 ram, 1024MB), min(1/4 ram, 8GB))
+            if ( ramLimit < 2 * GB )
+            {
+                throw new Exception(
+                        String.format( "Insufficient memory on %s. Current available memory: %d", node.getId(),
+                                ramLimit ) );
+            }
+
+            long heapSize = Double.valueOf(
+                    Math.max( Math.min( ramLimit * 0.5, 1024 * MB ), Math.min( ramLimit * 0.25, 8 * GB ) ) )
+                                  .longValue();
+
+            if ( heapSize < GB )
+            {
+                throw new Exception(
+                        String.format( "Insufficient memory on %s. Current available memory: %d", node.getId(),
+                                ramLimit ) );
+            }
+            long heapSizeInMb = heapSize / MB;
+            response = execute( node, NODE_WAIT_TIMEOUT, Commands.getHeapSize( heapSizeInMb ) );
+            if ( response.getExitCode() == 0 )
+            {
+                LOG.debug( "Now heap size of {}={}Mb.", node.getId(), heapSizeInMb );
+            }
+            else
+            {
+                LOG.debug( "Could not set heap size of node {} to {}Mb.", node.getId(), heapSize );
+            }
+
+            // Create directories
+            CommandResult commandResult =
+                    node.execute( new RequestBuilder( String.format( "mkdir -p %s", config.getDataDirectory() ) ) );
+            po.addLog( commandResult.getStdOut() );
+            commandResult = node.execute(
+                    new RequestBuilder( String.format( "mkdir -p %s", config.getCommitLogDirectory() ) ) );
+            po.addLog( commandResult.getStdOut() );
+            commandResult = node.execute(
+                    new RequestBuilder( String.format( "mkdir -p %s", config.getSavedCachesDirectory() ) ) );
+
+            po.addLog( commandResult.getStdOut() );
+
+            execute( node, NODE_WAIT_TIMEOUT, commands );
+
+            long waitThreshold = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis( NODE_WAIT_TIMEOUT );
+
+            String regex = String.format( "^UN\\s*%s.*", node.getInterfaceByName( NET_INTERFACE ).getIp() );
+
+            while ( waitThreshold > System.currentTimeMillis() )
+            {
+                try
+                {
+                    TimeUnit.SECONDS.sleep( 15 );
+                }
+                catch ( InterruptedException ignore )
+                {
+                    //ignore
+                }
+
+                response = null;
+                try
+                {
+                    response = execute( node, NODE_WAIT_TIMEOUT, Commands.getNodetoolStatus() );
+                }
+                catch ( Exception ignore )
+                {
+                    //ignore
+                }
+
+                if ( response != null && response.getExitCode() == 0 && response.getStdOut() != null )
+                {
+                    List<String> status = getClusterStatus( response.getStdOut() );
+
+                    for ( String s : status )
+                    {
+                        if ( s.matches( regex ) )
+                        {
+                            LOG.debug( "C* successfully started on {}.", node.getId() );
+                            po.addLog( String.format( "Configure Cassandra process succeeded on %s.", node.getId() ) );
+                            return;
+                        }
+                    }
+                }
+            }
+
+            LOG.debug( "Cassandra configuration on {} failed.", node.getId() );
+            final CommandResult errResponse = execute( node, 15, Commands.getHsErrors() );
+
+            LOG.debug( "HR_ERR: {}.", errResponse.getStdOut() );
+        }
+        catch ( Exception e )
+        {
+            LOG.debug( "HR_ERR: {}", e.getMessage() );
+        }
+
+        throw new PluginConfigurationException( "Cassandra configuration failed on : " + node.getId() );
+    }
+
+
+    private CommandResult execute( final EnvironmentContainerHost node, final int timeout, final String command )
+            throws CommandException
+    {
+        RequestBuilder requestBuilder = new RequestBuilder( command ).withTimeout( timeout );
+        return node.execute( requestBuilder );
+    }
+
+
+    private CommandResult execute( final EnvironmentContainerHost node, final int timeout, final String[] commands )
+            throws CommandException
+    {
+        RequestBuilder requestBuilder =
+                new RequestBuilder( StringUtils.join( commands, CHAIN_AND_OPERATOR ) ).withTimeout( timeout );
+        return node.execute( requestBuilder );
+    }
+
+
+    private List<String> getClusterStatus( String output )
+    {
+        final List<String> result = new ArrayList<>();
+
+
+        BufferedReader input = new BufferedReader( new StringReader( output ) );
+        String line = null;
+
+        try
+        {
+            while ( ( line = input.readLine() ) != null )
+            {
+                result.add( line );
+            }
+        }
+        catch ( IOException e )
+        {
+            LOG.error( e.getMessage() );
+        }
+
+        return result;
+    }
+
+
+    private String[] getCommands( final EnvironmentContainerHost node, final CassandraClusterConfig config )
+    {
+        String ipAddress = node.getInterfaceByName( "eth0" ).getIp();
+        String seedNodes = StringUtils.join( config.getSeedNodes(), "," );
+        String clusterNameParam = "cluster_name " + config.getClusterName();
+        String dataDirParam = "data_dir " + config.getDataDirectory();
+        String commitLogDirParam = "commitlog_dir " + config.getCommitLogDirectory();
+        String savedCacheDirParam = "saved_cache_dir " + config.getSavedCachesDirectory();
+
+        return new String[] {
+                Commands.getReplacePropertyCommand( clusterNameParam ), Commands.getSeedsCommand( seedNodes ),
+                Commands.getListenAddressCommand( ipAddress ), Commands.getRpcAddressCommand( ipAddress ),
+                Commands.getEndpointSnitchCommand(), Commands.getReplacePropertyCommand( dataDirParam ),
+                Commands.getReplacePropertyCommand( commitLogDirParam ),
+                Commands.getReplacePropertyCommand( savedCacheDirParam ), Commands.getAutoBootstrapCommand(),
+                Commands.getStopCommand(), Commands.getRemoveFolderCommand(), Commands.getCreateFolderCommand(),
+                Commands.getChownFolderCommand(), Commands.getRestartCommand()
+        };
+    }
+
+
+    //TODO use host.getInterfaces instead of Agents
+    public void configureClusterOld( CassandraClusterConfig config, Environment environment )
             throws ClusterConfigurationException
     {
         po.addLog( String.format( "Configuring cluster: %s", config.getClusterName() ) );
@@ -253,8 +513,18 @@ public class ClusterConfiguration
 
         try
         {
-            // Setting cluster name
             CommandResult commandResult =
+                    host.execute( new RequestBuilder( Commands.NODETOOL_DECOMMISSION ).withTimeout( 360 ) );
+            po.addLog( commandResult.getStdOut() );
+            if ( !commandResult.hasSucceeded() )
+            {
+                throw new IllegalStateException(
+                        "Node decommission failed. Please see logs and try again OR another way of removing of "
+                                + "Cassandra node." );
+            }
+
+            // Setting cluster name
+            commandResult =
                     host.execute( new RequestBuilder( String.format( Commands.SCRIPT, Commands.CLUSTER_NAME_PARAM ) ) );
             po.addLog( commandResult.getStdOut() );
 
@@ -307,7 +577,7 @@ public class ClusterConfiguration
             commandResult = host.execute( new RequestBuilder( Commands.RESTART_COMMAND ) );
             po.addLog( commandResult.getStdOut() );
         }
-        catch ( CommandException e )
+        catch ( Exception e )
         {
             po.addLogFailed( "Installation failed" );
             throw new ClusterConfigurationException( e.getMessage() );
@@ -315,8 +585,8 @@ public class ClusterConfiguration
     }
 
 
-    public void addNode( final CassandraClusterConfig config, final Environment environment,
-                         final EnvironmentContainerHost newNode ) throws ClusterConfigurationException
+    public void addNodeOld( final CassandraClusterConfig config, final Environment environment,
+                            final EnvironmentContainerHost newNode ) throws ClusterConfigurationException
     {
         po.addLog( String.format( "Configuring cluster: %s", config.getClusterName() ) );
         String clusterNameParam = "cluster_name " + config.getClusterName();

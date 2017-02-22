@@ -2,16 +2,27 @@ package io.subutai.plugin.galera.rest;
 
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.FormParam;
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.base.Preconditions;
 import com.google.gson.reflect.TypeToken;
 
+import io.subutai.common.command.CommandException;
+import io.subutai.common.command.CommandResult;
+import io.subutai.common.command.RequestBuilder;
 import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.OperationState;
@@ -27,6 +38,8 @@ import io.subutai.plugin.galera.rest.dto.ContainerDto;
 
 public class RestServiceImpl implements RestService
 {
+    private static final Logger LOG = LoggerFactory.getLogger( RestServiceImpl.class );
+
     private Galera galeraManager;
     private Tracker tracker;
     private EnvironmentManager environmentManager;
@@ -35,6 +48,41 @@ public class RestServiceImpl implements RestService
     public RestServiceImpl( final Galera galeraManager )
     {
         this.galeraManager = galeraManager;
+    }
+
+
+    @Override
+    public Response getContainers( final String envId )
+    {
+        Set<ContainerDto> containers = new HashSet<>();
+        try
+        {
+            Environment environment = environmentManager.loadEnvironment( envId );
+
+            for ( final EnvironmentContainerHost containerHost : environment.getContainerHosts() )
+            {
+                CommandResult result =
+                        containerHost.execute( new RequestBuilder( "dpkg -l | grep '^ii' | grep galera" ) );
+
+                if ( StringUtils.containsIgnoreCase( result.getStdOut(), "galera" ) )
+                {
+                    ContainerDto pojo = new ContainerDto( containerHost.getHostname(), containerHost.getIp(), null,
+                            containerHost.getId() );
+                    containers.add( pojo );
+                }
+            }
+        }
+        catch ( EnvironmentNotFoundException e )
+        {
+            LOG.error( "Environment not found" );
+        }
+        catch ( CommandException e )
+        {
+            LOG.error( "Error in executing command" );
+        }
+
+        String containerInfo = JsonUtil.GSON.toJson( containers );
+        return Response.status( Response.Status.OK ).entity( containerInfo ).build();
     }
 
 

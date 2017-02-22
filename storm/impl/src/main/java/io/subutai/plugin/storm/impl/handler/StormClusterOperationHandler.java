@@ -1,12 +1,12 @@
 package io.subutai.plugin.storm.impl.handler;
 
 
-import java.util.*;
-
-
-import io.subutai.common.environment.*;
-import io.subutai.common.host.HostInterface;
-import io.subutai.common.peer.ContainerSize;;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,16 +19,21 @@ import io.subutai.common.command.CommandException;
 import io.subutai.common.command.CommandResult;
 import io.subutai.common.command.CommandUtil;
 import io.subutai.common.command.RequestBuilder;
+import io.subutai.common.environment.Blueprint;
+import io.subutai.common.environment.ContainerHostNotFoundException;
+import io.subutai.common.environment.Environment;
+import io.subutai.common.environment.EnvironmentModificationException;
+import io.subutai.common.environment.EnvironmentNotFoundException;
+import io.subutai.common.environment.NodeSchema;
+import io.subutai.common.environment.Topology;
+import io.subutai.common.host.HostInterface;
 import io.subutai.common.peer.EnvironmentContainerHost;
-import io.subutai.common.peer.LocalPeer;
 import io.subutai.common.peer.PeerException;
-import io.subutai.core.plugincommon.api.ClusterConfigurationException;
-import io.subutai.hub.share.quota.ContainerQuota;
-import io.subutai.hub.share.resource.PeerGroupResources;
 import io.subutai.common.tracker.OperationState;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
+import io.subutai.core.plugincommon.api.ClusterConfigurationException;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterOperationHandlerInterface;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
@@ -38,6 +43,9 @@ import io.subutai.core.strategy.api.ContainerPlacementStrategy;
 import io.subutai.core.strategy.api.RoundRobinStrategy;
 import io.subutai.core.strategy.api.StrategyException;
 import io.subutai.core.template.api.TemplateManager;
+import io.subutai.hub.share.quota.ContainerQuota;
+import io.subutai.hub.share.quota.ContainerSize;
+import io.subutai.hub.share.resource.PeerGroupResources;
 import io.subutai.plugin.storm.api.StormClusterConfiguration;
 import io.subutai.plugin.storm.impl.ClusterConfiguration;
 import io.subutai.plugin.storm.impl.CommandType;
@@ -264,10 +272,9 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                 try
                 {
                     String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
-                    NodeSchema node =
-                            new NodeSchema( containerName, ContainerSize.LARGE, StormClusterConfiguration.TEMPLATE_NAME,
-                                    templateManager.getTemplateByName( StormClusterConfiguration.TEMPLATE_NAME )
-                                                   .getId() );
+                    NodeSchema node = new NodeSchema( containerName, new ContainerQuota( ContainerSize.LARGE ),
+                            StormClusterConfiguration.TEMPLATE_NAME,
+                            templateManager.getTemplateByName( StormClusterConfiguration.TEMPLATE_NAME ).getId() );
                     List<NodeSchema> nodes = new ArrayList<>();
                     nodes.add( node );
 
@@ -278,7 +285,7 @@ public class StormClusterOperationHandler extends AbstractOperationHandler<Storm
                     ContainerPlacementStrategy strategy =
                             manager.getStrategyManager().findStrategyById( RoundRobinStrategy.ID );
                     PeerGroupResources peerGroupResources = manager.getPeerManager().getPeerGroupResources();
-                    Map<ContainerSize, ContainerQuota> quotas = manager.getQuotaManager().getDefaultQuotas();
+                    Map<ContainerSize, ContainerQuota> quotas = ContainerSize.getDefaultQuotas();
 
                     Topology topology =
                             strategy.distribute( blueprint.getName(), blueprint.getNodes(), peerGroupResources,

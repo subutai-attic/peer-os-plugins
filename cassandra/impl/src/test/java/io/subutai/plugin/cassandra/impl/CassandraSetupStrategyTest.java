@@ -99,7 +99,6 @@ public class CassandraSetupStrategyTest
         // asserts
         assertNull( cassandraImpl.getCluster( anyString() ) );
         assertNotNull( environment.getContainerHosts() );
-        verify( cassandraClusterConfig ).setEnvironmentId( id );
         assertTrue( pluginDAO.saveInfo( anyString(), anyString(), any() ) );
     }
 

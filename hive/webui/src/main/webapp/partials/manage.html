@@ -47,12 +47,11 @@
 				<tr ng-if="hiveCtrl.currentCluster.server">
 					<td>{{ hiveCtrl.currentCluster.server.hostname }}</td>
 					<td>{{ hiveCtrl.currentCluster.server.ip }}</td>
-					<td class="b-main-table__container-status">
-						<div
-							tooltips 
-							tooltip-title="{{ hiveCtrl.currentCluster.server.status }}" 
-							class="b-status-icon b-status-icon_{{ hiveCtrl.currentCluster.server.status }}"
-							>
+					<td>
+						<div class="b-status-icon b-status-icon_{{ hiveCtrl.currentCluster.server.status }}"
+								 tooltips
+								 tooltip-template="{{ hiveCtrl.currentCluster.server.status }}"
+								 tooltip-side="right">
 						</div>
 					</td>
 					<td>

@@ -6,7 +6,6 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 
-import io.subutai.common.peer.ContainerSize;
 import io.subutai.webui.api.WebuiModule;
 import io.subutai.webui.entity.AngularjsDependency;
 import io.subutai.webui.entity.WebuiModuleResourse;

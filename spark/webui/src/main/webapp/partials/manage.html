@@ -54,12 +54,11 @@
         <tr ng-if="sparkCtrl.currentCluster.server">
           <td>{{ sparkCtrl.currentCluster.server.hostname }}</td>
           <td>{{ sparkCtrl.currentCluster.server.ip }}</td>
-          <td class="b-main-table__container-status">
-            <div
-                tooltips
-                tooltip-title="{{ sparkCtrl.currentCluster.server.status }}"
-                class="b-status-icon b-status-icon_{{ sparkCtrl.currentCluster.server.status }}"
-            >
+          <td>
+            <div class="b-status-icon b-status-icon_{{ sparkCtrl.currentCluster.server.status }}"
+                 tooltips
+                 tooltip-template="{{ sparkCtrl.currentCluster.server.status }}"
+                 tooltip-side="right">
             </div>
           </td>
           <td class="b-main-table__empty-item">
@@ -149,12 +148,11 @@
           </td>
           <td>{{ clusterNode.hostname }}</td>
           <td>{{ clusterNode.ip }}</td>
-          <td class="b-main-table__container-status">
-            <div
-                tooltips
-                tooltip-title="{{ clusterNode.status }}"
-                class="b-status-icon b-status-icon_{{ clusterNode.status }}"
-                title="{{ clusterNode.status }}">
+          <td>
+            <div class="b-status-icon b-status-icon_{{ clusterNode.status }}"
+                 tooltips
+                 tooltip-template="{{ clusterNode.status }}"
+                 tooltip-side="right">
             </div>
           </td>
           <td>

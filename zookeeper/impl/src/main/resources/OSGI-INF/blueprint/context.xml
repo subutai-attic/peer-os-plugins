@@ -11,8 +11,6 @@
              interface="io.subutai.core.peer.api.PeerManager" />
   <reference id="monitor" availability="mandatory"
              interface="io.subutai.core.metric.api.Monitor" />
-  <reference id="quotaManager" availability="mandatory"
-             interface="io.subutai.core.lxc.quota.api.QuotaManager" />
   <reference id="pluginDAO" interface="io.subutai.core.plugincommon.api.PluginDAO" />
   <reference id="templateManager" availability="mandatory"
              interface="io.subutai.core.template.api.TemplateManager" />
@@ -24,7 +22,6 @@
     <property name="environmentManager" ref="environmentManager" />
     <property name="hadoopManager" ref="hadoopManager" />
     <property name="peerManager" ref="peerManager" />
-    <property name="quotaManager" ref="quotaManager" />
     <argument ref="monitor" />
     <argument ref="pluginDAO" />
     <property name="templateManager" ref="templateManager" />

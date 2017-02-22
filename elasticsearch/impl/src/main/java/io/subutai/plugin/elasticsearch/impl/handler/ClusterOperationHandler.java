@@ -23,11 +23,8 @@ import io.subutai.common.environment.EnvironmentModificationException;
 import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.NodeSchema;
 import io.subutai.common.environment.Topology;
-import io.subutai.common.peer.ContainerSize;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.PeerException;
-import io.subutai.hub.share.quota.ContainerQuota;
-import io.subutai.hub.share.resource.PeerGroupResources;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterConfigurationException;
@@ -38,6 +35,9 @@ import io.subutai.core.strategy.api.ContainerPlacementStrategy;
 import io.subutai.core.strategy.api.RoundRobinStrategy;
 import io.subutai.core.strategy.api.StrategyException;
 import io.subutai.core.template.api.TemplateManager;
+import io.subutai.hub.share.quota.ContainerQuota;
+import io.subutai.hub.share.quota.ContainerSize;
+import io.subutai.hub.share.resource.PeerGroupResources;
 import io.subutai.plugin.elasticsearch.api.ElasticsearchClusterConfiguration;
 import io.subutai.plugin.elasticsearch.impl.ClusterConfiguration;
 import io.subutai.plugin.elasticsearch.impl.Commands;
@@ -229,7 +229,7 @@ public class ClusterOperationHandler
                 try
                 {
                     String containerName = "Container" + String.valueOf( Collections.max( containersIndex ) + 1 );
-                    NodeSchema node = new NodeSchema( containerName, ContainerSize.MEDIUM,
+                    NodeSchema node = new NodeSchema( containerName, new ContainerQuota( ContainerSize.MEDIUM ),
                             ElasticsearchClusterConfiguration.TEMPLATE_NAME,
                             templateManager.getTemplateByName( ElasticsearchClusterConfiguration.TEMPLATE_NAME )
                                            .getId() );
@@ -243,7 +243,7 @@ public class ClusterOperationHandler
                     ContainerPlacementStrategy strategy =
                             manager.getStrategyManager().findStrategyById( RoundRobinStrategy.ID );
                     PeerGroupResources peerGroupResources = manager.getPeerManager().getPeerGroupResources();
-                    Map<ContainerSize, ContainerQuota> quotas = manager.getQuotaManager().getDefaultQuotas();
+                    Map<ContainerSize, ContainerQuota> quotas = ContainerSize.getDefaultQuotas();
 
                     Topology topology =
                             strategy.distribute( blueprint.getName(), blueprint.getNodes(), peerGroupResources,
