@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>sqoop-plugin-parent</artifactId>
-  <version>4.0.14-SNAPSHOT</version>
+  <version>4.0.14</version>
 
   <name>Subutai Sqoop Parent</name>
   <description>Subutai Sqoop Parent</description>
