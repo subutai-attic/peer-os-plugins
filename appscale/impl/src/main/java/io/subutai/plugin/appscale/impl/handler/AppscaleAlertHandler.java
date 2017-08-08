@@ -19,7 +19,7 @@ import io.subutai.common.metric.QuotaAlertValue;
 import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.ExceededQuotaAlertHandler;
-import io.subutai.hub.share.quota.ContainerOptResource;
+import io.subutai.hub.share.quota.ContainerDiskResource;
 import io.subutai.hub.share.resource.ByteValueResource;
 import io.subutai.hub.share.resource.ContainerResourceType;
 import io.subutai.hub.share.resource.PeerGroupResources;
@@ -287,10 +287,10 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
     {
         EnvironmentContainerHost host = getSourceHost();
 
-        if ( value.getContainerResourceType() == ContainerResourceType.OPT )
+        if ( value.getContainerResourceType() == ContainerResourceType.DISK )
         {
             final ByteValueResource current = value.getCurrentValue( ByteValueResource.class );
-            final ContainerOptResource quota = value.getContainerResourceQuota( ContainerOptResource.class );
+            final ContainerDiskResource quota = value.getContainerResourceQuota( ContainerDiskResource.class );
             if ( current == null || quota == null )
             {
                 // invalid value
