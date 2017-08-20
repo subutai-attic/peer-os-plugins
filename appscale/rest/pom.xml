@@ -15,12 +15,12 @@
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>appscale-plugin-api</artifactId>
-      <version>${subutai.mgmt.parent.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>appscale-plugin-impl</artifactId>
-      <version>${subutai.mgmt.parent.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>io.subutai</groupId>
