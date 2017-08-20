@@ -1,11 +1,11 @@
-<features name="storm-plugin" version="5.0.0">
-  <feature name="storm-plugin" version="5.0.0">
-    <bundle>mvn:io.subutai.plugin/storm-plugin-api/5.0.0</bundle>
-    <bundle>mvn:io.subutai.plugin/storm-plugin-impl/5.0.0</bundle>
-    <bundle>mvn:io.subutai.plugin/storm-plugin-cli/5.0.0</bundle>
-    <bundle>mvn:io.subutai.plugin/storm-plugin-rest/5.0.0</bundle>
+<features name="storm-plugin" version="5.0.1-SNAPSHOT">
+  <feature name="storm-plugin" version="5.0.1-SNAPSHOT">
+    <bundle>mvn:io.subutai.plugin/storm-plugin-api/5.0.1-SNAPSHOT</bundle>
+    <bundle>mvn:io.subutai.plugin/storm-plugin-impl/5.0.1-SNAPSHOT</bundle>
+    <bundle>mvn:io.subutai.plugin/storm-plugin-cli/5.0.1-SNAPSHOT</bundle>
+    <bundle>mvn:io.subutai.plugin/storm-plugin-rest/5.0.1-SNAPSHOT</bundle>
   </feature>
-    <feature name="storm-plugin-war" version="5.0.0">
-        <bundle> war:mvn:io.subutai.plugin/storm-plugin-webui/5.0.0/war?Webapp-Context=storm-plugin-war</bundle>
+    <feature name="storm-plugin-war" version="5.0.1-SNAPSHOT">
+        <bundle> war:mvn:io.subutai.plugin/storm-plugin-webui/5.0.1-SNAPSHOT/war?Webapp-Context=storm-plugin-war</bundle>
     </feature>
 </features>
