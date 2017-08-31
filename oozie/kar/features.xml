@@ -1,11 +1,11 @@
-<features name="oozie-plugin" version="5.0.1-SNAPSHOT">
-  <feature name="oozie-plugin" version="5.0.1-SNAPSHOT">
-    <bundle> mvn:io.subutai.plugin/oozie-plugin-api/5.0.1-SNAPSHOT</bundle>
-    <bundle> mvn:io.subutai.plugin/oozie-plugin-impl/5.0.1-SNAPSHOT</bundle>>
-    <bundle> mvn:io.subutai.plugin/oozie-plugin-cli/5.0.1-SNAPSHOT</bundle>
-    <bundle> mvn:io.subutai.plugin/oozie-plugin-rest/5.0.1-SNAPSHOT</bundle>
+<features name="oozie-plugin" version="5.0.1">
+  <feature name="oozie-plugin" version="5.0.1">
+    <bundle> mvn:io.subutai.plugin/oozie-plugin-api/5.0.1</bundle>
+    <bundle> mvn:io.subutai.plugin/oozie-plugin-impl/5.0.1</bundle>>
+    <bundle> mvn:io.subutai.plugin/oozie-plugin-cli/5.0.1</bundle>
+    <bundle> mvn:io.subutai.plugin/oozie-plugin-rest/5.0.1</bundle>
   </feature>
-    <feature name="oozie-plugin-war" version="5.0.1-SNAPSHOT">
-        <bundle> war:mvn:io.subutai.plugin/oozie-plugin-webui/5.0.1-SNAPSHOT/war?Webapp-Context=oozie-plugin-war</bundle>
+    <feature name="oozie-plugin-war" version="5.0.1">
+        <bundle> war:mvn:io.subutai.plugin/oozie-plugin-webui/5.0.1/war?Webapp-Context=oozie-plugin-war</bundle>
     </feature>
 </features>
