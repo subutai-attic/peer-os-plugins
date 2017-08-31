@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.subutai</groupId>
     <artifactId>AppScale</artifactId>
-    <version>5.0.1-SNAPSHOT</version>
+    <version>5.0.1</version>
     <packaging>pom</packaging>
     <name>Subutai Appscale Parent</name>
     <modules>
