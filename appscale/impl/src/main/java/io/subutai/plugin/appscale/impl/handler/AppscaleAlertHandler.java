@@ -1,29 +1,17 @@
 package io.subutai.plugin.appscale.impl.handler;
 
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.subutai.common.environment.Environment;
-import io.subutai.common.metric.ExceededQuota;
 import io.subutai.common.metric.QuotaAlertValue;
 import io.subutai.common.peer.AlertHandlerException;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.ExceededQuotaAlertHandler;
-import io.subutai.hub.share.quota.ContainerDiskResource;
-import io.subutai.hub.share.resource.ByteValueResource;
-import io.subutai.hub.share.resource.ContainerResourceType;
-import io.subutai.hub.share.resource.PeerGroupResources;
-import io.subutai.hub.share.resource.PeerResources;
 import io.subutai.plugin.appscale.api.AppScaleConfig;
 import io.subutai.plugin.appscale.impl.AppScaleImpl;
 
@@ -34,9 +22,8 @@ import io.subutai.plugin.appscale.impl.AppScaleImpl;
 public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
 {
     private static final Logger LOG = LoggerFactory.getLogger( AppscaleAlertHandler.class );
-    public static final String HANDLER_ID = "DEFAULT_APPSCALE_QUOTA_EXCEEDED_ALERT_HANDLER";
+    private static final String HANDLER_ID = "DEFAULT_APPSCALE_QUOTA_EXCEEDED_ALERT_HANDLER";
     private AppScaleImpl appScale;
-    private static Set<String> locks = new CopyOnWriteArraySet<>();
 
 
     public AppscaleAlertHandler( final AppScaleImpl appScale )
@@ -45,10 +32,10 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
     }
 
 
-    private void throwAlertException( String context, Exception e ) throws AlertHandlerException
+    private void throwAlertException( String context ) throws AlertHandlerException
     {
-        LOG.error( context, e );
-        throw new AlertHandlerException( context, e );
+        LOG.error( context );
+        throw new AlertHandlerException( context );
     }
 
 
@@ -70,7 +57,6 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
     public void process( final Environment environment, final QuotaAlertValue alertValue ) throws AlertHandlerException
     {
 
-        UUID newUuid = UUID.randomUUID(); // for the control if this is alert handled before;
         LOG.debug( String.format( "%s", alertValue ) );
         //find appScale cluster by environment id
         final List<AppScaleConfig> clusters = appScale.getClusters(); // this is already getting from db
@@ -89,222 +75,45 @@ public class AppscaleAlertHandler extends ExceededQuotaAlertHandler
 
         if ( targetCluster == null )
         {
-            throwAlertException( String.format( "Cluster not found by environment id %s", environmentId ), null );
+            throwAlertException( String.format( "Cluster not found by environment id %s", environmentId ) );
             return;
         }
 
-        // let's check if alert handled
-/*        String isUUID = targetCluster.getIsUUID ();
-        if ( isUUID == null || !newUuid.toString ().equals ( isUUID ) )
-        {
-            // proceed
-            EnvironmentContainerHost sourceHost = getSourceHost ();
+        //get environment containers and find alert's source host
+        Set<EnvironmentContainerHost> containers = environment.getContainerHosts();
 
-            if ( sourceHost == null )
+        EnvironmentContainerHost sourceHost = null;
+        String hostId = alertValue.getValue().getHostId().getId();
+        for ( EnvironmentContainerHost containerHost : containers )
+        {
+            if ( containerHost.getId().equals( hostId ) )
             {
-                throwAlertException ( String.format ( "Alert source host %s not found in environment",
-                                                      alertValue.getValue ().getHostId ().getId () ), null );
-                return;
-            }
-            if ( isOptPartitionStressed ( alertValue.getValue () ) )
-            {
-                targetCluster.setIsUUID ( newUuid.toString () ); // let's make sure we entered new value
-                createAppEngineInstance ( environment, targetCluster );
+                sourceHost = containerHost;
+                break;
             }
         }
-        else
+
+        if ( sourceHost == null )
         {
-            LOG.error ( "this alert handled before" );
-        }*/
+            throwAlertException( String.format( "Alert source host %s not" + " found in environment",
+                    alertValue.getValue().getHostId().getId() ) );
+            return;
+        }
+
+        //check if source host belongs to found cluster
+        if ( targetCluster.getNodes() != null && !targetCluster.getNodes().contains( hostId ) )
+        {
+            LOG.info( String.format( "Alert source host %s does not belong to ES cluster", hostId ) );
+            return;
+        }
+
+        notifyUser();
     }
 
 
-/*    public Boolean createAppEngineInstance ( Environment environment, AppScaleConfig config )
+    private void notifyUser()
     {
-        if ( isLocked ( environment.getId () ) )
-        {
-            LOG.debug ( "Environment is locked. Skipping." );
-        }
-        Boolean modifiyConfig = false;
-        try
-        {
-            lock ( environment.getId () );
-
-            final PeerGroupResources peerGroupResources = appScale.getPeerManager ().getPeerGroupResources ();
-
-            final List<PeerResources> resources = new ArrayList<> ();
-            final List<String> preferredPeerList = getPreferredPeers ( environment, peerGroupResources );
-
-            for ( String peerId : preferredPeerList )
-            {
-                PeerResources peerResources = findResource ( peerGroupResources.getResources (), peerId );
-                resources.add ( peerResources );
-            }
-
-            PeerGroupResources preferredPeers = new PeerGroupResources ( resources );
-
-            final List<NodeSchema> nodes = new ArrayList<> ();
-            String newAppengineName = "appengine-" + UUID.randomUUID ().toString ();
-            LOG.info ( "NEW APPENGINE NAME::::::::::" + newAppengineName );
-            nodes.add ( new NodeSchema ( newAppengineName, ContainerSize.HUGE, "appscale271", 0, 0 ) );
-            final AppscalePlacementStrategy appscalePlacementStrategy = new AppscalePlacementStrategy ();
-
-            Topology topology
-                    = appscalePlacementStrategy.distribute ( environment.getName (), nodes, preferredPeers, quotas );
-
-            final Set<EnvironmentContainerHost>[] result = new Set[]
-            {
-                null
-            };
-
-            //            final Session session = appScale.getIdentityManager().login( "internal", "secretSubutai" );
-            final Session session = appScale.getIdentityManager ().login ( "admin", "secret" );
-            final Topology finalTopology = topology;
-            Subject.doAs ( session.getSubject (), new PrivilegedAction<Void> ()
-                   {
-                       @Override
-                       public Void run ()
-                       {
-                           try
-                           {
-                               result[0] = appScale.getEnvironmentManager ()
-                                       .growEnvironment ( environment.getId (), finalTopology, false );
-                           }
-                           catch ( Exception ex )
-                           {
-                               LOG.error ( ex.getMessage (), ex );
-                           }
-                           return null;
-                       }
-                   } );
-
-            LOG.debug ( String.format ( "%s", result[0] ) );
-
-            Iterator<EnvironmentContainerHost> iterator = result[0].iterator ();
-            EnvironmentContainerHost next = iterator.next ();
-            LOG.info ( "CONTAINER NAME: " + next.getHostname () );
-            // grow succeeded
-            //TODO: need config modified appscale
-
-            List<String> appenList = config.getAppenList ();
-            appenList.add ( next.getHostname () );
-            config.setAppenList ( appenList ); // new appengine setted...
-            config.setAppengine ( next.getHostname () ); // this is to indicate additional container
-            modifiyConfig = modifiyConfig ( environment, config );
-
-            if ( modifiyConfig )
-            {
-                LOG.info ( "Appscale is scaled up successfully" );
-            }
-            else
-            {
-                LOG.error ( "Appscale scale up failed" );
-            }
-        }
-        catch ( Exception e )
-        {
-            LOG.error ( e.getMessage (), e );
-        }
-        finally
-        {
-            unlock ( environment.getId () );
-        }
-        return modifiyConfig;
-    }*/
-
-
-    private PeerResources findResource( final List<PeerResources> resources, final String peerId )
-    {
-        PeerResources result = null;
-        Iterator<PeerResources> i = resources.iterator();
-        while ( result == null && i.hasNext() )
-        {
-            PeerResources r = i.next();
-            if ( peerId.equals( r.getPeerId() ) )
-            {
-                result = r;
-            }
-        }
-        return result;
-    }
-
-
-/*    */
-
-
-    /**
-     * @return actuall configuration for the config file in appscale
-     *//*
-    private Boolean modifiyConfig ( Environment environment, AppScaleConfig targetCluster )
-    {
-        Boolean modifed = false;
-        UUID addNode = appScale.addNode ( targetCluster );
-        return modifed;
-    }*/
-    private List<String> getPreferredPeers( final Environment environment, final PeerGroupResources peerGroupResources )
-    {
-        final Set<String> usedPeers = new HashSet<>();
-
-        for ( EnvironmentContainerHost c : environment.getContainerHosts() )
-        {
-            usedPeers.add( c.getPeerId() );
-        }
-
-        Set<String> notUsedPeers = new HashSet<>();
-        for ( PeerResources resources : peerGroupResources.getResources() )
-        {
-            if ( !usedPeers.contains( resources.getPeerId() ) )
-            {
-                notUsedPeers.add( resources.getPeerId() );
-            }
-        }
-        final List<String> result = new ArrayList<>();
-        result.addAll( notUsedPeers );
-        result.addAll( usedPeers );
-        return result;
-    }
-
-
-    private void unlock( final String environmentId )
-    {
-        locks.remove( environmentId );
-    }
-
-
-    private void lock( final String environmentId )
-    {
-        locks.add( environmentId );
-    }
-
-
-    private boolean isLocked( final String environmentId )
-    {
-        return locks.contains( environmentId );
-    }
-
-
-    public boolean isOptPartitionStressed( final ExceededQuota value )
-    {
-        EnvironmentContainerHost host = getSourceHost();
-
-        if ( value.getContainerResourceType() == ContainerResourceType.DISK )
-        {
-            final ByteValueResource current = value.getCurrentValue( ByteValueResource.class );
-            final ContainerDiskResource quota = value.getContainerResourceQuota( ContainerDiskResource.class );
-            if ( current == null || quota == null )
-            {
-                // invalid value
-                return false;
-            }
-
-            boolean stressed = quota.getResource().getValue().compareTo( current.getValue() ) < 1 ||
-                    quota.getResource().getValue().multiply( new BigDecimal( "0.8" ) ).compareTo( current.getValue() )
-                            < 1;
-
-            return value.getPercentage() >= 80.0;
-        }
-
-        return false;
+        //TODO implement
     }
 }
 
