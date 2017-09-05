@@ -24,7 +24,6 @@
       <groupId>${project.groupId}</groupId>
       <artifactId>webui</artifactId>
       <classifier>classes</classifier>
-      <!-- <version>5.0.2-SNAPSHOT</version> -->
       <version>5.0.2-SNAPSHOT</version>
     </dependency>
     <dependency>

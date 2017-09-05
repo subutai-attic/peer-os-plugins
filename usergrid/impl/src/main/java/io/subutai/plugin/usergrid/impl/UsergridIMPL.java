@@ -46,7 +46,6 @@ import io.subutai.common.protocol.CustomProxyConfig;
 import io.subutai.common.security.crypto.ssl.NaiveTrustManager;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.metric.api.Monitor;
 import io.subutai.core.network.api.NetworkManager;
 import io.subutai.core.peer.api.PeerManager;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
@@ -64,7 +63,6 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
 
     private static final Logger LOG = LoggerFactory.getLogger( UsergridIMPL.class.getName() );
     private ExecutorService executor;
-    private final Monitor monitor;
     private final PluginDAO pluginDAO;
     private Tracker tracker;
     private NetworkManager networkManager;
@@ -79,9 +77,8 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
     private static final String ENVIRONMENT_URL = "https://localhost:8443/rest/v1/environments/";
 
 
-    public UsergridIMPL( Monitor monitor, PluginDAO pluginDAO )
+    public UsergridIMPL( PluginDAO pluginDAO )
     {
-        this.monitor = monitor;
         this.pluginDAO = pluginDAO;
     }
 
@@ -151,18 +148,20 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
         LOG.info( "building environment started" );
 
         String environmentName = lConfig.getEnvironmentName();
-//        NodeSchema elasticNode =
-//                new NodeSchema( "elasticsearch144" + randomAlphabetic( 10 ).toLowerCase(), ContainerSize.HUGE,
-//                        "elasticsearch144", 0, 0 );
-//        NodeSchema cassandraNode =
-//                new NodeSchema( "cassandra" + randomAlphabetic( 10 ).toLowerCase(), ContainerSize.HUGE, "cassandra", 0,
-//                        0 );
-//        NodeSchema tomcatNode =
-//                new NodeSchema( "tomcat7" + randomAlphabetic( 10 ).toLowerCase(), ContainerSize.HUGE, "tomcat7", 0, 0 );
+        //        NodeSchema elasticNode =
+        //                new NodeSchema( "elasticsearch144" + randomAlphabetic( 10 ).toLowerCase(), ContainerSize.HUGE,
+        //                        "elasticsearch144", 0, 0 );
+        //        NodeSchema cassandraNode =
+        //                new NodeSchema( "cassandra" + randomAlphabetic( 10 ).toLowerCase(), ContainerSize.HUGE,
+        // "cassandra", 0,
+        //                        0 );
+        //        NodeSchema tomcatNode =
+        //                new NodeSchema( "tomcat7" + randomAlphabetic( 10 ).toLowerCase(), ContainerSize.HUGE,
+        // "tomcat7", 0, 0 );
         List<NodeSchema> nodes = new ArrayList<>();
-//        nodes.add( tomcatNode );
-//        nodes.add( cassandraNode );
-//        nodes.add( elasticNode );
+        //        nodes.add( tomcatNode );
+        //        nodes.add( cassandraNode );
+        //        nodes.add( elasticNode );
         Blueprint blueprint = new Blueprint( environmentName, nodes );
         Topology topology = buildTopology( blueprint );
         LOG.info( "topology: " + blueprint.toString() );

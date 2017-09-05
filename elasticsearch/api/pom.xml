@@ -20,6 +20,20 @@
       <artifactId>webui</artifactId>
       <classifier>classes</classifier>
     </dependency>
+
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>subutai-common</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>plugin-common-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>tracker-api</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

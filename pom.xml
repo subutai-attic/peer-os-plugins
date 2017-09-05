@@ -45,19 +45,6 @@
     <org.json.version>20151123</org.json.version>
   </properties>
 
-  <dependencies>
-    <dependency>
-      <groupId>io.subutai</groupId>
-      <artifactId>subutai-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.subutai</groupId>
-      <artifactId>plugin-common-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-  </dependencies>
-
   <!-- Must redeclare parent project artifacts -->
   <dependencyManagement>
     <dependencies>
@@ -112,18 +99,6 @@
       <dependency>
         <groupId>io.subutai</groupId>
         <artifactId>metric-api</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>io.subutai</groupId>
-        <artifactId>subutai-common-datasource</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>io.subutai</groupId>
-        <artifactId>subutai-common-implementation</artifactId>
         <version>${project.version}</version>
       </dependency>
 
