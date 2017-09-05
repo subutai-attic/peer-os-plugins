@@ -43,6 +43,7 @@
     <org.apache.karaf.shell.version>3.0.2</org.apache.karaf.shell.version>
     <osgi.framework.version>5.0.0</osgi.framework.version>
     <org.json.version>20151123</org.json.version>
+    <ss.version>[5.0.0, 6.0.0)</ss.version>
   </properties>
 
   <!-- Must redeclare parent project artifacts -->
@@ -51,80 +52,80 @@
       <dependency>
         <groupId>io.subutai</groupId>
         <artifactId>subutai-common</artifactId>
-        <version>${project.version}</version>
+        <version>${ss.version}</version>
       </dependency>
 
       <dependency>
         <groupId>io.subutai</groupId>
         <artifactId>plugin-common-core</artifactId>
-        <version>${project.version}</version>
+        <version>${ss.version}</version>
       </dependency>
 
       <dependency>
         <groupId>io.subutai</groupId>
         <artifactId>environment-manager-api</artifactId>
-        <version>${project.version}</version>
+        <version>${ss.version}</version>
       </dependency>
 
       <dependency>
         <groupId>io.subutai</groupId>
         <artifactId>template-manager-api</artifactId>
-        <version>${project.version}</version>
+        <version>${ss.version}</version>
       </dependency>
 
       <dependency>
         <groupId>io.subutai</groupId>
         <artifactId>local-peer-api</artifactId>
-        <version>${project.version}</version>
+        <version>${ss.version}</version>
       </dependency>
 
       <dependency>
         <groupId>io.subutai</groupId>
         <artifactId>peer-manager-api</artifactId>
-        <version>${project.version}</version>
+        <version>${ss.version}</version>
       </dependency>
 
       <dependency>
         <groupId>io.subutai</groupId>
         <artifactId>subutai-hub-share</artifactId>
-        <version>${project.version}</version>
+        <version>${ss.version}</version>
       </dependency>
 
       <dependency>
         <groupId>io.subutai</groupId>
         <artifactId>host-registry-api</artifactId>
-        <version>${project.version}</version>
+        <version>${ss.version}</version>
       </dependency>
 
       <dependency>
         <groupId>io.subutai</groupId>
         <artifactId>metric-api</artifactId>
-        <version>${project.version}</version>
+        <version>${ss.version}</version>
       </dependency>
 
       <dependency>
         <groupId>io.subutai</groupId>
         <artifactId>webui</artifactId>
         <classifier>classes</classifier>
-        <version>${project.version}</version>
+        <version>${ss.version}</version>
       </dependency>
 
       <dependency>
         <groupId>io.subutai</groupId>
         <artifactId>tracker-api</artifactId>
-        <version>${project.version}</version>
+        <version>${ss.version}</version>
       </dependency>
 
       <dependency>
         <groupId>io.subutai</groupId>
         <artifactId>strategy-manager-api</artifactId>
-        <version>${project.version}</version>
+        <version>${ss.version}</version>
       </dependency>
 
       <dependency>
         <groupId>io.subutai</groupId>
         <artifactId>network-manager-api</artifactId>
-        <version>${project.version}</version>
+        <version>${ss.version}</version>
       </dependency>
 
       <dependency>
