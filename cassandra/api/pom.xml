@@ -14,6 +14,20 @@
   <name>Subutai Cassandra Plugin Api</name>
   <description>Subutai Cassandra Api</description>
 
+  <dependencies>
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>subutai-hub-share</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>subutai-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>plugin-common-core</artifactId>
+    </dependency>
+  </dependencies>
   <build>
     <plugins>
       <plugin>
