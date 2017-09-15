@@ -3,9 +3,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>io.subutai</groupId>
-    <artifactId>usergrid-plugin</artifactId>
-    <version>5.0.2-SNAPSHOT</version>
+    <groupId>io.subutai.plugin</groupId>
+    <artifactId>usergrid-plugin-parent</artifactId>
+    <version>6.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>usergrid-plugin-rest</artifactId>
   <packaging>bundle</packaging>
@@ -13,7 +13,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>io.subutai</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>usergrid-plugin-api</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -119,7 +119,7 @@
         <artifactId>maven-bundle-plugin</artifactId>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>${project.groupId}.plugin.usergrid.rest</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.groupId}.usergrid.rest</Bundle-SymbolicName>
             <Export-Package>
               {local-packages};version=${project.version};-noimport:=true
             </Export-Package>

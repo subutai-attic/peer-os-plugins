@@ -3,9 +3,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>io.subutai</groupId>
-    <artifactId>AppScale</artifactId>
-    <version>5.0.2-SNAPSHOT</version>
+    <groupId>io.subutai.plugin</groupId>
+    <artifactId>appscale-plugin-parent</artifactId>
+    <version>6.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>appscale-plugin-impl</artifactId>
   <packaging>bundle</packaging>
@@ -21,10 +21,10 @@
       <artifactId>metric-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
+      <groupId>io.subutai</groupId>
       <artifactId>webui</artifactId>
       <classifier>classes</classifier>
-      <version>5.0.2-SNAPSHOT</version>
+      <version>6.0.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>io.subutai</groupId>
@@ -41,26 +41,29 @@
     <dependency>
       <groupId>com.googlecode.json-simple</groupId>
       <artifactId>json-simple</artifactId>
+      <version>1.1</version>
       
     </dependency>
     <dependency>
       <groupId>org.apache.cxf</groupId>
       <artifactId>cxf-rt-ws-policy</artifactId>
+      <version>3.0.0</version>
     </dependency>
     <dependency>
       <groupId>commons-httpclient</groupId>
       <artifactId>commons-httpclient</artifactId>
+      <version>3.1</version>
     </dependency>
     <dependency>
       <groupId>backport-util-concurrent</groupId>
       <artifactId>backport-util-concurrent</artifactId>
+      <version>3.1</version>
     </dependency>
     <dependency>
       <groupId>io.subutai</groupId>
       <artifactId>subutai-common</artifactId>
     </dependency>
   </dependencies>
-
   <build>
     <plugins>
       <plugin>
@@ -72,7 +75,7 @@
         <artifactId>maven-bundle-plugin</artifactId>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>${project.groupId}.plugin.appscale.impl</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.groupId}.appscale.impl</Bundle-SymbolicName>
           </instructions>
         </configuration>
       </plugin>

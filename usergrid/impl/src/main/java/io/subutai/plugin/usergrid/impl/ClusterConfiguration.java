@@ -67,11 +67,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
 
         List<String> cassandraNameList = config.getCassandraName();
 
-        cassandraNameList.stream().forEach( ( c ) ->
-        {
+        for(String cassName:cassandraNameList){
             try
             {
-                EnvironmentContainerHost cassContainerHost = environment.getContainerHostByHostname( c );
+                EnvironmentContainerHost cassContainerHost = environment.getContainerHostByHostname( cassName );
                 this.commandExecute( cassContainerHost, Commands.replaceRPC() );
                 this.commandExecute( cassContainerHost, Commands.getRestartCassandra() );
                 this.commandExecute( cassContainerHost,
@@ -81,11 +80,10 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             {
                 LOG.error( "cassandra container host found error: " + ex );
             }
-        } );
+        }
         List<String> elasticSearchList = config.getElasticSName();
 
-        elasticSearchList.stream().forEach( ( e ) ->
-        {
+        for(String e:elasticSearchList){
             try
             {
                 EnvironmentContainerHost elContainerHost = environment.getContainerHostByHostname( e );
@@ -97,7 +95,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             {
                 LOG.error( ex.toString() );
             }
-        } );
+        }
 
         // start command processes:
         this.commandExecute( tomcatContainerHost, Commands.getRemoveSourcesList() );
@@ -233,8 +231,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
     {
         List<String> ipList = new ArrayList();
 
-        v.stream().forEach( ( cont ) ->
-        {
+        for(String cont:v){
             try
             {
                 ipList.add( environment.getContainerHostByHostname( cont ).getInterfaceByName( "eth0" ).getIp() );
@@ -243,7 +240,7 @@ public class ClusterConfiguration implements ClusterConfigurationInterface
             {
                 LOG.error( "Container Not found while getting ip: " + ex );
             }
-        } );
+        }
         return String.join( ",", ipList );
     }
 

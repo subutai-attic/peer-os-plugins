@@ -100,9 +100,10 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
     {
         List<String> c = new ArrayList();
         Set<EnvironmentContainerHost> containerHosts = name.getContainerHosts();
-        containerHosts.stream().forEach( ( e ) -> {
-            c.add( e.getHostname() );
-        } );
+        for ( EnvironmentContainerHost containerHost : containerHosts )
+        {
+            c.add( containerHost.getHostname() );
+        }
         return c;
     }
 
