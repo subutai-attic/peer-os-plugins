@@ -3,9 +3,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>io.subutai</groupId>
-    <artifactId>usergrid-plugin</artifactId>
-    <version>5.0.2-SNAPSHOT</version>
+    <groupId>io.subutai.plugin</groupId>
+    <artifactId>usergrid-plugin-parent</artifactId>
+    <version>6.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>usergrid-plugin-impl</artifactId>
 
@@ -20,7 +20,7 @@
     </dependency>
 
     <dependency>
-      <groupId>${project.groupId}</groupId>
+      <groupId>io.subutai</groupId>
       <artifactId>webui</artifactId>
       <classifier>classes</classifier>
       <version>${project.version}</version>
@@ -48,6 +48,7 @@
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
+      <version>2.3.1</version>
     </dependency>
 
     <dependency>
@@ -76,7 +77,7 @@
         <artifactId>maven-bundle-plugin</artifactId>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>${project.groupId}.plugin.usergrid.impl</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.groupId}.usergrid.impl</Bundle-SymbolicName>
           </instructions>
         </configuration>
       </plugin>

@@ -6,7 +6,7 @@
   <parent>
     <artifactId>subutai-plugins-parent</artifactId>
     <groupId>io.subutai.plugin</groupId>
-    <version>5.0.2-SNAPSHOT</version>
+    <version>6.0.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>generic-plugin-parent</artifactId>

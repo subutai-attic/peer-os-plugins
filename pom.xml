@@ -5,13 +5,13 @@
   <parent>
     <groupId>io.subutai</groupId>
     <artifactId>mgmt-parent</artifactId>
-    <version>5.0.2-SNAPSHOT</version>
+    <version>6.0.1-SNAPSHOT</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai.plugin</groupId>
   <artifactId>subutai-plugins-parent</artifactId>
-  <version>5.0.2-SNAPSHOT</version>
+  <version>6.0.1-SNAPSHOT</version>
 
   <name>Subutai Plugins Project Parent</name>
   <description>
@@ -43,7 +43,7 @@
     <org.apache.karaf.shell.version>3.0.2</org.apache.karaf.shell.version>
     <osgi.framework.version>5.0.0</osgi.framework.version>
     <org.json.version>20151123</org.json.version>
-    <ss.version>[5.0.0, 6.0.0)</ss.version>
+    <ss.version>[6.0.0, 7.0.0)</ss.version>
   </properties>
 
   <!-- Must redeclare parent project artifacts -->
