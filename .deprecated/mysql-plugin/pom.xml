@@ -6,7 +6,7 @@
 
   <groupId>io.subutai</groupId>
   <artifactId>mysql-plugin-parent</artifactId>
-  <version>5.0.2-SNAPSHOT</version>
+  <version>6.0.1-SNAPSHOT</version>
 
   <name>Subutai MySQL Parent</name>
   <description>Subutai MySQL Parent</description>
@@ -38,55 +38,41 @@
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>subutai-common</artifactId>
-        <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>environment-manager-api</artifactId>
-        <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>plugin-common-core</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>vaadin-custom</artifactId>
-        <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>host-registry-api</artifactId>
-        <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>tracker-api</artifactId>
-        <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>subutai-common-datasource</artifactId>
-        <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>subutai-common-implementation</artifactId>
-        <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>peer-manager-api</artifactId>
-        <version>${project.version}</version>
       </dependency>
 
       <dependency>

@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.subutai.plugin</groupId>
     <artifactId>mahout-plugin-parent</artifactId>
-    <version>5.0.2-SNAPSHOT</version>
+    <version>6.0.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>mahout-plugin-api</artifactId>
@@ -19,6 +19,16 @@
       <groupId>io.subutai</groupId>
       <artifactId>webui</artifactId>
       <classifier>classes</classifier>
+    </dependency>
+
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>subutai-common</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>plugin-common-core</artifactId>
     </dependency>
   </dependencies>
 

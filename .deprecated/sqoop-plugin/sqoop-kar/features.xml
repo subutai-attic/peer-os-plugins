@@ -1,9 +1,9 @@
-<features name="sqoop-plugin" version="5.0.2-SNAPSHOT">
-  <feature name="sqoop-plugin" version="5.0.2-SNAPSHOT">
-    <bundle>mvn:io.subutai/sqoop-plugin-api/5.0.2-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai/sqoop-plugin-impl/5.0.2-SNAPSHOT</bundle>
+<features name="sqoop-plugin" version="6.0.1-SNAPSHOT">
+  <feature name="sqoop-plugin" version="6.0.1-SNAPSHOT">
+    <bundle>mvn:io.subutai/sqoop-plugin-api/6.0.1-SNAPSHOT</bundle>
+    <bundle>mvn:io.subutai/sqoop-plugin-impl/6.0.1-SNAPSHOT</bundle>
     <bundle>mvn:io.subutai/sqoop-plugin-ui/4.0.0</bundle>
-    <bundle>mvn:io.subutai/sqoop-plugin-cli/5.0.2-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai/sqoop-plugin-rest/5.0.2-SNAPSHOT</bundle>
+    <bundle>mvn:io.subutai/sqoop-plugin-cli/6.0.1-SNAPSHOT</bundle>
+    <bundle>mvn:io.subutai/sqoop-plugin-rest/6.0.1-SNAPSHOT</bundle>
   </feature>
 </features>

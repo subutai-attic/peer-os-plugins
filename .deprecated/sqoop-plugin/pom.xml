@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.subutai</groupId>
   <artifactId>sqoop-plugin-parent</artifactId>
-  <version>5.0.2-SNAPSHOT</version>
+  <version>6.0.1-SNAPSHOT</version>
 
   <name>Subutai Sqoop Parent</name>
   <description>Subutai Sqoop Parent</description>
@@ -40,43 +40,31 @@
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>subutai-common</artifactId>
-        <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>environment-manager-api</artifactId>
-        <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>plugin-common-core</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>vaadin-custom</artifactId>
-        <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>tracker-api</artifactId>
-        <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>subutai-common-datasource</artifactId>
-        <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>subutai-common-implementation</artifactId>
-        <version>${project.version}</version>
       </dependency>
 
       <dependency>

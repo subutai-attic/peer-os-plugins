@@ -6,13 +6,25 @@
   <parent>
     <groupId>io.subutai.plugin</groupId>
     <artifactId>storm-plugin-parent</artifactId>
-    <version>5.0.2-SNAPSHOT</version>
+    <version>6.0.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>storm-plugin-api</artifactId>
   <packaging>bundle</packaging>
   <name>Subutai Storm Api</name>
   <description>Subutai Storm Api</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>subutai-common</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.subutai</groupId>
+      <artifactId>plugin-common-core</artifactId>
+    </dependency>
+  </dependencies>
 
   <build>
     <plugins>

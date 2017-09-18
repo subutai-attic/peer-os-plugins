@@ -34,112 +34,109 @@ public class ClusterOperationHandler extends AbstractOperationHandler<UsergridIM
     private final UsergridConfig config;
 
     private final String clusterName;
-    private static final Logger LOG = LoggerFactory.getLogger ( ClusterOperationHandler.class.getName () );
+    private static final Logger LOG = LoggerFactory.getLogger( ClusterOperationHandler.class.getName() );
 
 
-    public ClusterOperationHandler ( final UsergridIMPL manager, final UsergridConfig config,
-                                     final ClusterOperationType operationType )
+    public ClusterOperationHandler( final UsergridIMPL manager, final UsergridConfig config,
+                                    final ClusterOperationType operationType )
     {
-        super ( manager, config );
+        super( manager, config );
         this.operationType = operationType;
         this.config = config;
-        clusterName = config.getClusterName ();
-        trackerOperation = manager.getTracker ().createTrackerOperation ( UsergridConfig.PRODUCT_KEY, "starting" );
+        clusterName = config.getClusterName();
+        trackerOperation = manager.getTracker().createTrackerOperation( UsergridConfig.PRODUCT_KEY, "starting" );
         if ( trackerOperation == null )
         {
-            LOG.error ( "trackerOperation is null " );
+            LOG.error( "trackerOperation is null " );
         }
         else
         {
-            LOG.info ( "trackerOperation: " + trackerOperation );
+            LOG.info( "trackerOperation: " + trackerOperation );
         }
     }
 
 
     @Override
-    public void run ()
+    public void run()
     {
-        Preconditions.checkNotNull ( config, "Configuration is null" );
+        Preconditions.checkNotNull( config, "Configuration is null" );
         switch ( operationType )
         {
             case INSTALL:
             {
-                setupCluster ();
+                setupCluster();
                 break;
             }
         }
-
     }
 
 
     @Override
-    public void runOperationOnContainers ( ClusterOperationType cot )
+    public void runOperationOnContainers( ClusterOperationType cot )
     {
-        throw new UnsupportedOperationException ( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException(
+                "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
 
     @Override
-    public void setupCluster ()
+    public void setupCluster()
     {
-        LOG.info ( "setupCluster started..." );
+        LOG.info( "setupCluster started..." );
         Environment env = null;
 
         try
         {
-            LOG.info ( "before finding env..." );
-            LOG.info ( "envid: " + config.getEnvironmentId () );
-            LOG.info ( "clusterName: " + config.getClusterName () );
-            LOG.info ( "cassandraName: " + config.getCassandraName () );
-            LOG.info ( "elastic: " + config.getElasticSName () );
-            LOG.info ( "userdomain: " + config.getUserDomain () );
-            env = manager.getEnvironmentManager ().loadEnvironment ( config.getEnvironmentId () );
-            trackerOperation.addLog ( String.format (
-                    "Configuring environment name: %s for cluster name: %s(%s)", env.getName (),
-                    config.getClusterName (), config.getProductKey () ) );
-            LOG.info ( "environment: " + env );
+            LOG.info( "before finding env..." );
+            LOG.info( "envid: " + config.getEnvironmentId() );
+            LOG.info( "clusterName: " + config.getClusterName() );
+            LOG.info( "cassandraName: " + config.getCassandraName() );
+            LOG.info( "elastic: " + config.getElasticSName() );
+            LOG.info( "userdomain: " + config.getUserDomain() );
+            env = manager.getEnvironmentManager().loadEnvironment( config.getEnvironmentId() );
+            trackerOperation.addLog(
+                    String.format( "Configuring environment name: %s for cluster name: %s(%s)", env.getName(),
+                            config.getClusterName(), config.getProductKey() ) );
+            LOG.info( "environment: " + env );
         }
         catch ( EnvironmentNotFoundException ex )
         {
-            LOG.error ( "load environment: " + ex );
+            LOG.error( "load environment: " + ex );
         }
         try
         {
-            new ClusterConfiguration ( trackerOperation, manager ).configureCluster ( config, env );
+            new ClusterConfiguration( trackerOperation, manager ).configureCluster( config, env );
         }
         catch ( ClusterConfigurationException ex )
         {
-            LOG.error ( "ClusterConfigurationHandler :> " + ex );
+            LOG.error( "ClusterConfigurationHandler :> " + ex );
         }
-
     }
 
 
     @Override
-    public void destroyCluster ()
+    public void destroyCluster()
     {
         try
         {
-            Environment env = manager.getEnvironmentManager ().loadEnvironment ( clusterName );
-            Set<EnvironmentContainerHost> containerHosts = env.getContainerHosts ();
-            containerHosts.stream ().forEach ( (cont)
-                    ->
-                    {
-                        try
-                        {
-                            env.destroyContainer ( cont, true );
-                        }
-                        catch ( EnvironmentNotFoundException | EnvironmentModificationException ex )
-                        {
-                            LOG.error ( "Destroy container error: " + ex );
-                        }
-            } );
+            Environment env = manager.getEnvironmentManager().loadEnvironment( clusterName );
+            Set<EnvironmentContainerHost> containerHosts = env.getContainerHosts();
+            for ( EnvironmentContainerHost containerHost : containerHosts )
+            {
+                try
+                {
+                    env.destroyContainer( containerHost, true );
+                }
+                catch ( EnvironmentNotFoundException | EnvironmentModificationException ex )
+                {
+                    LOG.error( "Destroy container error: " + ex );
+                }
+            }
         }
         catch ( EnvironmentNotFoundException ex )
         {
-            LOG.error ( "destroy container environment not found error: " + ex );
+            LOG.error( "destroy container environment not found error: " + ex );
         }
     }
-
 }
 
