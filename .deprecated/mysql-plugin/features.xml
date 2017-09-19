@@ -1,9 +1,9 @@
-<features name="mysql-plugin" version="6.0.1">
-  <feature name="mysql-plugin" version="6.0.1">
-    <bundle>mvn:io.subutai/mysql-plugin-api/6.0.1</bundle>
-    <bundle>mvn:io.subutai/mysql-plugin-impl/6.0.1</bundle>
+<features name="mysql-plugin" version="6.0.2-SNAPSHOT">
+  <feature name="mysql-plugin" version="6.0.2-SNAPSHOT">
+    <bundle>mvn:io.subutai/mysql-plugin-api/6.0.2-SNAPSHOT</bundle>
+    <bundle>mvn:io.subutai/mysql-plugin-impl/6.0.2-SNAPSHOT</bundle>
     <bundle>mvn:io.subutai/mysql-plugin-ui/4.0.0</bundle>
-    <bundle>mvn:io.subutai/mysql-plugin-cli/6.0.1</bundle>
-    <bundle>mvn:io.subutai/mysql-plugin-rest/6.0.1</bundle>
+    <bundle>mvn:io.subutai/mysql-plugin-cli/6.0.2-SNAPSHOT</bundle>
+    <bundle>mvn:io.subutai/mysql-plugin-rest/6.0.2-SNAPSHOT</bundle>
   </feature>
 </features>

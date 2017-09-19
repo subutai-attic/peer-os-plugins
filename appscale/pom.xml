@@ -8,7 +8,7 @@
   <parent>
     <artifactId>subutai-plugins-parent</artifactId>
     <groupId>io.subutai.plugin</groupId>
-    <version>6.0.1</version>
+    <version>6.0.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>appscale-plugin-parent</artifactId>
