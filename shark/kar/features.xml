@@ -1,11 +1,11 @@
-<features name="shark-plugin" version="6.0.1-SNAPSHOT">
-  <feature name="shark-plugin" version="6.0.1-SNAPSHOT">
-    <bundle>mvn:io.subutai.plugin/shark-plugin-api/6.0.1-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/shark-plugin-impl/6.0.1-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/shark-plugin-cli/6.0.1-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/shark-plugin-rest/6.0.1-SNAPSHOT</bundle>
+<features name="shark-plugin" version="6.0.1">
+  <feature name="shark-plugin" version="6.0.1">
+    <bundle>mvn:io.subutai.plugin/shark-plugin-api/6.0.1</bundle>
+    <bundle>mvn:io.subutai.plugin/shark-plugin-impl/6.0.1</bundle>
+    <bundle>mvn:io.subutai.plugin/shark-plugin-cli/6.0.1</bundle>
+    <bundle>mvn:io.subutai.plugin/shark-plugin-rest/6.0.1</bundle>
   </feature>
-    <feature name="shark-plugin-war" version="6.0.1-SNAPSHOT">
-        <bundle> war:mvn:io.subutai.plugin/shark-plugin-webui/6.0.1-SNAPSHOT/war?Webapp-Context=shark-plugin-war</bundle>
+    <feature name="shark-plugin-war" version="6.0.1">
+        <bundle> war:mvn:io.subutai.plugin/shark-plugin-webui/6.0.1/war?Webapp-Context=shark-plugin-war</bundle>
     </feature>
 </features>
