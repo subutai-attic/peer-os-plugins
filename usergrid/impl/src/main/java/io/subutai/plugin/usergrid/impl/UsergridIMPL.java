@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.TrustManager;
@@ -38,7 +39,6 @@ import io.subutai.common.environment.EnvironmentNotFoundException;
 import io.subutai.common.environment.EnvironmentStatus;
 import io.subutai.common.environment.NodeSchema;
 import io.subutai.common.environment.Topology;
-import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.EnvironmentId;
 import io.subutai.common.peer.PeerException;
@@ -85,7 +85,7 @@ public class UsergridIMPL implements UsergridInterface, EnvironmentEventListener
 
     public void init()
     {
-        executor = SubutaiExecutors.newCachedThreadPool();
+        executor = Executors.newCachedThreadPool();
     }
 
 

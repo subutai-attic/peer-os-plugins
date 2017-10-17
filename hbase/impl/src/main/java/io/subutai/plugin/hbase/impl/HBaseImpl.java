@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import io.subutai.common.environment.Environment;
-import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.peer.PeerException;
 import io.subutai.common.protocol.CustomProxyConfig;
@@ -311,7 +311,7 @@ public class HBaseImpl implements HBase, EnvironmentEventListener
     public void init()
     {
         this.commands = new Commands();
-        this.executor = SubutaiExecutors.newCachedThreadPool();
+        this.executor = Executors.newCachedThreadPool();
     }
 
 
