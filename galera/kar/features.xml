@@ -1,10 +1,10 @@
-<features name="galera-plugin" version="6.0.2-SNAPSHOT">
-  <feature name="galera-plugin" version="6.0.2-SNAPSHOT">
-    <bundle>mvn:io.subutai.plugin/galera-plugin-api/6.0.2-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/galera-plugin-impl/6.0.2-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/galera-plugin-rest/6.0.2-SNAPSHOT</bundle>
+<features name="galera-plugin" version="6.1.2">
+  <feature name="galera-plugin" version="6.1.2">
+    <bundle>mvn:io.subutai.plugin/galera-plugin-api/6.1.2</bundle>
+    <bundle>mvn:io.subutai.plugin/galera-plugin-impl/6.1.2</bundle>
+    <bundle>mvn:io.subutai.plugin/galera-plugin-rest/6.1.2</bundle>
   </feature>
-  <feature name="galera-plugin-war" version="6.0.2-SNAPSHOT">
-    <bundle> war:mvn:io.subutai.plugin/galera-plugin-webui/6.0.2-SNAPSHOT/war?Webapp-Context=galera-plugin-war</bundle>
+  <feature name="galera-plugin-war" version="6.1.2">
+    <bundle> war:mvn:io.subutai.plugin/galera-plugin-webui/6.1.2/war?Webapp-Context=galera-plugin-war</bundle>
   </feature>
 </features>
