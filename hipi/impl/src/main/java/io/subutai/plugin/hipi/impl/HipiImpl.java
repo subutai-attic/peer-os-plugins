@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,19 +13,18 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import io.subutai.common.environment.Environment;
-import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.core.plugincommon.api.PluginDAO;
+import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 import io.subutai.plugin.hipi.api.Hipi;
 import io.subutai.plugin.hipi.api.HipiConfig;
@@ -43,6 +43,7 @@ public class HipiImpl implements Hipi, EnvironmentEventListener
     private EnvironmentManager environmentManager;
     private Hadoop hadoopManager;
     private HipiWebModule webModule;
+
 
     public HipiImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
                      PluginDAO pluginDAO, HipiWebModule webModule )
@@ -81,7 +82,7 @@ public class HipiImpl implements Hipi, EnvironmentEventListener
 
     public void init()
     {
-        executor = SubutaiExecutors.newCachedThreadPool();
+        executor = Executors.newCachedThreadPool();
     }
 
 
@@ -290,9 +291,10 @@ public class HipiImpl implements Hipi, EnvironmentEventListener
         return webModule;
     }
 
+
     @Override
     public void setWebModule( final WebuiModule webModule )
     {
-        this.webModule = (HipiWebModule) webModule;
+        this.webModule = ( HipiWebModule ) webModule;
     }
 }

@@ -2,15 +2,15 @@ package io.subutai.plugin.spark.impl;
 
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.core.environment.api.EnvironmentManager;
 import io.subutai.core.metric.api.Monitor;
-import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.PluginDAO;
+import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.hadoop.api.Hadoop;
 
 
@@ -32,7 +32,7 @@ public abstract class SparkBase
     public void init()
     {
         this.commands = new Commands();
-        executor = SubutaiExecutors.newCachedThreadPool();
+        executor = Executors.newCachedThreadPool();
     }
 
 

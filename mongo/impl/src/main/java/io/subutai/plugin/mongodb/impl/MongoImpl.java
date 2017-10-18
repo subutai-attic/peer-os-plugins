@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +19,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 import io.subutai.common.environment.Environment;
-import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
@@ -55,7 +55,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
     private static final Logger LOG = LoggerFactory.getLogger( MongoImpl.class.getName() );
     private Tracker tracker;
     private EnvironmentManager environmentManager;
-    private ExecutorService executor;
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
     private Commands commands;
     private PluginDAO pluginDAO;
     private PeerManager peerManager;
@@ -136,7 +136,7 @@ public class MongoImpl implements Mongo, EnvironmentEventListener
 
     public void init()
     {
-        executor = SubutaiExecutors.newSingleThreadExecutor();
+        executor = Executors.newSingleThreadExecutor();
     }
 
 

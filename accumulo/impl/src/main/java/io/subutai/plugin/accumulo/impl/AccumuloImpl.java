@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import io.subutai.common.environment.Environment;
-import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.core.environment.api.EnvironmentEventListener;
@@ -58,7 +58,7 @@ public class AccumuloImpl implements Accumulo, EnvironmentEventListener
 
     public void init()
     {
-        executor = SubutaiExecutors.newCachedThreadPool();
+        executor = Executors.newCachedThreadPool();
     }
 
 

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,19 +13,18 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import io.subutai.common.environment.Environment;
-import io.subutai.common.mdc.SubutaiExecutors;
 import io.subutai.common.peer.EnvironmentContainerHost;
 import io.subutai.common.tracker.TrackerOperation;
 import io.subutai.common.util.CollectionUtil;
 import io.subutai.core.environment.api.EnvironmentEventListener;
 import io.subutai.core.environment.api.EnvironmentManager;
-import io.subutai.core.tracker.api.Tracker;
 import io.subutai.core.plugincommon.api.AbstractOperationHandler;
 import io.subutai.core.plugincommon.api.ClusterException;
 import io.subutai.core.plugincommon.api.ClusterOperationType;
 import io.subutai.core.plugincommon.api.ClusterSetupStrategy;
 import io.subutai.core.plugincommon.api.NodeOperationType;
 import io.subutai.core.plugincommon.api.PluginDAO;
+import io.subutai.core.tracker.api.Tracker;
 import io.subutai.plugin.flume.api.Flume;
 import io.subutai.plugin.flume.api.FlumeConfig;
 import io.subutai.plugin.flume.impl.handler.ClusterOperationHandler;
@@ -44,7 +44,9 @@ public class FlumeImpl implements Flume, EnvironmentEventListener
     private ExecutorService executor;
     private FlumeWebModule webModule;
 
-    public FlumeImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager, PluginDAO pluginDAO, FlumeWebModule webModule )
+
+    public FlumeImpl( final Tracker tracker, final EnvironmentManager environmentManager, final Hadoop hadoopManager,
+                      PluginDAO pluginDAO, FlumeWebModule webModule )
     {
         this.tracker = tracker;
         this.environmentManager = environmentManager;
@@ -92,7 +94,7 @@ public class FlumeImpl implements Flume, EnvironmentEventListener
 
     public void init()
     {
-        executor = SubutaiExecutors.newCachedThreadPool();
+        executor = Executors.newCachedThreadPool();
     }
 
 
@@ -320,9 +322,10 @@ public class FlumeImpl implements Flume, EnvironmentEventListener
         return webModule;
     }
 
+
     @Override
     public void setWebModule( final WebuiModule webModule )
     {
-        this.webModule = (FlumeWebModule) webModule;
+        this.webModule = ( FlumeWebModule ) webModule;
     }
 }

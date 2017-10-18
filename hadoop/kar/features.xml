@@ -1,11 +1,11 @@
-<features name="hadoop-plugin" version="6.0.2-SNAPSHOT">
-  <feature name="hadoop-plugin" version="6.0.2-SNAPSHOT">
-    <bundle> mvn:io.subutai.plugin/hadoop-plugin-api/6.0.2-SNAPSHOT</bundle>
-    <bundle> mvn:io.subutai.plugin/hadoop-plugin-impl/6.0.2-SNAPSHOT</bundle>
-    <bundle> mvn:io.subutai.plugin/hadoop-plugin-cli/6.0.2-SNAPSHOT</bundle>
-    <bundle> mvn:io.subutai.plugin/hadoop-plugin-rest/6.0.2-SNAPSHOT</bundle>
+<features name="hadoop-plugin" version="6.1.2">
+  <feature name="hadoop-plugin" version="6.1.2">
+    <bundle> mvn:io.subutai.plugin/hadoop-plugin-api/6.1.2</bundle>
+    <bundle> mvn:io.subutai.plugin/hadoop-plugin-impl/6.1.2</bundle>
+    <bundle> mvn:io.subutai.plugin/hadoop-plugin-cli/6.1.2</bundle>
+    <bundle> mvn:io.subutai.plugin/hadoop-plugin-rest/6.1.2</bundle>
   </feature>
-  <feature name="hadoop-plugin-war" version="6.0.2-SNAPSHOT">
-    <bundle> war:mvn:io.subutai.plugin/hadoop-plugin-webui/6.0.2-SNAPSHOT/war?Webapp-Context=hadoop-plugin-war</bundle>
+  <feature name="hadoop-plugin-war" version="6.1.2">
+    <bundle> war:mvn:io.subutai.plugin/hadoop-plugin-webui/6.1.2/war?Webapp-Context=hadoop-plugin-war</bundle>
   </feature>
 </features>
