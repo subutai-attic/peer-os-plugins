@@ -6,7 +6,7 @@
   <parent>
     <artifactId>subutai-plugins-parent</artifactId>
     <groupId>io.subutai.plugin</groupId>
-    <version>6.1.2</version>
+    <version>6.1.3-SNAPSHOT</version>
   </parent>
 
   <artifactId>nutch-plugin-parent</artifactId>
