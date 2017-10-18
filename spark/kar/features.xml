@@ -1,11 +1,11 @@
-<features name="spark-plugin" version="6.1.2">
-  <feature name="spark-plugin" version="6.1.2">
-    <bundle>mvn:io.subutai.plugin/spark-plugin-api/6.1.2</bundle>
-    <bundle>mvn:io.subutai.plugin/spark-plugin-impl/6.1.2</bundle>
-    <bundle>mvn:io.subutai.plugin/spark-plugin-cli/6.1.2</bundle>
-    <bundle>mvn:io.subutai.plugin/spark-plugin-rest/6.1.2</bundle>
+<features name="spark-plugin" version="6.1.3-SNAPSHOT">
+  <feature name="spark-plugin" version="6.1.3-SNAPSHOT">
+    <bundle>mvn:io.subutai.plugin/spark-plugin-api/6.1.3-SNAPSHOT</bundle>
+    <bundle>mvn:io.subutai.plugin/spark-plugin-impl/6.1.3-SNAPSHOT</bundle>
+    <bundle>mvn:io.subutai.plugin/spark-plugin-cli/6.1.3-SNAPSHOT</bundle>
+    <bundle>mvn:io.subutai.plugin/spark-plugin-rest/6.1.3-SNAPSHOT</bundle>
   </feature>
-    <feature name="spark-plugin-war" version="6.1.2">
-        <bundle> war:mvn:io.subutai.plugin/spark-plugin-webui/6.1.2/war?Webapp-Context=spark-plugin-war</bundle>
+    <feature name="spark-plugin-war" version="6.1.3-SNAPSHOT">
+        <bundle> war:mvn:io.subutai.plugin/spark-plugin-webui/6.1.3-SNAPSHOT/war?Webapp-Context=spark-plugin-war</bundle>
     </feature>
 </features>
