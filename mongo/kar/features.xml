@@ -1,11 +1,11 @@
-<features name="mongo-plugin" version="6.1.3-SNAPSHOT">
-  <feature name="mongo-plugin" version="6.1.3-SNAPSHOT">
-    <bundle>mvn:io.subutai.plugin/mongo-plugin-api/6.1.3-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/mongo-plugin-impl/6.1.3-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/mongo-plugin-cli/6.1.3-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/mongo-plugin-rest/6.1.3-SNAPSHOT</bundle>
+<features name="mongo-plugin" version="6.3.6">
+  <feature name="mongo-plugin" version="6.3.6">
+    <bundle>mvn:io.subutai.plugin/mongo-plugin-api/6.3.6</bundle>
+    <bundle>mvn:io.subutai.plugin/mongo-plugin-impl/6.3.6</bundle>
+    <bundle>mvn:io.subutai.plugin/mongo-plugin-cli/6.3.6</bundle>
+    <bundle>mvn:io.subutai.plugin/mongo-plugin-rest/6.3.6</bundle>
   </feature>
-    <feature name="mongo-plugin-war" version="6.1.3-SNAPSHOT">
-        <bundle>war:mvn:io.subutai.plugin/mongo-plugin-webui/6.1.3-SNAPSHOT/war?Webapp-Context=mongo-plugin-war</bundle>
+    <feature name="mongo-plugin-war" version="6.3.6">
+        <bundle>war:mvn:io.subutai.plugin/mongo-plugin-webui/6.3.6/war?Webapp-Context=mongo-plugin-war</bundle>
     </feature>
 </features>

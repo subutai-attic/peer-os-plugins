@@ -1,11 +1,11 @@
-<features name="flume-plugin" version="6.1.3-SNAPSHOT">
-  <feature name="flume-plugin" version="6.1.3-SNAPSHOT">
-    <bundle>mvn:io.subutai.plugin/flume-plugin-api/6.1.3-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/flume-plugin-impl/6.1.3-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/flume-plugin-cli/6.1.3-SNAPSHOT</bundle>
-    <bundle>mvn:io.subutai.plugin/flume-plugin-rest/6.1.3-SNAPSHOT</bundle>
+<features name="flume-plugin" version="6.3.6">
+  <feature name="flume-plugin" version="6.3.6">
+    <bundle>mvn:io.subutai.plugin/flume-plugin-api/6.3.6</bundle>
+    <bundle>mvn:io.subutai.plugin/flume-plugin-impl/6.3.6</bundle>
+    <bundle>mvn:io.subutai.plugin/flume-plugin-cli/6.3.6</bundle>
+    <bundle>mvn:io.subutai.plugin/flume-plugin-rest/6.3.6</bundle>
   </feature>
-    <feature name="flume-plugin-war" version="6.1.3-SNAPSHOT">
-        <bundle> war:mvn:io.subutai.plugin/flume-plugin-webui/6.1.3-SNAPSHOT/war?Webapp-Context=flume-plugin-war</bundle>
+    <feature name="flume-plugin-war" version="6.3.6">
+        <bundle> war:mvn:io.subutai.plugin/flume-plugin-webui/6.3.6/war?Webapp-Context=flume-plugin-war</bundle>
     </feature>
 </features>

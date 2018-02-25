@@ -69,7 +69,7 @@ function HadoopCtrl(hadoopSrv, SweetAlert, DTOptionsBuilder, DTColumnDefBuilder)
     function addNode() {
 
         if (vm.currentCluster.environmentDataSource == "hub") {
-            SweetAlert.swal("Feature coming soon...", "This environment created on Hub. Please use Hub to manage it.", "success");
+            SweetAlert.swal("Feature coming soon...", "This environment created on Bazaar. Please use Bazaar to manage it.", "success");
 
             return;
         }

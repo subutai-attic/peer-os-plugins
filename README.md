@@ -1,23 +1,23 @@
-# Subutai Social Plugins repository
+# Subutai Console Plugins repository
 
-This repository contains source code of plugins for Subutai Social Console.
+This repository contains source code of plugins for Subutai Console.
 This is a multi-module Maven Java project.
 
-These plugins are available in Subutai Social Console's Bazaar and can be installed directly from there.
+These plugins are available in Subutai Console's Plugins section and can be installed directly from there.
 
 ## Building the project
 
 ###Prerequisites
 
-- Latest Subutai Social Console
+- Latest Subutai Console
 
-  [Installation](https://github.com/subutai-io/base/edit/dev/management)
+  [Installation](https://github.com/subutai-io/peer-os)
   
 ###Build steps
 
 - Clone the project by using:
 
-    `git clone https://github.com/subutai-io/plugins.git`
+    `git clone https://github.com/subutai-io/peer-os-plugins.git`
 
 - Start maven build:
 
@@ -31,9 +31,9 @@ These plugins are available in Subutai Social Console's Bazaar and can be instal
     ```bash
     bash karPuller.sh
     ```
-- Deploy file using Bazaar's Advanced tab.
+- Deploy file using Plugins's Advanced tab.
 
-    - Go to Bazaar -> Advanced on your Subutai Social Console and press "Upload new plugin"
+    - Go to Plugins -> Advanced on your Subutai Console and press "Upload new plugin"
     
     ![alt tag](http://i.imgur.com/h1ebTfm.png)
     
